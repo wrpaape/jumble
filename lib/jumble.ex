@@ -20,9 +20,6 @@ defmodule Jumble do
         unjumbled_rows =
           length
           |> LengthDict.get(string_id)
-          # |> Enum.filter(fn(word) -> 
-            # Helper.string_id(word) == string_id
-          # end)
           |> Helper.with_index(1)
           |> Enum.map_join(@unjumbled_spacer, fn({unjumbled, index}) ->
             jumble

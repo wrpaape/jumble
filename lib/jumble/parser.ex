@@ -4,7 +4,7 @@ defmodule Jumble.Parser do
   alias Gibran.Counter
 
   @stopwords Stopwords.get
-  @reg_split_propers ~r/(\b)[A-Z]\w+(\b)/
+  @reg_split_propers ~r/(?<lbound>\b)[A-Z]\w+(\s+[\d.]+)*(?<rbound>\b)/
 
   def parse(sentence) do
     {propers, impropers} =
@@ -19,13 +19,14 @@ defmodule Jumble.Parser do
 
   def parse_propers(sentence) do
     @reg_split_propers
-    |> Regex.split(sentence, on: :all_but_first, trim: :true)
+    |> Regex.split(sentence, on: :all_names, trim: :true)
+    |> IO.inspect
     |> partition_propers
   end
 
   def partition_propers(split_sentence = [head_token | _rest]) do
     split_sentence
-    |> Enum.reduce({{[], ""}, head_token =~ ~r/^[A-Z]/}, fn
+    |> Enum.reduce({{[], ""}, head_token =~ ~r/^[A-Z]\w/}, fn
       (seg, {{propers, impropers}, true}) ->
         {{[seg | propers], impropers}, false}
 

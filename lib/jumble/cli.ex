@@ -2,16 +2,17 @@ defmodule Jumble.CLI do
   @parse_opts [switches: [ help: :boolean],
                aliases:  [ h:    :help   ]]
 
+  @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
+
   alias Jumble.Helper
   alias Jumble.Solver
   alias Jumble.LengthDict
 
   # def main(argv) do
     # argv
-  def main(argv) do
-    IO.inspect argv
+  def main(argv \\ @argv_test) do
     # ~w(when/the/acupuncture/worked/the/patient/said/it/was?3/4/4 nagld/2/4/5 ramoj/3/4 camble/1/2/4 wraley/1/3/5)
-    # when the acupuncture worked the patient said it was
+    
     # job well done
     # ~w(clue?9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
     # portfolio
@@ -21,8 +22,7 @@ defmodule Jumble.CLI do
     # touchy subject
     argv
     |> parse_args
-    |> IO.inspect
-    # |> process
+    |> process
   end
 
   def process(:help) do
@@ -82,11 +82,6 @@ defmodule Jumble.CLI do
         |> Map.put_new(:jumble_maps, jumble_maps)
     end
   end
-
-  # def halve_on(string, pattern) do
-    # string
-    # |> String.split(pattern, parts: 2)
-  # end
 
   def split_on_slashes(string, opts \\ []) do
     string
