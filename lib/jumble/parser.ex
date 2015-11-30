@@ -15,15 +15,17 @@ defmodule Jumble.Parser do
   end
 
   def parse_propers(sentence) do
-    ~r/(\b)[A-Z]\w+(\b)/
-    |> Regex.split(sentence, on: :all_but_first, trim: :true)
-    |> partition_propers
+    {propers, impropers} =
+      ~r/(\b)[A-Z]\w+(\b)/
+      |> Regex.split(sentence, on: :all_but_first, trim: :true)
+      |> partition_propers
+
+    impropers
+    |> Gibran.Tokeniser.tokenise(exclude: @stopwords)
+    |> Enum.into(propers)
   end
 
   def partition_propers(split_sentence = [head_token | _rest]) do
-    head_token
-    |> IO.inspect
-
     split_sentence
     |> Enum.reduce({{[], ""}, head_token =~ ~r/^[A-Z]/}, fn
       (seg, {{propers, impropers}, true}) ->
