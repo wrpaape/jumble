@@ -3,7 +3,7 @@
 use Mix.Config
 
 length_dict_dir =
-  ~w(.. .. lib length_dict)
+  ~w(.. .. lib jumble length_dict)
   |> Path.join
   |> Path.expand(Mix.Project.build_path)
 

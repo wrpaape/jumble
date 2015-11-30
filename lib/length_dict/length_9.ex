@@ -1,8 +1,0 @@
-defmodule LengthDict.Length9 do
-  @length_9_length_dict %{'hilmnoosy' => ["homolysin"], 'abclosstu' => ["subcostal"], 'ceghinort' => ["trichogen"], 'eiknrrtty' => ["trinketry"], 'acegilntu' => ["cingulate"], 'beilnprtu' => ["blueprint"], 'fioopprty' => ["pityproof"], 'aadinnopt' => ["pandation"], 'aceghoprr' => ["cerograph"], 'cikpprrsu' => ["prickspur"], 'aceeelpss' => ["peaceless"], 'deinosuuv' => ["undevious"], 'cdeiorssu' => ["discourse"], 'Ddeelmoos' => ["Dolomedes"], 'bijnorsuu' => ["subjunior"], 'Paeiinnor' => ["Prioninae"], 'aceinnqsu' => ["squinance"], 'ceehlorsu' => ["lecherous"], 'aacdelprr' => ["placarder"], 'aceissttu' => ["suscitate"], 'aiilnssty' => ["antilysis"], 'iilopssst' => ["solipsist"], 'acgimmory' => ["microgamy"], 'afginorst' => ["forgainst"], 'aabcilnot' => ["botanical", "catabolin"], 'afloorsuv' => ["flavorous"], 'abcgilnry' => ["bracingly"], 'Eacehstty' => ["Esthacyte"], 'Daceilnuu' => ["Duculinae"], 'aeegoppst' => ["estoppage"], 'deinrstty' => ["dentistry"], 'aaloprrsu' => ["supraoral"], 'aeelprssy' => ["playeress"], 'eeinopppr' => ["pepperoni"], 'aalmnnnou' => ["nonmanual"], 'denorrstu' => ["undersort"], 'eeimmmrss' => ["mesmerism"], 'adeiiinns' => ["anisidine"], 'aeiilnrrt' => ["trilinear"], 'aadeilnuv' => ["unavailed"], 'addeinsuv' => ["unadvised"], 'aceenrrtu' => ["crenature"], 'Caacenorv' => ["Covarecan"], 'acehilmor' => ["chloremia"], 'aaenrsstv' => ["transvase"], 'eegilnntu' => ["ungentile"], 'ahilopsst' => ["thalposis"], 'acdeirssu' => ["cuirassed"], 'eeflnrtvy' => ["fervently"], 'eeillrssv' => [...], ...}
-  
-  def get(string_id) do
-    @length_9_length_dict
-    |> Map.get(string_id)
-  end
-end

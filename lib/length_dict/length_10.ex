@@ -1,8 +1,0 @@
-defmodule LengthDict.Length10 do
-  @length_10_length_dict %{'aciinoprst' => ["antipsoric", "ascription", "crispation"], 'Aacehinnor' => ["Acheronian"], 'adghinnprs' => ["handspring"], 'aeiimprstz' => ["prismatize"], 'aeiilmpprs' => ["misapplier"], 'defhooorst' => ["fosterhood"], 'ahnooppsty' => ["pantosophy"], 'abehlnntuu' => ["unhuntable"], 'Leiinoprst' => ["Linopteris"], 'accdenostu' => ["unaccosted"], 'adeeflprtu' => ["predefault"], 'accnnosstu' => ["concussant"], 'aafggiklmn' => ["flagmaking"], 'aehkmmorrw' => ["hammerwork"], 'acefnnosst' => ["confessant"], 'adddehirty' => ["dihydrated"], 'aeinossstv' => ["venostasis"], 'abcdiimnoy' => ["biodynamic"], 'abceiiilst' => ["bisilicate"], 'bcgiillotu' => ["globulitic"], 'aekloprstu' => ["outsparkle"], 'aehirsttww' => ["thwartwise"], 'accehirtvz' => ["czarevitch"], 'eiinprssss' => ["prissiness"], 'eiiimsstvy' => ["emissivity"], 'bceemmorsu' => ["cumbersome"], 'aceilmosst' => ["semicostal"], 'ceeeiklrss' => ["recesslike"], 'aaeehlmrtx' => ["hexametral"], 'bceeefhikr' => ["bekerchief"], 'aeinopprtu' => ["peptonuria"], 'Rabcceeims' => ["Rebeccaism"], 'abeeiorttx' => ["exorbitate"], 'eeehmnorrt' => ["nethermore"], 'addgilnnsu' => ["unsaddling"], 'aaceiillno' => ["alienicola"], 'aademrrsty' => ["yardmaster"], 'dehiimorty' => ["idiothermy"], 'addeefhnor' => ["forehanded"], 'deelorttuv' => ["turtledove"], 'Paeiilnops' => ["Papiliones"], 'adehiinnru' => ["hirudinean"], 'adddegjnuu' => ["unadjudged"], 'Saeeeeglns' => ["Senegalese"], 'eghiilnnps' => ["plenishing"], 'ceiiilnuvz' => ["uncivilize"], 'aceimnpttu' => ["impunctate"], 'aaablmrstu' => ["alabastrum"], 'aaaciklrtu' => ["autarkical"], 'ehmoopstty' => [...], ...}
-  
-  def get(string_id) do
-    @length_10_length_dict
-    |> Map.get(string_id)
-  end
-end

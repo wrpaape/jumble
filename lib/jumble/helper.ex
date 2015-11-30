@@ -8,7 +8,7 @@ defmodule Jumble.Helper do
   def cap(string, lcap, rcap), do: lcap <> string <> rcap
   def cap(string, cap),        do:  cap <> string <> cap
 
-  # def pad(pad_length), do: String.duplicate(" ", pad_length)
+  def pad(pad_length), do: String.duplicate(" ", pad_length)
 
   def with_index(collection, initial) do
     collection

@@ -1,8 +1,10 @@
-defmodule LengthDict.Builder do
+defmodule Jumble.LengthDict.Builder do
+  alias Jumble.Helper
+
   @dict_path Application.get_env(:jumble, :dict_path)
   @dir       Application.get_env(:jumble, :length_dict_dir)
+  @indent    Helper.pad(25)
 
-  alias Jumble.Helper
 
   def build do
     @dict_path
@@ -17,15 +19,17 @@ defmodule LengthDict.Builder do
       string_id_map = 
         words
         |> Enum.group_by(&Helper.string_id/1)
-        |> inspect
+        |> inspect(pretty: :true, limit: :infinity)
+        |> String.replace(~r/(?<=\n)/, @indent)
 
       module_attr =
         length_string
         |> Helper.cap("@length_", "_length_dict")
+        |> String.ljust(22)
 
       contents =
         """
-        defmodule LengthDict.Length#{length} do
+        defmodule Jumble.LengthDict.Length#{length} do
           #{module_attr} #{string_id_map}
           
           def get(string_id) do
