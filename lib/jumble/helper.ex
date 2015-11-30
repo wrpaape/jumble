@@ -40,22 +40,41 @@ defmodule Jumble.Helper do
 
   end
 
-  def pick_letter(next_pick, string_id) do
-    next_pick <> string_id
+  def shift_times({list1, list2}, 0), do: {Enum.reverse(list1), list2}
+  def shift_times({list1, [list2_head | list2_tail]}, num_shifts) do
+    {[list2_head | list1], list2_tail}
+    |> shift_times(num_shifts - 1)
   end
 
-  def pick_unique_string_ids([pick_length | rem_pick_lengths], letter_bank) do
-    letter_bank
-    |> Enum.map_reduce("", fn(next_pick, {string_id, [next_pick | rem_letters]}) ->
-      next_pick
-      |> pick_letter()
+  def split_list_at(list, split_index) do
+    {[], list}
+    |> shift_times(split_index)
+  end
+
+  def pick_next_letter({pick_pool = [_dropped | pick_pool_tail], [downstream_head | next_downstream]}, num_rem_picks, string_id \\ "") do
+    pick_pool
+    |> Enum.map(fn(pick) ->
+      next_pick_pool =
+        pick_pool_tail
+        |> List.insert_at(-1, downstream_head)
+
+      {next_pick_pool, next_downstream}
+      |> pick_next_letter(num_rem_picks - 1, string_id <> pick)
     end)
 
-    inital_pick_pool
-    |> Enum.map
-    |> next_pick
-    
-    pick_unique_string_ids(rem_pick_lengths, rem_letters)
+
+    pick <> pick_next_letter( num_rem_picks - 1)
+  end
+
+  def pick_letters(pick_length, pick_pool) do
+    pick_pool
+    |> split_list_at(length(pick_pool) - pick_length)
+    |> pick_next_letter(pick_length)
+  end
+
+  def pick_unique_string_ids([next_pick_length | rem_pick_lengths], rem_letters, unique_string_ids \\ []) do
+    next_pick_length
+    |> pick_letters(rem_letters)
   end
 
   def valid_answers(letter_bank, string_lengths) do
@@ -73,10 +92,10 @@ defmodule Jumble.Helper do
     end)
   end
 
-  def generate_pick_pools([]), do: []
-  def generate_pick_pools(pool = [_dropped | next_pools]) do
-    [pool | generate_pick_pools(next_pools)]
-  end
+  # def generate_pick_pools([]), do: []
+  # def generate_pick_pools(pool = [_dropped | next_pools]) do
+  #   [pool | generate_pick_pools(next_pools)]
+  # end
   # 3 / 4 / 4
   # ["y", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
 end
