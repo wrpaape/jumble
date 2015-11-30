@@ -1,0 +1,48 @@
+defmodule Jumble.LengthDict.Length22 do
+  @length_22_length_dict %{'aacehllmooooopprrsttyy' => ["laparocolpohysterotomy"],
+                           'aceeghhhilooooppprrstt' => ["photospectroheliograph"],
+                           'aacehhhiillmnnnoppstuy' => ["naphthylaminesulphonic"],
+                           'aabccdeehlnnooorrrstyy' => ["dacryocystoblennorrhea"],
+                           'aadeeehhiiilmnnnoprtxy' => ["hexanitrodiphenylamine"],
+                           'aaceeimnooorrsssstttuy' => ["ureterocystanastomosis"],
+                           'aaccegghiilloooooorstz' => ["zoologicoarchaeologist"],
+                           'cceehiilmnoooppssttuyy' => ["pyopneumocholecystitis"],
+                           'accdgimnoooorrssttyyyy' => ["dacryocystosyringotomy"],
+                           'aaaccghiiillmnoooopsty' => ["anatomicophysiological"],
+                           'accceeiimmnnnooorttuux' => ["counterexcommunication"],
+                           'cccdehiiiiiloooorrsstt' => ["scleroticochorioiditis"],
+                           'aaccghhhillnoooopprrty' => ["photochronographically"],
+                           'aacceeeeghhllnoopprrty' => ["electroencephalography"],
+                           'ccdddeehhlmnoooooostuy' => ["choledochoduodenostomy"],
+                           'aaaccegimnoooprrssttty' => ["pancreaticogastrostomy"],
+                           'aacdehhimoooprrrtttyyy' => ["thyroparathyroidectomy"],
+                           'ccddeehlmnooooossttuyy' => ["cholecystoduodenostomy",
+                            "duodenocholecystostomy"],
+                           'aceeehiiilllmnoooppsty' => ["polioencephalomyelitis"],
+                           'acceeehhhlnooprrrsttyy' => ["cholecystenterorrhaphy"],
+                           'abccehiiijlnnooprsttuv' => ["blepharoconjunctivitis"],
+                           'aacceeghhiillmooopstty' => ["theologicometaphysical"],
+                           'aaeeeeeehhilmmnnrtttxy' => ["hexamethylenetetramine"],
+                           'aadehhiimnnoooopprrttz' => ["deanthropomorphization"],
+                           'aacceghiillmnooooorstt' => ["theologicoastronomical"],
+                           'acchhhiiiilloooopprsst' => ["philosophicohistorical"],
+                           'aceeghhimoooopprrrstty' => ["stereophotomicrography"],
+                           'aaeeeiilmnnnnooprrsstt' => ["nonrepresentationalism"],
+                           'Padghhiilmooooopprrrss' => ["Prorhipidoglossomorpha"],
+                           'aeeeeeiimnnnoprrsssttv' => ["omnirepresentativeness"],
+                           'cceeehiinnnooprsssstuy' => ["hyperconscientiousness"],
+                           'aaabcceeiilmmnnoopqttu' => ["aquopentamminecobaltic"],
+                           'aaabbccchiiiilloorsstt' => ["historicocabbalistical"],
+                           'acddeehiimmnoopprrruuy' => ["hydropneumopericardium",
+                            "pneumohydropericardium"],
+                           'cddeelmnnoooooopsstuuy' => ["pseudomonocotyledonous"],
+                           'accceiillmnooprrrsttyy' => ["microcryptocrystalline"],
+                           'aadeeghhiillmmnnooopty' => ["lymphangioendothelioma"],
+                           'ceeeeeeehllmmoorrrtttt' => ["electrotelethermometer"],
+                           'aceeghilmnnoopprrtuuvy' => ["pneumoventriculography"]}
+  
+  def get(string_id) do
+    @length_22_length_dict
+    |> Map.get(string_id)
+  end
+end
