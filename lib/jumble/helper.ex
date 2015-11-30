@@ -51,40 +51,15 @@ defmodule Jumble.Helper do
     |> shift_times(split_index)
   end
 
-  def pick_next_letter({next_word_pick_pool, downstream}, 0, string_id, acc_string_ids, acc_answer_ids) do
-    next_word_lengths
-    |> pick_next_word(next_word_pick_pool, [string_id | acc_string_ids], acc_answer_ids)
-  end
-
-  def pick_next_letter({pick_pool = [_dropped | pick_pool_tail], [downstream_head | next_downstream]}, num_rem_picks, string_id \\ "", acc_string_ids \\ [], acc_answer_ids \\ []) do
-    pick_pool
-    |> Enum.map(fn(pick) ->
-      next_pick_pool =
-        pick_pool_tail
-        |> List.insert_at(-1, downstream_head)
-
-      {next_pick_pool, next_downstream}
-      |> pick_next_letter(num_rem_picks - 1, string_id <> pick, acc_string_ids, acc_answer_ids)
+  def part_dups(list) do
+    list
+    |> Enum.reduce({[], []}, fn(el, {uniqs, dups}) ->
+      if el in uniqs do
+        {uniqs, [el | dups]}
+      else
+        {[el | uniqs], dups}
+      end
     end)
-
-
-    pick <> pick_next_letter( num_rem_picks - 1)
-  end
-
-
-  def pick_next_word([], [], unique_string_ids), do: unique_string_ids
-
-  def pick_next_word([word_length | next_word_lengths], pick_pool, acc_answer_ids) do
-    pick_pool
-    |> split_list_at(length(pick_pool) - word_length)
-    |> pick_next_letter(word_length, acc_answer_ids)
-  end
-
-  def pick_next_answer_ids([], _, acc_answer_ids), do: acc_answer_ids
-
-  def pick_next_answer_ids(pick_lengths, initial_word_bank, acc_answer_ids \\ []) do
-    pick_lengths
-    |> pick_next_word(initial_word_bank, [])
   end
 
   def valid_answers(letter_bank, string_lengths) do
@@ -116,6 +91,41 @@ end
 
 
 
+  # def pick_next_letter({next_word_pick_pool, downstream}, 0, string_id, acc_string_ids, acc_answer_ids) do
+  #   next_word_lengths
+  #   |> pick_next_word(next_word_pick_pool, [string_id | acc_string_ids], acc_answer_ids)
+  # end
+
+  # def pick_next_letter({pick_pool = [_dropped | pick_pool_tail], [downstream_head | next_downstream]}, num_rem_picks, string_id \\ "", acc_string_ids \\ [], acc_answer_ids \\ []) do
+  #   pick_pool
+  #   |> Enum.map(fn(pick) ->
+  #     next_pick_pool =
+  #       pick_pool_tail
+  #       |> List.insert_at(-1, downstream_head)
+
+  #     {next_pick_pool, next_downstream}
+  #     |> pick_next_letter(num_rem_picks - 1, string_id <> pick, acc_string_ids, acc_answer_ids)
+  #   end)
+
+
+  #   pick <> pick_next_letter( num_rem_picks - 1)
+  # end
+
+
+  # def pick_next_word([], [], unique_string_ids), do: unique_string_ids
+
+  # def pick_next_word([word_length | next_word_lengths], pick_pool, acc_answer_ids) do
+  #   pick_pool
+  #   |> split_list_at(length(pick_pool) - word_length)
+  #   |> pick_next_letter(word_length, acc_answer_ids)
+  # end
+
+  # def pick_next_answer_ids([], _, acc_answer_ids), do: acc_answer_ids
+
+  # def pick_next_answer_ids(pick_lengths, initial_word_bank, acc_answer_ids \\ []) do
+  #   pick_lengths
+  #   |> pick_next_word(initial_word_bank, [])
+  # end
 
 
 
