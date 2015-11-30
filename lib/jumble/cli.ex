@@ -8,17 +8,21 @@ defmodule Jumble.CLI do
 
   # def main(argv) do
     # argv
-  def main do
+  def main(argv) do
+    IO.inspect argv
     # ~w(when/the/acupuncture/worked/the/patient/said/it/was?3/4/4 nagld/2/4/5 ramoj/3/4 camble/1/2/4 wraley/1/3/5)
+    # when the acupuncture worked the patient said it was
     # job well done
     # ~w(clue?9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
     # portfolio
     # ~w(clue?4/5 ylsyh/1/4 setgu/1/4 lasivu/1/3/5 nofdef/1/4)
     # loss vegas
-    ~w(clue?6/7 hnuck/1/2/3 turet/1/2/3 birsec/1/2/5/6 pajloy/1/4/6)
+    # ~w(clue?6/7 hnuck/1/2/3 turet/1/2/3 birsec/1/2/5/6 pajloy/1/4/6)
     # touchy subject
+    argv
     |> parse_args
-    |> process
+    |> IO.inspect
+    # |> process
   end
 
   def process(:help) do
@@ -50,7 +54,7 @@ defmodule Jumble.CLI do
       {_, [clue_string | jumble_strings], _} ->
         {clue, final_lengths} =
           clue_string
-          |> halve_on(~r{\?})
+          |> split_on_slashes(parts: 2)
           |> parse_arg_strings
 
         jumble_maps =
@@ -79,14 +83,14 @@ defmodule Jumble.CLI do
     end
   end
 
-  def halve_on(string, pattern) do
-    string
-    |> String.split(pattern, parts: 2)
-  end
+  # def halve_on(string, pattern) do
+    # string
+    # |> String.split(pattern, parts: 2)
+  # end
 
-  def split_on_slashes(string) do
+  def split_on_slashes(string, opts \\ []) do
     string
-    |> String.split(~r{/})
+    |> String.split(~r{/}, opts)
   end
 
   def parse_arg_strings([message_string, final_lengths_string]) do
@@ -96,7 +100,7 @@ defmodule Jumble.CLI do
   def parse_arg_strings(jumble_string) do
     [arg, ints_string] =
       jumble_string
-      |> halve_on(~r{/})
+      |> split_on_slashes(parts: 2)
 
     {arg, parse_ints(ints_string)}
   end
