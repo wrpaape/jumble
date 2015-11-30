@@ -10,13 +10,24 @@ defmodule Jumble.Picker do
 
   # def next_picks(pool, acc_word) when Enum.empty?(pool), do: acc_word
 
+  def generate_pool_map(letters) do
+    letters
+    |> Helper.with_index(1)
+    |> Enum.into(Map.new)
+    |> Helper.with_uniqs_cache
+  end
+
   def generate_word_pools(pool, word_length) do
-    {possible_next_picks, next_pool} =
+    unique_next_picks =
       pool
-      |> Helper.part_dups
+      |> Helper.keys_of_unique_vals
 
     possible_next_picks
-    |> Enum.map(fn({index, pick}) ->
+    |> Enum.map(fn(index) ->
+      {pick, next_pool} =
+        pool
+        |> Map.pop(index)
+
       {Map.delete(pool, index), acc_word <> pick, rem_num_picks - 1}
 
       unique_string_ids(word_length)
@@ -45,7 +56,7 @@ defmodule Foo do
   def picks_and_next_pools([el1, el2]),   do: [{el1, [el2]}]
   def picks_and_next_pools([head | tail]), do: [{head, tail} | picks_and_next_pools(tail)]
 
-  def partition_dup_keys(map) do
+  def partition_by_dup_vals(map) do
     map
     |> Enum.reduce({%{}, %{}, %HashSet{}}, fn({key, val}, {uniq_map, dup_map, uniq_set}) ->
       if Set.member?(uniq_set, val) do
@@ -55,6 +66,32 @@ defmodule Foo do
       end
     end)
     |> Tuple.delete_at(2)
+  end
+
+  def update_uniq_set(next_map = %{uniq_set: uniq_set}, last_pick) do
+    next_map
+    |> Map.update(:uniq_set)
+  end
+
+  def with_uniqs_cache(map) do
+    map
+    |> Enum.reduce(Map.put(map, :uniq_set, HashSet.new), fn({key, val}, acc_map) ->
+      acc_map
+      |> Map.update!(:uniq_set, &Set.put(&1, val))
+      |> Map.update(val, 0, &(&1 + 1))
+    end)
+  end
+
+  def keys_of_unique_vals(map) do
+    map
+    |> Enum.reduce({[], HashSet.new}, fn({key, val}, acc = {uniq_list, uniq_set}) ->
+      if Set.member?(uniq_set, val) do
+        acc
+      else
+        {[key | uniq_list], uniq_set |> Set.put(val)}
+      end
+    end)
+    |> elem(0)
   end
 end
 

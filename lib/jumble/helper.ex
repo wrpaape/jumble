@@ -51,14 +51,35 @@ defmodule Jumble.Helper do
     |> shift_times(split_index)
   end
 
-  def part_dups(list) do
-    list
-    |> Enum.reduce({[], []}, fn(el, {uniqs, dups}) ->
-      if el in uniqs do
-        {uniqs, [el | dups]}
+  def partition_by_dup_vals(map) do
+    map
+    |> Enum.reduce({%{}, %{}, %HashSet{}}, fn({key, val}, {uniq_map, dup_map, uniq_set}) ->
+      if Set.member?(uniq_set, val) do
+        {uniq_map, Map.put(dup_map, key, val), uniq_set}
       else
-        {[el | uniqs], dups}
+        {Map.put(uniq_map, key, val), dup_map, Set.put(uniq_set, val)}
       end
+    end)
+    |> Tuple.delete_at(2)
+  end
+  def keys_of_unique_vals(map) do
+    map
+    |> Enum.reduce({[], HashSet.new}, fn({key, val}, acc = {uniq_list, uniq_set}) ->
+      if Set.member?(uniq_set, val) do
+        acc
+      else
+        {[key | uniq_list], uniq_set |> Set.put(val)}
+      end
+    end)
+    |> elem(0)
+  end
+  def inverse_and_merge(map) do
+    map
+    |> Enum.reduce(map, fn({key, val}, acc_map) ->
+      acc_map
+      |> Map.update(val, [key], fn(key_list) ->
+        [key | key_list]
+      end)
     end)
   end
 
