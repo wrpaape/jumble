@@ -1,7 +1,7 @@
 defmodule Jumble.Helper do
   def string_id(string) do
     string
-    |> String.to_char_list
+    |> String.code_points
     |> Enum.sort
   end
 

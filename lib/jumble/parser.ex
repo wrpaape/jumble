@@ -1,3 +1,39 @@
 defmodule Parser do
-  @stopwords ~w(a about above after again against all am an and any are aren't as at be because been before being below between both but by can't cannot could couldn't did didn't do does doesn't doing don't down during each few for from further had hadn't has hasn't have haven't having he he'd he'll he's her here here's hers herself him himself his how how's i i'd i'll i'm i've if in into is isn't it it's its itself let's me more most mustn't my myself no nor not of off on once only or other ought our ours ourselves out over own same shan't she she'd she'll she's should shouldn't so some such than that that's the their theirs them themselves then there there's these they they'd they'll they're they've this those through to too under until up very was wasn't we we'd we'll we're we've were weren't what what's when when's where where's which while who who's whom why why's with won't would wouldn't you you'd you'll you're you've your yours yourself yourselves a's able according accordingly across actually afterwards ain't allow allows almost alone along already also although always among amongst another anybody anyhow anyone anything anyway anyways anywhere apart appear appreciate appropriate around aside ask asking associated available away awfully became become becomes becoming beforehand behind believe beside besides best better beyond brief c'mon c's came can cant cause causes certain certainly changes clearly co com come comes concerning consequently consider considering contain containing contains corresponding course currently definitely described despite different done downwards edu eg eight either else elsewhere enough entirely especially et etc even ever every everybody everyone everything everywhere ex exactly example except far fifth first five followed following follows former formerly forth four furthermore get gets getting given gives go goes going gone got gotten greetings happens hardly hello help hence hereafter hereby herein hereupon hi hither hopefully howbeit however ie ignored immediate inasmuch inc indeed indicate indicated indicates inner insofar instead inward it'd it'll just keep keeps kept know known knows last lately later latter latterly least less lest let like liked likely little look looking looks ltd mainly many may maybe mean meanwhile merely might moreover mostly much must name namely nd near nearly necessary need needs neither never nevertheless new next nine nobody non none noone normally nothing novel now nowhere obviously often oh ok okay old one ones onto others otherwise outside overall particular particularly per perhaps placed please plus possible presumably probably provides que quite qv rather rd re really reasonably regarding regardless regards relatively respectively right said saw say saying says second secondly see seeing seem seemed seeming seems seen self selves sensible sent serious seriously seven several shall since six somebody somehow someone something sometime sometimes somewhat somewhere soon sorry specified specify specifying still sub sup sure t's take taken tell tends th thank thanks thanx thats thence thereafter thereby therefore therein theres thereupon think third thorough thoroughly though three throughout thru thus together took toward towards tried tries truly try trying twice two un unfortunately unless unlikely unto upon us use used useful uses using usually value various via viz vs want wants way welcome well went whatever whence whenever whereafter whereas whereby wherein whereupon wherever whether whither whoever whole whose will willing wish within without wonder yes yet zero)
+  alias Jumble.Parser.Stopwords
+  alias Gibran.Tokeniser
+  alias Gibran.Counter
+
+  @stopwords Stopwords.get
+
+  def parse(sentence) do
+    {propers, impropers} =
+      sentence
+      |> parse_propers
+
+    Tokeniser.tokenise
+  end
+
+  def parse_propers(sentence) do
+        ~r/(\b)[A-Z]\w+(\b)/
+        |> Regex.split(sentence, on: :all_but_first, trim: :true)
+        |> partition_propers
+
+      if head_token =~ ~r/[A-Z]/ do
+        impropers =
+          tail_tokens
+          |> Enum.take_every(2)
+        propers =
+          split_sentence
+          |> Enum.take_every(2)
+      else
+
+      end
+
+
+  end
+
+  def partition_propers(split_sentence = [head_token | _rest]) do
+
+
+  end
 end
