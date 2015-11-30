@@ -1,9 +1,12 @@
 defmodule LengthDict.Builder do
+  @dict_path Application.get_env(:jumble, :dict_path)
+  @dir       Application.get_env(:jumble, :length_dict_dir)
+
   alias Jumble.Helper
-  # "/Users/Reid/my_projects/babby_elixir/scramble/jumble/lib/dictionary"
 
   def build do
-    File.read!("/usr/share/dict/words")
+    @dict_path
+    |>File.read!
     |> String.split
     |> Enum.group_by(&String.length/1)
     |> Enum.each(fn({length, words}) ->
@@ -13,7 +16,7 @@ defmodule LengthDict.Builder do
 
       string_id_map = 
         words
-        |> Enum.group_by(&Helper.string_id)
+        |> Enum.group_by(&Helper.string_id/1)
         |> inspect
 
       module_attr =
@@ -21,19 +24,20 @@ defmodule LengthDict.Builder do
         |> Helper.cap("@length_", "_length_dict")
 
       contents =
-      """
-      defmodule LengthDict.Length#{length}
-        #{module_attr} #{string_id_map}
-        
-        def get(string_id) do
-          #{module_attr}
-          |> Map.get(string_id)
+        """
+        defmodule LengthDict.Length#{length} do
+          #{module_attr} #{string_id_map}
+          
+          def get(string_id) do
+            #{module_attr}
+            |> Map.get(string_id)
+          end
         end
-      end
-      """
+        """
 
-      length
+      length_string
       |> Helper.cap("length_", ".ex")
+      |> Path.expand(@dir)
       |> File.write(contents)
     end)
   end
