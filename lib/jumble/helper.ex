@@ -1,8 +1,9 @@
 defmodule Jumble.Helper do
   def string_id(string) do
     string
-    |> String.code_points
+    |> String.codepoints
     |> Enum.sort
+    |> Enum.join
   end
 
   def cap(string, lcap, rcap), do: lcap <> string <> rcap

@@ -1,4 +1,4 @@
-defmodule Parser do
+defmodule Jumble.Parser do
   alias Jumble.Parser.Stopwords
   alias Gibran.Tokeniser
   alias Gibran.Counter
@@ -9,31 +9,29 @@ defmodule Parser do
     {propers, impropers} =
       sentence
       |> parse_propers
+      |> IO.inspect
 
-    Tokeniser.tokenise
+    # Tokeniser.tokenise
   end
 
   def parse_propers(sentence) do
-        ~r/(\b)[A-Z]\w+(\b)/
-        |> Regex.split(sentence, on: :all_but_first, trim: :true)
-        |> partition_propers
-
-      if head_token =~ ~r/[A-Z]/ do
-        impropers =
-          tail_tokens
-          |> Enum.take_every(2)
-        propers =
-          split_sentence
-          |> Enum.take_every(2)
-      else
-
-      end
-
-
+    ~r/(\b)[A-Z]\w+(\b)/
+    |> Regex.split(sentence, on: :all_but_first, trim: :true)
+    |> partition_propers
   end
 
   def partition_propers(split_sentence = [head_token | _rest]) do
+    head_token
+    |> IO.inspect
 
+    split_sentence
+    |> Enum.reduce({{[], ""}, head_token =~ ~r/^[A-Z]/}, fn
+      (seg, {{propers, impropers}, true}) ->
+        {{[seg | propers], impropers}, false}
 
+      (seg, {{propers, impropers}, false}) ->
+        {{propers, impropers <> seg}, true}
+    end)
+    |> elem(0)
   end
 end
