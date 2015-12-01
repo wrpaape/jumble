@@ -7,7 +7,7 @@ defmodule Jumble do
   @jumble_spacer    "\n\n" <> ANSI.white
   @unjumbled_spacer "\n  " <> ANSI.yellow
   @cc_spacer          ". " <> ANSI.red
-  @header   ANSI.underline <> ANSI.cyan <> "JUMBLES:\n" <> ANSI.no_underline <> ANSI.white
+  @header   ANSI.underline <> ANSI.blue <> "JUMBLES:\n" <> ANSI.no_underline <> ANSI.white
 
   def start(%{jumble_maps: jumble_maps}) do
     jumbles = 

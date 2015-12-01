@@ -1,10 +1,9 @@
 defmodule Jumble.Solver do
-  # def get(key) do
-  #   __MODULE__
-  #   |> Agent.get(Map, :get, [key])
-  # end
+  alias IO.ANSI
   alias Jumble.Helper
 
+  @unjumbleds_sol_spacer "\n  "   <> ANSI.magenta
+  @clue_sol_spacer       "\n    " <> ANSI.cyan
 
   def solve do
     __MODULE__
@@ -35,13 +34,19 @@ defmodule Jumble.Solver do
 
   def solve(%{clue: clue, final_lengths: final_lengths, jumble_maps: jumble_maps}) do
     jumble_maps
-    |> Enum.sort_by(fn({_jumble, %{jumble_index: jumble_index}}) ->
-      jumble_index
-    end)
+    |> Enum.sort_by(&(elem(&1, 1).jumble_index))
     |> Enum.map(fn({jumble, %{unjumbleds: unjumbleds}}) ->
       unjumbleds
     end)
     |> Helper.combinations
+    |> Enum.map(fn(sol_combo) ->
+      # {}
+      sol_combo
+      |> Enum.flat_map_reduce(@unjumbleds_sol_spacer, fn({unjumbled, key_letters}, unjumbled_sol) ->
+        {key_letters, Helper.cap(" ", unjumbled, unjumbled_sol)}
+      end)
+
+    end)
     |> IO.inspect
     # |> Enum.map(fn(answers) ->
     #   answers

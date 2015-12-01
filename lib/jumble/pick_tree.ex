@@ -4,8 +4,8 @@ defmodule Jumble.PickTree do
   alias Jumble.Helper
 
   def start_link(total_word_bank, all_word_lengths) do
-    LengthDict
-    |> Agent.start_link(:build_dict, [[3, 4]], name: LengthDict)
+    # LengthDict
+    # |> Agent.start_link(:build_dict, [[3, 4]], name: LengthDict)
 
     __MODULE__
     |> Agent.start_link(:init_master_tree, [total_word_bank, all_word_lengths], name: __MODULE__)
@@ -61,7 +61,7 @@ defmodule Jumble.PickTree do
 
     sorted_word_bank =
       word_bank
-      |> Enum.sort(&(&1 > &2))
+      |> Enum.sort(&>=/2)
 
     [first_word_length | rem_word_lengths] =
       ordered_word_lengths
