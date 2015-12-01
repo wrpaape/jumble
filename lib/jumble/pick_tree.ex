@@ -34,14 +34,14 @@ defmodule Jumble.PickTree do
     stash_pid
     |> Agent.get(fn
       ({last_rem_letters, [next_word_length | rem_word_lengths], last_acc_finished_letters}) ->
-        acc_finished_letters =
+        acc_fininished_letters =
           [finished_letters | last_acc_finished_letters]
 
         rem_letters =
           last_rem_letters -- finished_letters
 
         {:ok, stash_pid} =
-          {rem_letters, rem_word_lengths, acc_finished_letters}
+          {rem_letters, rem_word_lengths, acc_fininished_letters}
           |> stash_root_state
 
         {rem_letters, next_word_length, stash_pid}
