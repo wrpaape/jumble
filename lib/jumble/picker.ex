@@ -8,7 +8,7 @@ defmodule Jumble.Picker do
     {initial_valid_picks, initial_downstream_picks} =
       rem_letters
       |> Enum.split(1 - word_length)
-    
+
     {initial_valid_picks, initial_downstream_picks, []}
     |> pick_letters(stash_pid)
   end
@@ -19,7 +19,7 @@ defmodule Jumble.Picker do
     last_valid_picks
     |> Enum.each(fn(last_pick) ->
       stash_pid
-      |> PickTree.next_root_state([last_pick | acc_letters])      
+      |> PickTree.next_root_state([last_pick | acc_letters])
       |> case do
         {next_rem_letters, next_word_length, next_stash_pid} ->
           next_rem_letters
@@ -27,6 +27,7 @@ defmodule Jumble.Picker do
 
         {:done, words} ->
           words
+          |> IO.inspect
           |> PickTree.process_result
       end
     end)
