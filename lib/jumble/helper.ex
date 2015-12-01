@@ -28,7 +28,6 @@ defmodule Jumble.Helper do
     |> Enum.map_reduce(initial, fn(el, acc) ->
       {{acc, el}, acc + 1}
     end)
-    |> elem(0)
   end
 
   def combinations([last_list | []], els, acc) do
@@ -84,22 +83,45 @@ defmodule Jumble.Helper do
 
   def with_uniqs_cache(list) do
     list
-    |> Enum.reduce(%{uniq_set: HashSet.new}, fn(el, acc_map) ->
+    |> Enum.reduce(%{uniq_sorted: []}, fn(el, acc_map) ->
       acc_map
-      |> Map.update!(:uniq_set, &Set.put(&1, el))
+      |> Map.update!(:uniq_sorted, fn(uniq) ->
+        if el in uniq, do: uniq, else: [el | uniq]
+      end)
       |> Map.update(el, 1, &(&1 + 1))
     end)
+    |> Map.update!(:uniq_sorted, &Enum.sort/1)
   end
-  
-  def update_uniq_set(map, got_val) do
+
+  # def update_uniq_sorted(map, el) do
+    # map
+    # |> Map.get(:uniq_sorted)
+    # |> case
+  # end
+
+  def reset_uniq_sorted(map, el) do
     map
-    |> Map.get(got_val)
+    |> Map.get(el)
     |> case do
-      1 -> map |> Map.update!(:uniq_set, &Set.put(&1, got_val))
-      0 -> map |> Map.update!(:uniq_set, &Set.delete(&1, got_val))
+      0 -> map
+        |> Map.update!(:uniq_sorted, &List.delete(&1, el))
+
+      1 -> map
+        |> Map.update!(:uniq_sorted, fn(uniq_sorted) ->
+          uniq_sorted
+          |> Enum.split_while(&(&1 < el))
+          |> case do
+            {_less_than_el, [^el | _greater_than_el]} -> uniq_sorted
+            {less_than_el,  greater_than_el} ->
+              less_than_el
+              |> Enum.concat([el | greater_than_el])
+          end
+        end)
+
       _ -> map
     end
   end
+
 
   def inverse_and_merge(map) do
     map

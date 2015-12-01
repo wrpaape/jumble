@@ -52,6 +52,26 @@ defmodule Jumble.Solver do
     # |> Helper.permutations
     # |> IO.inspect
   end
+
+  def start_next_word(last_pool, next_word_length) do
+    last_pool
+    |> Map.drop([:initial_pick_size, :last_letter_key])
+    |> Map.values
+    |> next_word_pool(next_word_length)
+    |> pick_next_letter(next_word_length)
+  end
+
+  def next_word_pool(rem_letters, next_word_length) do
+    {indexed_pool, pool_length_plus_one} =
+      rem_letters
+      |> Enum.sort
+      |> Helper.with_index(1, :lead)
+
+    indexed_pool
+    |> Enum.into(Map.new)
+    |> Map.put(:initial_pick_size, pool_length_plus_one - next_word_length)
+    |> Map.put(:last_letter_key, pool_length_plus_one - 1)
+  end
 end
 
 # word_lengths = [3, 4, 4]
