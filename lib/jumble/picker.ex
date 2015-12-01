@@ -1,45 +1,108 @@
-defmodule Jumble.Picker do
-  alias Jumble.PickTree
+# defmodule Jumble.Picker do
+#   alias Jumble.PickTree
 
-  def pick_letter(next_word_pool, 1, finished_letters, stash_pid) do
-    IO.puts("finished word")
-    IO.inspect({next_word_pool, finished_letters})
+#   def pick_letter(next_word_pool, 1, finished_letters, stash_pid) do
+#     IO.puts("finished word")
+#     IO.inspect({next_word_pool, finished_letters})
 
-    stash_pid
-    |> PickTree.next_root_state(finished_letters)
-    |> case do
-      {next_word_pool, next_word_length, next_stash_pid} ->
-        __MODULE__
-        |> spawn(:next_word, [next_word_pool, next_word_length, next_stash_pid])
+#     stash_pid
+#     |> PickTree.next_root_state(finished_letters)
+#     |> case do
+#       {next_word_pool, next_word_length, next_stash_pid} ->
+#         __MODULE__
+#         |> spawn(:next_word, [next_word_pool, next_word_length, next_stash_pid])
 
-      result ->
-        result
-        |> PickTree.report_result
-    end
+#       result ->
+#         result
+#         |> PickTree.report_result
+#     end
 
-    Agent.stop(stash_pid)
+#     Agent.stop(stash_pid)
+#   end
+
+#   def pick_letter(rem_pool, drop_index, acc_letters, stash_pid) do
+
+#     IO.inspect(rem_pool)
+#     IO.inspect(drop_index)
+#     IO.inspect(acc_letters)
+
+#     rem_pool
+#     |> Enum.drop(drop_index)
+#     |> Enum.reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
+#       __MODULE__
+#       |> spawn(:pick_letter, [next_rem_pool, drop_index + 1, [next_pick | acc_letters], stash_pid])
+
+#       next_rem_pool
+#     end)
+#   end
+
+#   def next_word(next_word_pool, next_word_length, stash_pid) do
+#     next_word_pool
+#     |> Enum.sort
+#     |> pick_letter(1 - next_word_length, [], stash_pid)
+#   end
+
+
+
+  def start_next_word(rem_letters, word_length, stash_pid) do
+    # initial_slice_to =
+    #   -(word_length - 1)
+
+    {initial_valid_picks, initial_downstream_picks} =
+      rem_letters
+      |> Enum.split(1 - word_length)
+
+    
+    {initial_valid_picks, initial_downstream_picks, []}
+    |> pick_letters(stash_pid)
   end
 
-  def pick_letter(rem_pool, drop_index, acc_letters, stash_pid) do
 
-    IO.inspect(rem_pool)
-    IO.inspect(drop_index)
-    IO.inspect(acc_letters)
+  def pick_letters({[], 1, picked_letters, leftover_letters}, stash_pid) do
 
-    rem_pool
-    |> Enum.drop(drop_index)
-    |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
-      finished_word_combs =
-        next_rem_pool
-        |> pick_letter(drop_index + 1, [next_pick | acc_letters], stash_pid)
-      {finished_word_combs, next_rem_pool}
+  end
+
+  def next_pick_state({valid_picks, downstream_picks, acc_letters, rem_letters}, pick)
+    next_acc_letters =
+      [pick | acc_letters]
+
+    [next_rem_letters, next_rem_picks] =
+      [rem_letters, next_valid_picks]
+      |> Enum.map(&List.delete(&1, pick))
+
+    next_slice_to =
+      slice_to + 1
+
+    next_valid_picks =
+      next_rem_picks
+      |> Enum.slice(1..slice_to)
+
+    {next_valid_picks, next_slice_to, next_acc_letters, next_rem_letters}
+  end
+
+  def map_picks_with_next_valid_picks(valid_picks, slice_to) do
+    valid_picks
+    |> Enum.map_reduce(valid_picks, fn(pick, valid_picks) ->
+      next_valid_picks =
+        valid_picks
+
+      {{pick, next_valid_picks}, next_valid_picks}
     end)
   end
 
-  def next_word(next_word_pool, next_word_length, stash_pid) do
-    next_word_pool
-    |> Enum.sort
-    |> pick_letter(1 - next_word_length, [], stash_pid)
+  def pick_letters(pick_state = {valid_picks, slice_to, _, rem_letters}, stash_pid) do
+    valid_picks
+    # |> map_picks_with_next_valid_picks(slice_to)
+    |> Enum.each(fn(pick) ->
+      pick_state
+      |> next_pick_state(pick, slice_to)
+      |> pick_letters(stash_pid)
+    end)
+  end
+
+  def pick_anchors(valid_letters, ) do
+
+
   end
 end
 

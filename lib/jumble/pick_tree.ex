@@ -19,7 +19,7 @@ defmodule Jumble.PickTree do
       |> stash_root_state
 
     Picker
-    |> spawn(:next_word, [word_bank, first_word_length, stash_pid])
+    |> spawn(:start_next_word, [word_bank, first_word_length, stash_pid])
 
     []
   end

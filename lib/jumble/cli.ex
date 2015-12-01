@@ -12,7 +12,6 @@ defmodule Jumble.CLI do
     # argv
   def main(argv \\ @argv_test) do
     # ~w(when/the/acupuncture/worked/the/patient/said/it/was?3/4/4 nagld/2/4/5 ramoj/3/4 camble/1/2/4 wraley/1/3/5)
-    
     # job well done
     # ~w(clue?9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
     # portfolio
