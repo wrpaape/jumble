@@ -46,7 +46,7 @@ defmodule Jumble.PickTree do
               all_valid_words
               |> Helper.combinations
               |> Enum.concat(acc_results)
-              |> IO.inspect
+              # |> IO.inspect
 
             {next_acc_results, words_cache}
           next_words_cache ->

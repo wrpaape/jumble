@@ -27,7 +27,6 @@ defmodule Jumble.Picker do
 
         {:done, words} ->
           words
-          |> IO.inspect
           |> PickTree.process_result
       end
     end)
