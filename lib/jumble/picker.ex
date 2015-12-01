@@ -20,16 +20,25 @@ defmodule Jumble.Picker do
   def solve(letters, [first_word_length | rem_word_lengths]) do
     letters
     |> generate_initial_pool_map
-    |> next_picks(first_word_length, rem_word_lengths)
+    |> next_picks(first_word_length, rem_word_lengths, [])
   end
 
-  def next_picks(pool = %{uniq_set: uniq_picks}, rem_num_picks, rem_word_lengths) do
+  def next_picks(_pool, 0, [], picked_letters, acc_words), do: [Helper.string_id(picked_letters) | acc_words]
+
+  def next_picks(next_pool, 0, [next_word_length | rem_word_lengths], picked_letters, acc_words) do
+    next_pool
+    |> next_picks(next_word_length, rem_word_lengths, [], [Helper.string_id(picked_letters) | acc_words])
+  end
+
+  def next_picks(pool = %{uniq_set: uniq_picks}, rem_num_picks, rem_word_lengths, acc_letters, acc_words) do
     uniq_picks
     |> Enum.map(fn(index) ->
       {next_pick, next_pool} =
         pool
         |> Helper.get_and_update_uniqs_cache(index)
 
+      next_pool
+      |> next_picks(rem_num_picks - 1, rem_word_lengths, [next_pick | acc_letters], acc_words)
     end)
   end
 
@@ -64,21 +73,21 @@ defmodule Jumble.Picker do
 
   end
 
-  def unique_string_ids(next_picks, rem_num_picks) do
+#   def unique_string_ids(next_picks, rem_num_picks) do
 
-  end
+#   end
 
 
-  def next_picks({leftover_pool, finished_word, 0}), do: {Helper.string_id(, leftover_pool}
-  def next_picks({pool, acc_word, rem_num_picks}, top_level_acc) do
-    pool
-    |> Enum.map(fn({index, pick}) ->
-      {Map.delete(pool, index), acc_word <> pick, rem_num_picks - 1}
-      |> next_picks(top_level_acc)
-    end)
-    |> next_picks(top_level_acc)
-  end
-end
+#   def next_picks({leftover_pool, finished_word, 0}), do: {Helper.string_id(, leftover_pool}
+#   def next_picks({pool, acc_word, rem_num_picks}, top_level_acc) do
+#     pool
+#     |> Enum.map(fn({index, pick}) ->
+#       {Map.delete(pool, index), acc_word <> pick, rem_num_picks - 1}
+#       |> next_picks(top_level_acc)
+#     end)
+#     |> next_picks(top_level_acc)
+#   end
+# end
 
 
 defmodule Foo do
