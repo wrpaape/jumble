@@ -13,8 +13,16 @@ defmodule Jumble.Helper do
 
   def with_index(collection, initial) do
     collection
-    |> Enum.map_reduce(initial, fn(x, acc) ->
-      {{x, acc}, acc + 1}
+    |> Enum.map_reduce(initial, fn(el, acc) ->
+      {{el, acc}, acc + 1}
+    end)
+    |> elem(0)
+  end
+
+  def with_index(collection, initial, :lead) do
+    collection
+    |> Enum.map_reduce(initial, fn(el, acc) ->
+      {{acc, el}, acc + 1}
     end)
     |> elem(0)
   end
@@ -40,6 +48,13 @@ defmodule Jumble.Helper do
 
   end
 
+  def generate_pool_map(letters) do
+    letters
+    |> with_index(1, :lead)
+    |> Enum.into(Map.new)
+    |> with_uniqs_cache
+  end
+
   def shift_times({list1, list2}, 0), do: {Enum.reverse(list1), list2}
   def shift_times({list1, [list2_head | list2_tail]}, num_shifts) do
     {[list2_head | list1], list2_tail}
@@ -62,17 +77,28 @@ defmodule Jumble.Helper do
     end)
     |> Tuple.delete_at(2)
   end
-  def keys_of_unique_vals(map) do
+  def with_uniqs_cache(map) do
     map
-    |> Enum.reduce({[], HashSet.new}, fn({key, val}, acc = {uniq_list, uniq_set}) ->
-      if Set.member?(uniq_set, val) do
-        acc
-      else
-        {[key | uniq_list], uniq_set |> Set.put(val)}
-      end
+    |> Enum.reduce(Map.put(map, :uniq_set, HashSet.new), fn({key, val}, acc_map) ->
+      acc_map
+      |> Map.update!(:uniq_set, &Set.put(&1, val))
+      |> Map.update(val, 1, &(&1 + 1))
     end)
-    |> elem(0)
   end
+
+  def get_and_update_uniqs_cache(map, get_key) do
+    get_val = map[get_key]
+    
+    {update_key, update_fun} =
+      if map[get_val] > 1 do
+        {get_val, &(&1 - 1)}
+      else
+        {:uniq_set, &Set.delete(&1, get_val)}
+      end
+
+    {get_val, Map.update!(map, update_key, update_fun)}
+  end
+
   def inverse_and_merge(map) do
     map
     |> Enum.reduce(map, fn({key, val}, acc_map) ->
@@ -82,28 +108,6 @@ defmodule Jumble.Helper do
       end)
     end)
   end
-
-  def valid_answers(letter_bank, string_lengths) do
-
-    string_lengths
-    |> pick_unique_string_ids(Enum.sort(letter_bank))
-    # |> Enum.map_reduce(Enum.sort(letters), fn(pick_length, rem_letters) ->
-      # rem_letters
-      # |> generate_pick_pools
-      # |> Enum.map
-      # |> Enum.reduce({"", rem_letters}, fn(pick_pool, {string_id, [next_letter | rem_letters]}) ->
-      #   {string_id <> next_letter, rem_letters}
-      # end)
-    # |> Enum.map(fn())
-    end)
-  end
-
-  # def generate_pick_pools([]), do: []
-  # def generate_pick_pools(pool = [_dropped | next_pools]) do
-  #   [pool | generate_pick_pools(next_pools)]
-  # end
-  # 3 / 4 / 4
-  # ["y", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
 end
 
 

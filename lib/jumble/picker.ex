@@ -10,11 +10,40 @@ defmodule Jumble.Picker do
 
   # def next_picks(pool, acc_word) when Enum.empty?(pool), do: acc_word
 
-  def generate_pool_map(letters) do
+  def generate_initial_pool_map(letters) do
     letters
-    |> Helper.with_index(1)
+    |> Helper.with_index(1, :lead)
     |> Enum.into(Map.new)
     |> Helper.with_uniqs_cache
+  end
+
+  def solve(letters, [first_word_length | rem_word_lengths]) do
+    letters
+    |> generate_initial_pool_map
+    |> next_picks(first_word_length, rem_word_lengths)
+  end
+
+  def next_picks(pool = %{uniq_set: uniq_picks}, rem_num_picks, rem_word_lengths) do
+    uniq_picks
+    |> Enum.map(fn(index) ->
+      {next_pick, next_pool} =
+        pool
+        |> Helper.get_and_update_uniqs_cache(index)
+
+    end)
+  end
+
+  def get_and_update_uniqs_cache(map, get_key) do
+    get_val = map[get_key]
+    
+    {update_key, update_fun} =
+      if map[get_val] > 0 do
+        {get_val, &(&1 - 1)}
+      else
+        {:uniq_set, &Set.delete(&1, get_key)}
+      end
+
+    {get_val, Map.update(map, update_key, update_fun)}
   end
 
   def generate_word_pools(pool, word_length) do
