@@ -58,6 +58,7 @@ defmodule Foo do
     IO.puts("finished")
     
     IO.inspect({next_word_pool, finished_word})
+    finished_word
   end
 
   def pick_letter(rem_pool, drop_index, acc_word) do
@@ -68,14 +69,12 @@ defmodule Foo do
 
     rem_pool
     |> Enum.drop(drop_index)
-    |> Enum.map_reduce(tl(rem_pool), fn(next_pick, next_rem_pool) ->
-      downstream_combs =
+    |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
+      finished_word_combs =
         next_rem_pool
         |> pick_letter(drop_index + 1, acc_word <> next_pick)
-
-      {downstream_combs, tl(next_rem_pool)}
+      {finished_word_combs, next_rem_pool}
     end)
-    |> elem(0)
   end
 
   def next_word(next_word_pool, next_word_length) do

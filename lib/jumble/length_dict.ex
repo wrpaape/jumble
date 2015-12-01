@@ -1,6 +1,4 @@
 defmodule Jumble.LengthDict do
-  # @dict File.read!("/usr/share/dict/words")
-
   alias Jumble.Helper
 
   def get(length_word, string_id) do
