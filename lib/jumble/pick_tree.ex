@@ -30,6 +30,22 @@ defmodule Jumble.PickTree do
     end)
   end
 
+  # def next_root_state(stash_pid, final_finished_letters) do
+  #   stash_pid
+  #   |> Agent.get(fn({_done, [], last_acc_finished_letters}) ->
+  #     words =
+  #       [final_finished_letters | last_acc_finished_letters]
+  #         |> Enum.map(fn(disjoint_letters) ->
+  #           disjoint_letters
+  #           |> List.foldr("", fn(letter, word) ->
+  #             word <> letter
+  #           end)
+  #         end)
+
+  #     {:done, words}
+  #   end)
+  # end
+
   def next_root_state(stash_pid, finished_letters) do
     stash_pid
     |> Agent.get(fn
@@ -47,13 +63,16 @@ defmodule Jumble.PickTree do
         {rem_letters, next_word_length, stash_pid}
 
       ({_done, [], last_acc_finished_letters}) ->
+        words =
         [finished_letters | last_acc_finished_letters]
-        |> Enum.map(fn(disjoint_letters) ->
-          disjoint_letters
-          |> List.foldr("", fn(letter, word) ->
-            word <> letter
+          |> Enum.map(fn(disjoint_letters) ->
+            disjoint_letters
+            |> List.foldr("", fn(letter, word) ->
+              word <> letter
+            end)
           end)
-        end)
+
+      {:done, words}
     end)
   end
 end

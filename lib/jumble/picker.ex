@@ -42,7 +42,7 @@ defmodule Jumble.Picker do
 #     |> pick_letter(1 - next_word_length, [], stash_pid)
 #   end
 
-
+# Jumble.PickTree.start_link(~w[a b c d e f g], [3,2,2])
 
   def start_next_word(rem_letters, word_length, stash_pid) do
     {initial_valid_picks, initial_downstream_picks} =
@@ -55,30 +55,38 @@ defmodule Jumble.Picker do
   end
 
 
-  # def pick_letters({[], [], picked_letters}, stash_pid) do
-  def pick_letters({[last_letter], [], picked_letters}, stash_pid) do
-    stash_pid
-    |> PickTree.next_root_state([last_letter | picked_letters])
-    |> case do
-      {next_rem_letters, next_word_length, next_stash_pid} ->
-        next_rem_letters
-        |> start_next_word(next_word_length, next_stash_pid)
+  # def pick_letters({[last_pick], [], picked_letters}, stash_pid) do
+  #   stash_pid
+  #   |> PickTree.next_root_state([last_pick | picked_letters])
+  #   |> case do
+  #     {next_rem_letters, next_word_length, next_stash_pid} ->
+  #       next_rem_letters
+  #       |> start_next_word(next_word_length, next_stash_pid)
 
-      result ->
-        result
-        |> PickTree.report_result
+  #     {:done, words} ->
+  #       words
+  #       |> IO.inspect
+  #       # |> PickTree.report_result
+  #     end
+  # end
+
+  # last letter of word
+  def pick_letters({last_valid_picks, [], acc_letters}, stash_pid) do
+    last_valid_picks
+    |> Enum.each(fn(last_pick) ->
+      stash_pid
+      |> PickTree.next_root_state([last_pick | acc_letters])      
+      |> case do
+        {next_rem_letters, next_word_length, next_stash_pid} ->
+          next_rem_letters
+          |> start_next_word(next_word_length, next_stash_pid)
+
+        {:done, words} ->
+          words
+          |> IO.inspect
+          IO.puts "finished"
+          # |> PickTree.report_result
       end
-  end
-
-  def map_picks_with_next_valid_picks(valid_picks, valid_next) do
-    intial_picks_acc =
-      valid_picks
-      |> List.insert_at(-1, valid_next)
-
-    valid_picks
-    |> Enum.scan({nil, intial_picks_acc}, fn(pick, {_last_pick, last_pick_acc}) ->
-
-      {pick, tl(last_pick_acc)}
     end)
   end
 
@@ -88,6 +96,18 @@ defmodule Jumble.Picker do
     |> Enum.each(fn({pick, next_valid_picks}) ->
       {next_valid_picks, rem_downstream_picks, [pick | acc_letters]}
       |> pick_letters(stash_pid)
+    end)
+  end
+
+  def map_picks_with_next_valid_picks(valid_picks, valid_next) do
+    intial_picks_acc =             
+      valid_picks
+      |> List.insert_at(-1, valid_next)
+ 
+    valid_picks
+    |> Enum.scan({nil, intial_picks_acc}, fn(pick, {_last_pick, last_pick_acc}) ->
+
+      {pick, tl(last_pick_acc)}
     end)
   end
 end
