@@ -1,74 +1,18 @@
 defmodule Jumble.Picker do
   alias Jumble.PickTree
-
-#   def pick_letter(next_word_pool, 1, finished_letters, stash_pid) do
-#     IO.puts("finished word")
-#     IO.inspect({next_word_pool, finished_letters})
-
-#     stash_pid
-#     |> PickTree.next_root_state(finished_letters)
-#     |> case do
-#       {next_word_pool, next_word_length, next_stash_pid} ->
-#         __MODULE__
-#         |> spawn(:next_word, [next_word_pool, next_word_length, next_stash_pid])
-
-#       result ->
-#         result
-#         |> PickTree.report_result
-#     end
-
-#     Agent.stop(stash_pid)
-#   end
-
-#   def pick_letter(rem_pool, drop_index, acc_letters, stash_pid) do
-
-#     IO.inspect(rem_pool)
-#     IO.inspect(drop_index)
-#     IO.inspect(acc_letters)
-
-#     rem_pool
-#     |> Enum.drop(drop_index)
-#     |> Enum.reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
-#       __MODULE__
-#       |> spawn(:pick_letter, [next_rem_pool, drop_index + 1, [next_pick | acc_letters], stash_pid])
-
-#       next_rem_pool
-#     end)
-#   end
-
-#   def next_word(next_word_pool, next_word_length, stash_pid) do
-#     next_word_pool
-#     |> Enum.sort
-#     |> pick_letter(1 - next_word_length, [], stash_pid)
-#   end
-
-# Jumble.PickTree.start_link(~w[a b c d e f g], [3,2,2])
+# word_lengths = [3, 4, 4]
+# letters = ["l", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
+# Jumble.PickTree.start_link(letters, word_lengths)
 
   def start_next_word(rem_letters, word_length, stash_pid) do
     {initial_valid_picks, initial_downstream_picks} =
       rem_letters
       |> Enum.split(1 - word_length)
-      |> IO.inspect
     
     {initial_valid_picks, initial_downstream_picks, []}
     |> pick_letters(stash_pid)
   end
 
-
-  # def pick_letters({[last_pick], [], picked_letters}, stash_pid) do
-  #   stash_pid
-  #   |> PickTree.next_root_state([last_pick | picked_letters])
-  #   |> case do
-  #     {next_rem_letters, next_word_length, next_stash_pid} ->
-  #       next_rem_letters
-  #       |> start_next_word(next_word_length, next_stash_pid)
-
-  #     {:done, words} ->
-  #       words
-  #       |> IO.inspect
-  #       # |> PickTree.report_result
-  #     end
-  # end
 
   # last letter of word
   def pick_letters({last_valid_picks, [], acc_letters}, stash_pid) do
@@ -83,9 +27,7 @@ defmodule Jumble.Picker do
 
         {:done, words} ->
           words
-          |> IO.inspect
-          IO.puts "finished"
-          # |> PickTree.report_result
+          |> PickTree.process_result
       end
     end)
   end
