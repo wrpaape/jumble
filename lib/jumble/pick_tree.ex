@@ -1,6 +1,7 @@
 defmodule Jumble.PickTree do
   alias Jumble.Picker
   alias Jumble.LengthDict
+  alias Jumble.Helper
 
   def start_link(total_word_bank, all_word_lengths) do
     LengthDict
@@ -11,8 +12,6 @@ defmodule Jumble.PickTree do
   end
 
   def process_result(final_words) do
-    # IO.inspect(final_words)
-
     __MODULE__
     |> Agent.update(fn(last_results = {acc_results, words_cache = %{lengths: lengths, invalid_ids: invalid_ids}}) ->
       result_is_invalid =
@@ -47,6 +46,7 @@ defmodule Jumble.PickTree do
               all_valid_words
               |> Helper.combinations
               |> Enum.concat(acc_results)
+              |> IO.inspect
 
             {next_acc_results, words_cache}
           next_words_cache ->
@@ -96,7 +96,6 @@ defmodule Jumble.PickTree do
 
         rem_letters =
           last_rem_letters -- finished_letters
-          # |> IO.inspect
 
         {:ok, stash_pid} =
           {rem_letters, rem_word_lengths, acc_fininished_letters}
@@ -106,16 +105,10 @@ defmodule Jumble.PickTree do
 
       ({_done, [], last_acc_finished_letters}) ->
         words =
-        [finished_letters | last_acc_finished_letters]
-          # |> Enum.map(fn(disjoint_letters) ->
-          #   disjoint_letters
-          #   |> List.foldr("", fn(letter, word) ->
-          #     word <> letter
-          #   end)
-          # end)
-        |> Enum.map(&Enum.join/1)
+          [finished_letters | last_acc_finished_letters]
+          |> Enum.map(&Enum.join/1)
 
-      {:done, words}
+        {:done, words}
     end)
   end
 end
