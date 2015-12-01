@@ -2,6 +2,10 @@ defmodule Jumble.Helper do
   def string_id(string) do
     string
     |> String.codepoints
+    |> sort_join
+  end
+  def sort_join(list) do
+    list
     |> Enum.sort
     |> Enum.join
   end
@@ -77,26 +81,26 @@ defmodule Jumble.Helper do
     end)
     |> Tuple.delete_at(2)
   end
-  def with_uniqs_cache(map) do
-    map
-    |> Enum.reduce(Map.put(map, :uniq_set, HashSet.new), fn({key, val}, acc_map) ->
+  def with_uniqs_cache(list) do
+    list
+    |> Enum.reduce(%{uniq_set: HashSet.new}, fn(el, acc_map) ->
       acc_map
-      |> Map.update!(:uniq_set, &Set.put(&1, val))
-      |> Map.update(val, 1, &(&1 + 1))
+      |> Map.update!(:uniq_set, &Set.put(&1, el))
+      |> Map.update(el, 1, &(&1 + 1))
     end)
   end
 
-  def get_and_update_uniqs_cache(map, get_key) do
-    get_val = map[get_key]
-    
+  def update_uniqs_cache(map, got_val) do
     {update_key, update_fun} =
-      if map[get_val] > 1 do
-        {get_val, &(&1 - 1)}
+      if map[got_val] > 1 do
+        {got_val, &(&1 - 1)}
       else
-        {:uniq_set, &Set.delete(&1, get_val)}
+        {:uniq_set, &Set.delete(&1, got_val)}
       end
+      |> IO.inspect
 
-    {get_val, Map.update!(map, update_key, update_fun)}
+    map
+    |> Map.update!(update_key, update_fun)
   end
 
   def inverse_and_merge(map) do
