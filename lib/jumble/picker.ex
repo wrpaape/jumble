@@ -1,5 +1,47 @@
-# defmodule Jumble.Picker do
-#   alias Jumble.Helper
+defmodule Jumble.Picker do
+  alias Jumble.PickTree
+
+  def pick_letter(next_word_pool, 1, finished_letters, stash_pid) do
+    IO.puts("finished word")
+    IO.inspect({next_word_pool, finished_letters})
+
+    stash_pid
+    |> PickTree.next_root_state(finished_letters)
+    |> case do
+      {next_word_pool, next_word_length, next_stash_pid} ->
+        __MODULE__
+        |> spawn(:next_word, [next_word_pool, next_word_length, next_stash_pid])
+
+      result ->
+        result
+        |> PickTree.report_result
+    end
+
+    Agent.stop(stash_pid)
+  end
+
+  def pick_letter(rem_pool, drop_index, acc_letters, stash_pid) do
+
+    IO.inspect(rem_pool)
+    IO.inspect(drop_index)
+    IO.inspect(acc_letters)
+
+    rem_pool
+    |> Enum.drop(drop_index)
+    |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
+      finished_word_combs =
+        next_rem_pool
+        |> pick_letter(drop_index + 1, [next_pick | acc_letters])
+      {finished_word_combs, next_rem_pool}
+    end)
+  end
+
+  def next_word(next_word_pool, next_word_length, stash_pid) do
+    next_word_pool
+    |> Enum.sort
+    |> pick_letter(1 - next_word_length, [], stash_pid)
+  end
+end
 
 #   def solve(letters, [first_word_length | rem_word_lengths]) do
 #     letters
