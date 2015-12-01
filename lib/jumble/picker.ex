@@ -31,7 +31,7 @@ defmodule Jumble.Picker do
     |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
       finished_word_combs =
         next_rem_pool
-        |> pick_letter(drop_index + 1, [next_pick | acc_letters])
+        |> pick_letter(drop_index + 1, [next_pick | acc_letters], stash_pid)
       {finished_word_combs, next_rem_pool}
     end)
   end

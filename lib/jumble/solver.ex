@@ -52,47 +52,48 @@ defmodule Jumble.Solver do
     # |> Helper.permutations
     # |> IO.inspect
   end
+end
 
-defmodule Foo do
-  def pick_letter(next_word_pool, 1, finished_word) do
-    IO.puts("finished")
+# defmodule Foo do
+#   def pick_letter(next_word_pool, 1, finished_word) do
+#     IO.puts("finished")
     
-    IO.inspect({next_word_pool, finished_word})
-    finished_word
-  end
+#     IO.inspect({next_word_pool, finished_word})
+#     finished_word
+#   end
 
-  def pick_letter(rem_pool, drop_index, acc_word) do
+#   def pick_letter(rem_pool, drop_index, acc_word) do
 
-    IO.inspect(rem_pool)
-    IO.inspect(drop_index)
-    IO.inspect(acc_word)
+#     IO.inspect(rem_pool)
+#     IO.inspect(drop_index)
+#     IO.inspect(acc_word)
 
-    rem_pool
-    |> Enum.drop(drop_index)
-    |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
-      finished_word_combs =
-        next_rem_pool
-        |> pick_letter(drop_index + 1, acc_word <> next_pick)
-      {finished_word_combs, next_rem_pool}
-    end)
-  end
+#     rem_pool
+#     |> Enum.drop(drop_index)
+#     |> Enum.map_reduce(rem_pool, fn(next_pick, [_drop | next_rem_pool]) ->
+#       finished_word_combs =
+#         next_rem_pool
+#         |> pick_letter(drop_index + 1, acc_word <> next_pick)
+#       {finished_word_combs, next_rem_pool}
+#     end)
+#   end
 
-  def next_word(next_word_pool, next_word_length) do
-    next_word_pool
-    |> Enum.sort
-    |> pick_letter(1 - next_word_length, "")
-  end
+#   def next_word(next_word_pool, next_word_length) do
+#     next_word_pool
+#     |> Enum.sort
+#     |> pick_letter(1 - next_word_length, "")
+#   end
 
-end
-Foo.next_word(~w(a b c d e f), 3)
+# end
+# # Foo.next_word(~w(a b c d e f), 3)
 
-  def solve(initial_pool, [next_word_length | rem_word_lengths]) do
-    initial_pool
-    |> Enum.map
-      next_answer()
+#   def solve(initial_pool, [next_word_length | rem_word_lengths]) do
+#     initial_pool
+#     |> Enum.map
+#       next_answer()
 
-  end
-end
+#   end
+# end
 
 # word_lengths = [3, 4, 4]
 # letters = ["l", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
