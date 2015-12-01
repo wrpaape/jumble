@@ -53,24 +53,40 @@ defmodule Jumble.Solver do
     # |> IO.inspect
   end
 
-  def start_next_word(last_pool, next_word_length) do
-    last_pool
-    |> Map.drop([:initial_pick_size, :last_letter_key])
-    |> Map.values
-    |> next_word_pool(next_word_length)
-    |> pick_next_letter(next_word_length)
+  def pick_letter(rem_pool, drop_index, acc_word) do
+    # {this_pool, [next_head | next_tail]} =
+    #   rem_pool
+    #   |> Enum.split(split_index)
+
+    rem_pool
+    |> Enum.drop(drop_index)
+    |> Enum.map_reduce(tl(rem_pool), fn(next_pick, next_rem_pool) ->
+      downstream_combs =
+        next_rem_pool
+        |> pick_letter(split_index - 1, acc_word <> next_pick)
+
+      {downstream_combs, tl(next_rem_pool)}
+    end)
+  end
+
+  def start_next_word(next_pool, next_word_length) do
+    next_pool
+    # |> Map.drop([:initial_pick_size, :last_letter_key])
+    # |> Map.values
+    |> Enum.sort
+    |> pick_next_letter(1 - next_word_length, "")
   end
 
   def next_word_pool(rem_letters, next_word_length) do
-    {indexed_pool, pool_length_plus_one} =
-      rem_letters
-      |> Enum.sort
-      |> Helper.with_index(1, :lead)
+    # {indexed_pool, pool_length_plus_one} =
+      # |> Helper.with_index(1, :lead)
+    # indexed_pool
+    # |> Enum.into(Map.new)
+              
+    {Enum.sort(rem_letters), 
 
-    indexed_pool
-    |> Enum.into(Map.new)
-    |> Map.put(:initial_pick_size, pool_length_plus_one - next_word_length)
-    |> Map.put(:last_letter_key, pool_length_plus_one - 1)
+    # |> Map.put(:initial_pick_size, pool_length_plus_one - next_word_length)
+    # |> Map.put(:last_letter_key, pool_length_plus_one - 1)
   end
 end
 
