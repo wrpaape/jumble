@@ -4,6 +4,7 @@ defmodule Jumble.Picker do
   def solve(letters, [first_word_length | rem_word_lengths]) do
     letters
     |> generate_initial_pool_map
+    |> IO.inspect
     |> next_picks(first_word_length, rem_word_lengths, [], [])
   end
 
@@ -14,7 +15,10 @@ defmodule Jumble.Picker do
     |> Helper.with_uniqs_cache
   end
 
-  def next_picks(_pool, 0, [], picked_letters, acc_words), do: [Helper.sort_join(picked_letters) | acc_words]
+  def next_picks(_pool, 0, [], picked_letters, acc_words) do
+    [Helper.sort_join(picked_letters) | acc_words]
+    |> IO.inspect
+  end
 
   def next_picks(next_pool, 0, [next_word_length | rem_word_lengths], picked_letters, acc_words) do
     next_pool
@@ -25,7 +29,8 @@ defmodule Jumble.Picker do
     uniq_picks
     |> Enum.map(fn(next_pick) ->
       pool
-      |> Helper.update_uniqs_cache(next_pick)
+      |> Map.update!(next_pick, &(&1 - 1))
+      |> Helper.update_uniq_set(next_pick)
       |> next_picks(rem_num_picks - 1, rem_word_lengths, [next_pick | acc_letters], acc_words)
     end)
   end

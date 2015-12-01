@@ -81,6 +81,7 @@ defmodule Jumble.Helper do
     end)
     |> Tuple.delete_at(2)
   end
+
   def with_uniqs_cache(list) do
     list
     |> Enum.reduce(%{uniq_set: HashSet.new}, fn(el, acc_map) ->
@@ -89,18 +90,15 @@ defmodule Jumble.Helper do
       |> Map.update(el, 1, &(&1 + 1))
     end)
   end
-
-  def update_uniqs_cache(map, got_val) do
-    {update_key, update_fun} =
-      if map[got_val] > 1 do
-        {got_val, &(&1 - 1)}
-      else
-        {:uniq_set, &Set.delete(&1, got_val)}
-      end
-      |> IO.inspect
-
+  
+  def update_uniq_set(map, got_val) do
     map
-    |> Map.update!(update_key, update_fun)
+    |> Map.get(got_val)
+    |> case do
+      1 -> map |> Map.update!(:uniq_set, &Set.put(&1, got_val))
+      0 -> map |> Map.update!(:uniq_set, &Set.delete(&1, got_val))
+      _ -> map
+    end
   end
 
   def inverse_and_merge(map) do
@@ -113,49 +111,6 @@ defmodule Jumble.Helper do
     end)
   end
 end
-
-
-
-
-
-
-
-  # def pick_next_letter({next_word_pick_pool, downstream}, 0, string_id, acc_string_ids, acc_answer_ids) do
-  #   next_word_lengths
-  #   |> pick_next_word(next_word_pick_pool, [string_id | acc_string_ids], acc_answer_ids)
-  # end
-
-  # def pick_next_letter({pick_pool = [_dropped | pick_pool_tail], [downstream_head | next_downstream]}, num_rem_picks, string_id \\ "", acc_string_ids \\ [], acc_answer_ids \\ []) do
-  #   pick_pool
-  #   |> Enum.map(fn(pick) ->
-  #     next_pick_pool =
-  #       pick_pool_tail
-  #       |> List.insert_at(-1, downstream_head)
-
-  #     {next_pick_pool, next_downstream}
-  #     |> pick_next_letter(num_rem_picks - 1, string_id <> pick, acc_string_ids, acc_answer_ids)
-  #   end)
-
-
-  #   pick <> pick_next_letter( num_rem_picks - 1)
-  # end
-
-
-  # def pick_next_word([], [], unique_string_ids), do: unique_string_ids
-
-  # def pick_next_word([word_length | next_word_lengths], pick_pool, acc_answer_ids) do
-  #   pick_pool
-  #   |> split_list_at(length(pick_pool) - word_length)
-  #   |> pick_next_letter(word_length, acc_answer_ids)
-  # end
-
-  # def pick_next_answer_ids([], _, acc_answer_ids), do: acc_answer_ids
-
-  # def pick_next_answer_ids(pick_lengths, initial_word_bank, acc_answer_ids \\ []) do
-  #   pick_lengths
-  #   |> pick_next_word(initial_word_bank, [])
-  # end
-
 
 
 

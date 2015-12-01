@@ -54,8 +54,9 @@ defmodule Jumble.Solver do
   end
 end
 
-# 3 / 4 / 4
-# ["l", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
+# word_lengths = [3, 4, 4]
+# letters = ["l", "w", "e", "j", "o", "l", "n", "d", "b", "e", "a"]
+# Jumble.Picker.solve(letters, word_lengths)
 
 # [[{"yawler", ["y", "w", "e"]}, {"major", ["j", "o"]},
 #   {"gland", ["l", "n", "d"]}, {"becalm", ["b", "e", "a"]}],
