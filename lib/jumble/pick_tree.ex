@@ -4,9 +4,6 @@ defmodule Jumble.PickTree do
   alias Jumble.Helper
 
   def start_link(total_word_bank, all_word_lengths) do
-    # LengthDict
-    # |> Agent.start_link(:build_dict, [[3, 4]], name: LengthDict)
-
     __MODULE__
     |> Agent.start_link(:init_master_tree, [total_word_bank, all_word_lengths], name: __MODULE__)
   end
@@ -45,8 +42,8 @@ defmodule Jumble.PickTree do
             next_acc_results =
               all_valid_words
               |> Helper.combinations
+              |> IO.inspect
               |> Enum.concat(acc_results)
-              # |> IO.inspect
 
             {next_acc_results, words_cache}
           next_words_cache ->

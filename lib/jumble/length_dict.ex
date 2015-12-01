@@ -14,6 +14,7 @@ defmodule Jumble.LengthDict do
         length
       end)
       |> Enum.into(final_lengths)
+        |> IO.inspect
       |> Enum.uniq
 
     __MODULE__

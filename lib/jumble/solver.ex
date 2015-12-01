@@ -1,8 +1,9 @@
 defmodule Jumble.Solver do
   alias IO.ANSI
   alias Jumble.Helper
+  alias Jumble.PickTree
 
-  @unjumbleds_sol_spacer "\n  "   <> ANSI.magenta
+  @unjumbled_sol_spacer "unscrambling for:\n  "   <> ANSI.magenta
   @clue_sol_spacer       "\n    " <> ANSI.cyan
 
   def solve do
@@ -34,20 +35,24 @@ defmodule Jumble.Solver do
 
   def solve(%{clue: clue, final_lengths: final_lengths, jumble_maps: jumble_maps}) do
     jumble_maps
-    |> Enum.sort_by(&(elem(&1, 1).jumble_index))
+    |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({jumble, %{unjumbleds: unjumbleds}}) ->
       unjumbleds
     end)
     |> Helper.combinations
-    |> Enum.map(fn(sol_combo) ->
-      # {}
-      sol_combo
-      |> Enum.flat_map_reduce(@unjumbleds_sol_spacer, fn({unjumbled, key_letters}, unjumbled_sol) ->
-        {key_letters, Helper.cap(" ", unjumbled, unjumbled_sol)}
-      end)
+    |> Enum.each(fn(sol_combo) ->
+      {word_bank, unjumbled_sol} =
+        sol_combo
+        |> Enum.flat_map_reduce(@unjumbled_sol_spacer, fn({unjumbled, key_letters}, unjumbled_sol) ->
+          {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
+        end)
 
+        IO.puts unjumbled_sol
+
+        word_bank
+        |> PickTree.start_link(final_lengths)
     end)
-    |> IO.inspect
+    # |> IO.inspect
     # |> Enum.map(fn(answers) ->
     #   answers
     #   |> Enum.flat_map_reduce("", fn({unjumbled, key_letters}, acc) ->
