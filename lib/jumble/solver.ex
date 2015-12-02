@@ -17,7 +17,7 @@ defmodule Jumble.Solver do
     end
 
     __MODULE__
-    |> Agent.cast(Kernel, :update_in, [[:jumble_maps, jumble, :unjumbleds], push])
+    |> Agent.cast(Kernel, :update_in, [[:jumble_info, :jumble_maps, jumble, :unjumbleds], push])
   end
 
   def start_link(args) do
@@ -26,17 +26,18 @@ defmodule Jumble.Solver do
       |> Enum.into(Map.new)
     end
 
-    Map
-    |> Agent.start_link(:update!, [args, :jumble_maps, into_map], name: __MODULE__)
+    Kernel
+    |> Agent.start_link(:update_in, [args, [:jumble_info, :jumble_maps], into_map], name: __MODULE__)
 
     args
   end
 
 
-  def solve(%{clue: clue, final_lengths: final_lengths, uniq_lengths: uniq_lengths, jumble_maps: jumble_maps}) do
+  # def solve(%{clue: clue, final_lengths: final_lengths, uniq_lengths: uniq_lengths, jumble_maps: jumble_maps}) do
+  def solve(%{sol_info: sol_info, jumble_info: %{jumble_maps: jumble_maps}}) do
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
-    |> Enum.map(fn({jumble, %{unjumbleds: unjumbleds}}) ->
+    |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
       unjumbleds
     end)
     |> Helper.combinations
@@ -50,7 +51,15 @@ defmodule Jumble.Solver do
         IO.puts unjumbled_sol
 
         word_bank
-        |> PickTree.start_link({final_lengths, uniq_lengths})
+        |> PickTree.start_link(sol_info)
+
+        IO.puts "processing..."
+
+        :timer.sleep(500)
+
+        PickTree.report_results
+
+        # Agent.stop(PickTree)
     end)
   end
 end

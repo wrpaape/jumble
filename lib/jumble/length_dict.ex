@@ -5,21 +5,15 @@ defmodule Jumble.LengthDict do
     |> apply(:get, [string_id]) || []
   end
 
-  def start_link(%{final_lengths: final_lengths, jumble_maps: jumble_maps} = args) do
-    uniq_lengths =
-      jumble_maps
-      |> Enum.map(fn({_jumble, %{length: length}}) ->
-        length
-      end)
-      |> Enum.into(final_lengths)
-        |> IO.inspect
-      |> Enum.uniq
+  def start_link(%{sol_info: %{uniq_lengths: uniq_sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}} = args) do
+    lengths_domain =
+      uniq_sol_lengths
+      |> Set.union(uniq_jumble_lengths)
 
     __MODULE__
-    |> Agent.start_link(:build_dict, [uniq_lengths], name: __MODULE__)
+    |> Agent.start_link(:build_dict, [lengths_domain], name: __MODULE__)
 
     args
-    |> Map.put(:uniq_lengths, uniq_lengths)
   end
 
   def build_dict(lengths) do

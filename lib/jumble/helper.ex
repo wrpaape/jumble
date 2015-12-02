@@ -22,11 +22,12 @@ defmodule Jumble.Helper do
     |> elem(0)
   end
 
-  def with_index(collection, initial, :lead) do
+  def with_index(collection, initial, :leading) do
     collection
     |> Enum.map_reduce(initial, fn(el, acc) ->
       {{acc, el}, acc + 1}
     end)
+    |> elem(0)
   end
 
   def combinations([last_list | []], els, acc) do

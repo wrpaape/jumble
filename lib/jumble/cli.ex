@@ -50,34 +50,42 @@ defmodule Jumble.CLI do
       {_, [_ | []], _}      -> :help
       
       {_, [clue_string | jumble_strings], _} ->
-        {clue, final_lengths} =
+        sol_info =
           clue_string
           |> split_on_slashes(parts: 2)
           |> parse_arg_strings
 
-        jumble_maps =
+        {jumble_maps, uniq_jumble_lengths} =
           jumble_strings
           |> Helper.with_index(1)
-          |> Enum.map(fn({jumble_string, index}) ->
+          |> Enum.map_reduce(HashSet.new, fn({jumble_string, index}, uniq_jumble_lengths) ->
             {jumble, keys_at} =
               jumble_string
               |> parse_arg_strings
 
+            length_jumble =
+              jumble
+              |> byte_size
+
             jumble_map =
               Map.new
-              |> Map.put_new(:jumble_index, index)
-              |> Map.put_new(:length, byte_size(jumble))
-              |> Map.put_new(:string_id, Helper.string_id(jumble))
-              |> Map.put_new(:keys_at, keys_at)
-              |> Map.put_new(:unjumbleds, [])
+              |> Map.put(:jumble_index, index)
+              |> Map.put(:length, length_jumble)
+              |> Map.put(:string_id, Helper.string_id(jumble))
+              |> Map.put(:keys_at, keys_at)
+              |> Map.put(:unjumbleds, [])
 
-            {jumble, jumble_map}
+            {{jumble, jumble_map}, Set.put(uniq_jumble_lengths, length_jumble)} 
           end)
-        
+
+        jumble_info =
+          Map.new
+          Map.put(:jumble_maps, jumble_maps)
+          Map.put(:uniq_lengths, uniq_jumble_lengths)
+
         Map.new        
-        |> Map.put_new(:clue, clue)
-        |> Map.put_new(:final_lengths, final_lengths)
-        |> Map.put_new(:jumble_maps, jumble_maps)
+        |> Map.put(:sol_info, sol_info)
+        |> Map.put(:jumble_info, jumble_info)
     end
   end
 
@@ -86,8 +94,27 @@ defmodule Jumble.CLI do
     |> String.split(~r{/}, opts)
   end
 
-  def parse_arg_strings([message_string, final_lengths_string]) do
-    {split_on_slashes(message_string), parse_ints(final_lengths_string)}
+  def parse_arg_strings([message_string, sol_lengths_string]) do
+    clue =
+      message_string
+      |> split_on_slashes
+
+    sol_lengths =
+      parse_ints(sol_lengths_string)
+
+    ordered_sol_lengths =
+      sol_lengths
+      |> Helper.with_index(1, :leading)
+      |> Enum.into(Map.new)
+
+    uniq_sol_lengths =
+      sol_lengths
+      |> Enum.uniq
+
+    Map.new
+    |> Map.put(:clue, clue)
+    |> Map.put(:lengths, ordered_sol_lengths)
+    |> Map.put(:uniq_lengths, uniq_sol_lengths)
   end
 
   def parse_arg_strings(jumble_string) do
