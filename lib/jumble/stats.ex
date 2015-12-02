@@ -20,9 +20,10 @@ defmodule Jumble.Stats do
     end)
   end
 
-  def permutations(list) do
+  def uniq_pick_orders(list) do
     list
-    |> permute([], self)
+    |> Helper.partition_dups
+    |> permute(self)
 
     @factorial_cache
     |> Map.get(length(list))
@@ -40,16 +41,16 @@ defmodule Jumble.Stats do
     end
   end
 
-  def permute([last_el], last_acc, root_pid) do
+  def permute({[last_el], last_acc}, root_pid) do
     root_pid
     |> send({:branch_finished, [last_el | last_acc]})
   end
 
-  def permute(rem, acc, root_pid) do
+  def permute({rem, acc}, root_pid) do
     rem
     |> Enum.scan({[], rem}, fn(_el, {ahead, [el | behind]})->
       __MODULE__
-      |> spawn(:permute, [ahead ++ behind, [el | acc], root_pid])
+      |> spawn(:permute, [{ahead ++ behind, [el | acc]}, root_pid])
 
       {[el | ahead], behind}
     end)

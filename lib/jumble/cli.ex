@@ -113,22 +113,27 @@ defmodule Jumble.CLI do
       |> Helper.partition_dups
 
 
-    # uniq_pick_orders =
-    #   uniq_sol_lengths
-    #   |> Helper.with_counter(1)
-    #   |> Stats.combinations
-    #   |> Enum.sort
-    #   |> Enum.reduce(Map.new, fn([pick_index, uniq_pick_length], pick_map)->
-    #     pick_map
-    #     |> Map.update(pick_index, [uniq_pick_length], fn(acc_pick_lengths)->
-    #       [uniq_pick_length | acc_pick_lengths]
-    #     end)
-    #   end)
-    #   |> IO.inspect
-    #   |> Enum.reduce(fn({_pick_index, uniq_starts})->
-    #     uniq_starts ++ dup_tail
-    #   end)
-    #   |> IO.inspect
+    uniq_pick_orders =
+      # uniq_sol_lengths
+      # |> Helper.with_counter(1)
+      # |> Stats.combinations
+      # |> Enum.sort
+      # |> Enum.reduce(Map.new, fn([pick_index, uniq_pick_length], pick_map)->
+      #   pick_map
+      #   |> Map.update(pick_index, [uniq_pick_length], fn(acc_pick_lengths)->
+      #     [uniq_pick_length | acc_pick_lengths]
+      #   end)
+      # end)
+      # |> IO.inspect
+      # |> Enum.reduce(fn({_pick_index, uniq_starts})->
+      #   uniq_starts ++ dup_tail
+      # end)
+      # uniq_sol_lengths
+      # {uniq_sol_lengths, dup_tail} =
+      sol_lengths
+      |> Helper.partition_dups
+      |> Stats.uniq_pick_orders
+      |> IO.inspect
 
 
 
