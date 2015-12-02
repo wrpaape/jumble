@@ -1,5 +1,6 @@
 defmodule Jumble.Solver do
   alias IO.ANSI
+  alias Jumble.Stats
   alias Jumble.Helper
   alias Jumble.PickTree
 
@@ -40,7 +41,7 @@ defmodule Jumble.Solver do
     |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
       unjumbleds
     end)
-    |> Helper.combinations
+    |> Stats.combinations
     |> Enum.each(fn(sol_combo) ->
       {word_bank, unjumbled_sol} =
         sol_combo

@@ -5,6 +5,7 @@ defmodule Jumble.CLI do
   @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
 
   alias Jumble.Helper
+  alias Jumble.Stats
   alias Jumble.Solver
   alias Jumble.LengthDict
 
@@ -115,7 +116,7 @@ defmodule Jumble.CLI do
     # uniq_pick_orders =
     #   uniq_sol_lengths
     #   |> Helper.with_counter(1)
-    #   |> Helper.combinations
+    #   |> Stats.combinations
     #   |> Enum.sort
     #   |> Enum.reduce(Map.new, fn([pick_index, uniq_pick_length], pick_map)->
     #     pick_map

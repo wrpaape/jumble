@@ -2,6 +2,7 @@ defmodule Jumble.PickTree do
   alias Jumble.Picker
   alias Jumble.LengthDict
   alias Jumble.Helper
+  alias Jumble.Stats
 
   def start_link(total_word_bank, length_info) do
     __MODULE__
@@ -58,7 +59,7 @@ defmodule Jumble.PickTree do
           {[], all_valid_words} ->
             next_acc_final_results =
               all_valid_words
-              |> Helper.combinations
+              |> Stats.combinations
               # |> IO.inspect
               |> Enum.concat(acc_final_results)
 
@@ -116,7 +117,7 @@ defmodule Jumble.PickTree do
   #         {[], all_valid_words} ->
   #           next_acc_results =
   #             all_valid_words
-  #             |> Helper.combinations
+  #             |> Stats.combinations
   #             |> Enum.each(&push_final_result/1)
 
   #         next_invalid_ids ->
