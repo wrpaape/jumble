@@ -10,18 +10,20 @@ defmodule Jumble.PickTree do
 
   def report_results do
     __MODULE__
-    |> Agent.get(fn(final_results)->
+    |> Agent.get(fn({final_results, _})->
       final_results
       |> Enum.each(&IO.inspect/1)
+
+      final_results
     end)  
   end
 
-  def push_raw_result(final_words) do
-    __MODULE__
-    |> Agent.update(fn({acc_raw_results, words_cache})->
-      {[final_words | acc_raw_results], words_cache}
-    end)
-  end
+  # def push_raw_result(final_words) do
+  #   __MODULE__
+  #   |> Agent.update(fn({acc_raw_results, words_cache})->
+  #     {[final_words | acc_raw_results], words_cache}
+  #   end)
+  # end
 
   def process_raw_result(raw_string_ids) do
     __MODULE__
@@ -57,7 +59,7 @@ defmodule Jumble.PickTree do
             next_acc_final_results =
               all_valid_words
               |> Helper.combinations
-              |> IO.inspect
+              # |> IO.inspect
               |> Enum.concat(acc_final_results)
 
             {next_acc_final_results, words_cache}

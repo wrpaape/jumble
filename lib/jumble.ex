@@ -9,7 +9,7 @@ defmodule Jumble do
   @cc_spacer          ". " <> ANSI.red
   @header   ANSI.underline <> ANSI.blue <> "JUMBLES:\n" <> ANSI.no_underline <> ANSI.white
 
-  def start(%{jumble_maps: jumble_maps}) do
+  def start(%{jumble_info: %{jumble_maps: jumble_maps}}) do
     jumbles = 
       jumble_maps
       |> Enum.map_join(@jumble_spacer, fn({jumble, %{jumble_index: jumble_index, length: length, string_id: string_id, keys_at: keys_at}}) ->

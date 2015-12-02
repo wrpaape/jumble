@@ -80,8 +80,8 @@ defmodule Jumble.CLI do
 
         jumble_info =
           Map.new
-          Map.put(:jumble_maps, jumble_maps)
-          Map.put(:uniq_lengths, uniq_jumble_lengths)
+          |> Map.put(:jumble_maps, jumble_maps)
+          |> Map.put(:uniq_lengths, uniq_jumble_lengths)
 
         Map.new        
         |> Map.put(:sol_info, sol_info)
@@ -107,14 +107,34 @@ defmodule Jumble.CLI do
       |> Helper.with_index(1, :leading)
       |> Enum.into(Map.new)
 
-    uniq_sol_lengths =
+    {uniq_sol_lengths, dup_tail} =
       sol_lengths
-      |> Enum.uniq
+      |> Helper.partition_dups
+
+
+    # uniq_pick_orders =
+    #   uniq_sol_lengths
+    #   |> Helper.with_counter(1)
+    #   |> Helper.combinations
+    #   |> Enum.sort
+    #   |> Enum.reduce(Map.new, fn([pick_index, uniq_pick_length], pick_map)->
+    #     pick_map
+    #     |> Map.update(pick_index, [uniq_pick_length], fn(acc_pick_lengths)->
+    #       [uniq_pick_length | acc_pick_lengths]
+    #     end)
+    #   end)
+    #   |> IO.inspect
+    #   |> Enum.reduce(fn({_pick_index, uniq_starts})->
+    #     uniq_starts ++ dup_tail
+    #   end)
+    #   |> IO.inspect
+
+
 
     Map.new
     |> Map.put(:clue, clue)
-    |> Map.put(:lengths, ordered_sol_lengths)
-    |> Map.put(:uniq_lengths, uniq_sol_lengths)
+    |> Map.put(:uniq_lengths, Enum.into(uniq_sol_lengths, HashSet.new))
+    # |> Map.put(:uniq_pick_orders, uniq_pick_orders)
   end
 
   def parse_arg_strings(jumble_string) do

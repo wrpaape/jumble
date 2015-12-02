@@ -30,7 +30,28 @@ defmodule Jumble.Helper do
     |> elem(0)
   end
 
-  def combinations([last_list | []], els, acc) do
+  def with_counter(collection, initial) do
+    collection
+    |> Enum.reduce({[[], []], initial}, fn(el, {[acc_els, acc_counters], counter}) ->
+
+      {[[el | acc_els], [counter | acc_counters]], counter + 1}
+    end)
+    |> elem(0)
+  end
+
+  def partition_dups(collection) do
+    collection
+    |> Enum.reduce({[], []}, fn(el, {uniqs, dups})->
+      if el in uniqs do
+        {uniqs, [el | dups]}
+      else
+        {[el | uniqs], dups}
+      end
+    end)
+
+  end
+
+  def combinations([last_list], els, acc) do
     last_list
     |> Enum.reduce(acc, fn(last_el, last_acc) ->
       [[last_el | els] | last_acc]
@@ -43,6 +64,62 @@ defmodule Jumble.Helper do
       combinations(tail_lists, [el | els], next_acc)
     end)
   end
+
+
+
+  def permutations(list) do
+    list
+    |> permute([], self)
+
+    listen([])
+  end
+
+  def listen(acc_perms) do
+    receive do
+      {:done, perms} ->
+        [perms | acc_perms]
+        |> listen
+
+    after 1000 ->
+      acc_perms
+    end
+  end
+
+  def permute([last_el], last_acc, root_pid) do
+    root_pid
+    |> send({:done, [last_el | last_acc]})
+  end
+
+  def permute(rem, acc, root_pid) do
+    rem
+    |> Enum.scan({[], rem}, fn(_el, {ahead, [el | behind]})->
+      __MODULE__
+      |> spawn(:permute, [ahead ++ behind, [el | acc], root_pid])
+
+      {[el | ahead], behind}
+    end)
+  end
+  # def store_state(state) do
+  #   Agent.start_link(fn ->
+  #     state
+  #   end)
+  # end
+
+  # def fetch_state(pid) do
+  #   pid
+  #   |> Agent.get(fn(last_state)->
+  #     last_state
+  #   end)
+  # end
+
+  # def permutations([last_el | []], acc), do: [last_el | acc]
+
+  # def permutations(list = [next_el | tail]) do
+  #   tail
+  #   |> Enum.map(acc, fn(el, next_acc) ->
+  #     permutations([el | tail], [next_el | acc])
+  #   end)
+  # end
 end
 
 
