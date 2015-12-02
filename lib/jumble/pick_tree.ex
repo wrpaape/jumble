@@ -8,18 +8,27 @@ defmodule Jumble.PickTree do
     |> Agent.start_link(:init_master_tree, [total_word_bank, all_word_lengths], name: __MODULE__)
   end
 
-  def push_result(final_words) do
+  def push_raw_result(final_words) do
     __MODULE__
-    |> Agent.update(fn({acc_results, words_cache})->
-      {[final_words | acc_results], words_cache}
+    |> Agent.update(fn({acc_raw_results, words_cache})->
+      {[final_words | acc_raw_results], words_cache}
+    end)
+  end
+
+  def push_final_result(final_result) do
+    IO.inspect(final_result)
+
+    __MODULE__
+    |> Agent.update(fn(acc_final_results)->
+      [final_result | acc_final_results]
     end)
   end
 
   def process_results do
-    {raw_results, num_words} =
+    {raw_results, num_words, words_cache} =
       __MODULE__
-      |> Agent.get_and_update(fn({final_acc_results, words_cache})->
-        {{final_acc_results, words_cache.num_words}, words_cache}
+      |> Agent.get_and_update(fn({acc_raw_results, words_cache = %{num_words: num_words}})->
+        {{acc_raw_results, num_words, words_cache}, []}
       end)
 
     raw_results
@@ -32,23 +41,18 @@ defmodule Jumble.PickTree do
     end)
     |> Enum.map(&Enum.to_list/1)
     |> Helper.combinations
-    |> filter_results
+    |> filter_results(words_cache)
   end
-  def process_result(final_words) do
-    __MODULE__
-    |> Agent.update(fn(last_results = {acc_results, words_cache = %{lengths: lengths, invalid_ids: invalid_ids}}) ->
-      result_is_invalid =
+  def filter_results(processed_results, %{lengths: lengths, invalid_ids: invalid_ids}) do
+    processed_results
+    |> Enum.scan(invalid_ids, fn(result, invalid_ids)->
+      definitely_invalid =
         final_words
         |> Enum.any?(fn(word) ->
-          invalid_ids
-          |> Set.member?(word)
+          Set.member?(invalid_ids, word)
         end)
-      
-      if "deno" in final_words, do: IO.puts("HERE:        " <> IO.ANSI.red <>  inspect(final_words))
 
-      if result_is_invalid do
-        last_results
-      else
+      if not definitely_invalid do
         final_words
         |> Enum.reduce_while({lengths, []}, fn(string_id, {[length_word | next_word_lengths], acc_valids}) ->
           valid_words = 
@@ -78,6 +82,9 @@ defmodule Jumble.PickTree do
             {acc_results, next_words_cache}
         end
       end
+
+
+      invalid_ids
     end)
   end
 

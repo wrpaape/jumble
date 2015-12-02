@@ -22,7 +22,7 @@ defmodule Jumble.Picker do
 
         {:done, words} ->
           words
-          |> PickTree.push_result
+          |> PickTree.push_raw_result
       end
     end)
   end
