@@ -8,6 +8,32 @@ defmodule Jumble.PickTree do
     |> Agent.start_link(:init_master_tree, [total_word_bank, all_word_lengths], name: __MODULE__)
   end
 
+  def push_result(final_words) do
+    __MODULE__
+    |> Agent.update(fn({acc_results, words_cache})->
+      {[final_words | acc_results], words_cache}
+    end)
+  end
+
+  def process_results do
+    {raw_results, num_words} =
+      __MODULE__
+      |> Agent.get_and_update(fn({final_acc_results, words_cache})->
+        {{final_acc_results, words_cache.num_words}, words_cache}
+      end)
+
+    raw_results
+    |> Enum.reduce(List.duplicate(HashSet.new, num_words), fn(words, uniq_cols)->
+      uniq_cols
+      |> Enum.map_reduce(words, fn(uniq_col, [col_word | rem_words])->
+        {Set.put(uniq_col, col_word), rem_words}
+      end)
+      |> elem(0)
+    end)
+    |> Enum.map(&Enum.to_list/1)
+    |> Helper.combinations
+    |> filter_results
+  end
   def process_result(final_words) do
     __MODULE__
     |> Agent.update(fn(last_results = {acc_results, words_cache = %{lengths: lengths, invalid_ids: invalid_ids}}) ->
@@ -18,6 +44,8 @@ defmodule Jumble.PickTree do
           |> Set.member?(word)
         end)
       
+      if "deno" in final_words, do: IO.puts("HERE:        " <> IO.ANSI.red <>  inspect(final_words))
+
       if result_is_invalid do
         last_results
       else
@@ -54,16 +82,17 @@ defmodule Jumble.PickTree do
   end
 
   def init_master_tree(word_bank, ordered_word_lengths) do
-    IO.puts "initializing picker..."
-
     sorted_word_bank =
       word_bank
       |> Enum.sort(&>=/2)
 
+    num_words =
+      ordered_word_lengths
+      |> length
+
     [first_word_length | rem_word_lengths] =
       ordered_word_lengths
       |> Enum.reverse
-
 
     {:ok, stash_pid} =
       {sorted_word_bank, rem_word_lengths, []}
@@ -73,7 +102,7 @@ defmodule Jumble.PickTree do
     |> spawn(:start_next_word, [word_bank, first_word_length, stash_pid])
 
     words_cache =
-      %{lengths: ordered_word_lengths, invalid_ids: HashSet.new}
+      %{num_words: num_words, lengths: ordered_word_lengths, invalid_ids: HashSet.new}
 
     {[], words_cache}
   end
@@ -99,6 +128,7 @@ defmodule Jumble.PickTree do
           |> stash_root_state
 
         {rem_letters, next_word_length, stash_pid}
+
 
       ({_done, [], last_acc_finished_letters}) ->
         words =

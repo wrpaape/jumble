@@ -1,6 +1,4 @@
 defmodule Jumble.LengthDict do
-  alias Jumble.Helper
-
   def get(length_word, string_id) do
     __MODULE__
     |> Agent.get(Map, :get, [length_word])
@@ -38,18 +36,4 @@ defmodule Jumble.LengthDict do
     end)
     |> Enum.into(Map.new)
   end
-
-  # def build_dict(lengths) do
-  #   lengths
-  #   |> Enum.map_join("|",fn(length) ->
-  #     length
-  #     |> Integer.to_string
-  #     |> Helper.cap("\\w{", "}")
-  #   end)
-  #   |> Helper.cap("\\b(", ")\\b")
-  #   |> Regex.compile!
-  #   |> Regex.scan(@dict, capture: :all_but_first)
-  #   |> List.flatten
-  #   |> Enum.group_by(&byte_size/1)
-  # end
 end
