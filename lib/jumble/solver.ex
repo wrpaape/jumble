@@ -33,7 +33,7 @@ defmodule Jumble.Solver do
   end
 
 
-  def solve(%{clue: clue, final_lengths: final_lengths, jumble_maps: jumble_maps}) do
+  def solve(%{clue: clue, final_lengths: final_lengths, uniq_lengths: uniq_lengths, jumble_maps: jumble_maps}) do
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({jumble, %{unjumbleds: unjumbleds}}) ->
@@ -50,7 +50,7 @@ defmodule Jumble.Solver do
         IO.puts unjumbled_sol
 
         word_bank
-        |> PickTree.start_link(final_lengths)
+        |> PickTree.start_link({final_lengths, uniq_lengths})
     end)
   end
 end

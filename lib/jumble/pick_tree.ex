@@ -3,9 +3,17 @@ defmodule Jumble.PickTree do
   alias Jumble.LengthDict
   alias Jumble.Helper
 
-  def start_link(total_word_bank, all_word_lengths) do
+  def start_link(total_word_bank, length_info) do
     __MODULE__
-    |> Agent.start_link(:init_master_tree, [total_word_bank, all_word_lengths], name: __MODULE__)
+    |> Agent.start_link(:init_master_tree, [total_word_bank, length_info], name: __MODULE__)
+  end
+
+  def report_results do
+    __MODULE__
+    |> Agent.get(fn(final_results)->
+      final_results
+      |> Enum.each(&IO.inspect/1)
+    end)  
   end
 
   def push_raw_result(final_words) do
@@ -16,8 +24,6 @@ defmodule Jumble.PickTree do
   end
 
   def push_final_result(final_result) do
-    IO.inspect(final_result)
-
     __MODULE__
     |> Agent.update(fn(acc_final_results)->
       [final_result | acc_final_results]
@@ -32,41 +38,55 @@ defmodule Jumble.PickTree do
       end)
 
     raw_results
-    |> Enum.reduce(List.duplicate(HashSet.new, num_words), fn(words, uniq_cols)->
-      uniq_cols
-      |> Enum.map_reduce(words, fn(uniq_col, [col_word | rem_words])->
-        {Set.put(uniq_col, col_word), rem_words}
-      end)
-      |> elem(0)
-    end)
-    |> Enum.map(&Enum.to_list/1)
-    |> Helper.combinations
+    # |> Enum.reduce(List.duplicate(HashSet.new, num_words), fn(words, uniq_cols)->
+    #   uniq_cols
+    #   |> Enum.map_reduce(words, fn(uniq_col, [col_word | rem_words])->
+    #     {Set.put(uniq_col, col_word), rem_words}
+    #   end)
+    #   |> elem(0)
+    # end)
+    # |> Enum.map(&Enum.to_list/1)
+    # |> Helper.combinations
     |> filter_results(words_cache)
   end
+
+    # Jumble.CLI.main
+    # :timer.sleep 500
+    # Jumble.PickTree.process_results
+
   def filter_results(processed_results, %{lengths: lengths, invalid_ids: invalid_ids}) do
     processed_results
-    |> Enum.scan(invalid_ids, fn(result, invalid_ids)->
+    |> Enum.scan(invalid_ids, fn(final_ids, invalid_ids)->
       definitely_invalid =
-        final_words
-        |> Enum.any?(fn(word) ->
-          Set.member?(invalid_ids, word)
+        final_ids
+        |> Enum.any?(fn(string_id) ->
+          Set.member?(invalid_ids, string_id)
         end)
 
       if not definitely_invalid do
-        final_words
+        final_ids
+        # |> Enum.reduce({lengths, []}, fn(string_id, {[length_word | next_word_lengths], acc_valids}) ->
+        #   valid_words = 
+        #     length_word
+        #     |> LengthDict.get(string_id)
+
+        #   {next_word_lengths, [valid_words | acc_valids]}
+        # end)
+        # |> elem(1)
+        # |> Helper.combinations
+        # |> Enum.each(&push_final_result/1)
         |> Enum.reduce_while({lengths, []}, fn(string_id, {[length_word | next_word_lengths], acc_valids}) ->
           valid_words = 
             length_word
             |> LengthDict.get(string_id)
+            |> IO.inspect
 
           if valid_words do
             {:cont, {next_word_lengths, [valid_words | acc_valids]}}
           else
-            next_words_cache =
-              words_cache
-              |> Map.update!(:invalid_ids, &Set.put(&1, string_id))
-
-            {:halt, next_words_cache}
+            IO.puts(inspect(string_id) <> " failed tossing:")
+            IO.inspect valid_words
+            {:halt, Set.put(invalid_ids, string_id)}
           end
         end)
         |> case do
@@ -74,28 +94,27 @@ defmodule Jumble.PickTree do
             next_acc_results =
               all_valid_words
               |> Helper.combinations
-              |> IO.inspect
-              |> Enum.concat(acc_results)
+              |> Enum.each(&push_final_result/1)
 
-            {next_acc_results, words_cache}
-          next_words_cache ->
-            {acc_results, next_words_cache}
+          next_invalid_ids ->
+            invalid_ids = next_invalid_ids
         end
       end
 
-
       invalid_ids
     end)
+    
+    report_results
   end
 
-  def init_master_tree(word_bank, ordered_word_lengths) do
+  def init_master_tree(word_bank, {ordered_word_lengths, uniq_word_lengths}) do
     sorted_word_bank =
       word_bank
       |> Enum.sort(&>=/2)
 
-    num_words =
-      ordered_word_lengths
-      |> length
+    # num_words =
+    #   ordered_word_lengths
+    #   |> length
 
     [first_word_length | rem_word_lengths] =
       ordered_word_lengths
@@ -109,7 +128,7 @@ defmodule Jumble.PickTree do
     |> spawn(:start_next_word, [word_bank, first_word_length, stash_pid])
 
     words_cache =
-      %{num_words: num_words, lengths: ordered_word_lengths, invalid_ids: HashSet.new}
+      %{num_words: num_words, lengths: ordered_word_lengths, uniq_lengths: uniq_word_lengths, invalid_ids: HashSet.new}
 
     {[], words_cache}
   end
