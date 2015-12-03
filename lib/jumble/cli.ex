@@ -113,7 +113,7 @@ defmodule Jumble.CLI do
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
       |> Helper.with_index(1, :leading)
-      |> Helper.partition_dups
+      |> Helper.partition_dups_by_val
 
 
     pick_orders =
@@ -150,6 +150,7 @@ defmodule Jumble.CLI do
     |> Map.put(:uniq_lengths, uniq_lengths)
     |> Map.put(:pick_orders, pick_orders)
     |> Map.put(:invalid_ids, HashSet.new)
+    |> Map.put(:processed_raw, HashSet.new)
   end
 
   def parse_arg_strings(jumble_string) do
