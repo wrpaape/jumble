@@ -6,6 +6,7 @@ defmodule Jumble.CLI do
 
   alias Jumble.Helper
   alias Jumble.Stats
+  alias Jumble.PickTree
   alias Jumble.Solver
   alias Jumble.LengthDict
 
@@ -36,6 +37,7 @@ defmodule Jumble.CLI do
   def process(args) do
     args
     |> LengthDict.start_link
+    |> PickTree.start_link
     |> Solver.start_link
     |> Jumble.start
   end
@@ -114,7 +116,7 @@ defmodule Jumble.CLI do
       |> Helper.partition_dups
 
 
-    uniq_pick_orders =
+    pick_orders =
       uniq_sol_lengths
       |> Stats.uniq_pick_orders(dup_tail)
       # |> Helper.with_counter(1)
@@ -136,14 +138,17 @@ defmodule Jumble.CLI do
       # |> Stats.uniq_pick_orders
       # |> IO.inspect
 
-
+      uniq_lengths =
+        uniq_sol_lengths
+        |> Keyword.values
+        |> Enum.into(HashSet.new)
 
     Map.new
     |> Map.put(:clue, clue)
     # |> Map.put(:num_words, length(sol_lengths))
     |> Map.put(:sol_lengths, sol_lengths)
-    |> Map.put(:uniq_lengths, Enum.into(uniq_sol_lengths, HashSet.new))
-    |> Map.put(:pick_orders, uniq_pick_orders)
+    |> Map.put(:uniq_lengths, uniq_lengths)
+    |> Map.put(:pick_orders, pick_orders)
     |> Map.put(:invalid_ids, HashSet.new)
   end
 

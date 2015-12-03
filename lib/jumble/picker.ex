@@ -10,20 +10,23 @@ defmodule Jumble.Picker do
     |> pick_letters(stash_pid)
   end
 
+  def start_next_word(:done), do: :nothing
+
   def pick_letters({last_valid_picks, [], acc_letters}, stash_pid) do
     last_valid_picks
     |> Enum.each(fn(last_pick) ->
       stash_pid
       |> PickTree.next_root_state([last_pick | acc_letters])
-      |> case do
-        next_root_state =
-          {_next_rem_letters, _next_word_length, _next_stash_pid} ->
+      |> start_next_word
+      # |> case do
+        # next_root_state =
+          # {_next_rem_letters, _next_word_length, _next_stash_pid} ->
           
-          next_root_state
-          |> start_next_word
+          # next_root_state
+          # |> start_next_word
 
-        :done -> exit(:normal)
-      end
+        # :done -> IO.puts "dead"
+      # end
     end)
   end
 

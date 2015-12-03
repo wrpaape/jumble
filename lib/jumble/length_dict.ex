@@ -2,10 +2,10 @@ defmodule Jumble.LengthDict do
   def get(length_word, string_id) do
     __MODULE__
     |> Agent.get(Map, :get, [length_word])
-    |> apply(:get, [string_id]) || []
+    |> apply(:get, [string_id])
   end
 
-  def start_link(%{sol_info: %{uniq_lengths: uniq_sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}} = args) do
+  def start_link(args = %{sol_info: %{uniq_lengths: uniq_sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
     lengths_domain =
       uniq_sol_lengths
       |> Set.union(uniq_jumble_lengths)

@@ -4,18 +4,20 @@ defmodule Jumble.PickTree do
   alias Jumble.Helper
   alias Jumble.Stats
 
-  def start_link(total_word_bank, sol_info) do
+  def start_link(args = %{sol_info: sol_info}) do
     __MODULE__
-    |> Agent.start_link(:init_master_tree, [total_word_bank, sol_info], name: __MODULE__)
+    |> Agent.start_link(:init_master_tree, [sol_info], name: __MODULE__)
+    
+    args
   end
 
   def report_results do
     __MODULE__
-    |> Agent.get(fn({final_results, _})->
+    |> Agent.cast(fn(final_state = {final_results, _sol_info})->
       final_results
       |> Enum.each(&IO.inspect/1)
 
-      final_results
+      final_state
     end)  
   end
 
@@ -36,7 +38,7 @@ defmodule Jumble.PickTree do
     |> Agent.update(fn(last_final_results = {acc_final_results, words_cache = %{sol_lengths: sol_lengths, invalid_ids: invalid_ids}}) ->
       result_is_invalid =
         raw_string_ids
-        |> IO.inspect
+        # |> IO.inspect
         |> Enum.any?(fn(string_id) ->
           invalid_ids
           |> Set.member?(string_id)
@@ -81,18 +83,23 @@ defmodule Jumble.PickTree do
     end)
   end
 
-  def init_master_tree(word_bank, sol_info = %{pick_orders: pick_orders}) do
-    pick_orders
-    |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
-      {:ok, stash_pid} =
-        {word_bank, first_word_index, rem_word_lengths, []}
-        |> stash_root_state
+  def init_master_tree(sol_info), do: {[], sol_info}
 
-      Picker
-      |> spawn(:start_next_word, [{word_bank, first_word_length, stash_pid}])
+  def spawn_pickers(word_bank) do
+    __MODULE__
+    |> Agent.cast(fn({acc_results, sol_info = %{pick_orders: pick_orders}})->
+      pick_orders
+      |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
+        {:ok, stash_pid} =
+          {word_bank, first_word_index, rem_word_lengths, []}
+          |> stash_root_state
+
+        Picker
+        |> spawn(:start_next_word, [{word_bank, first_word_length, stash_pid}])
+      end)
+      
+      {acc_results, sol_info}      
     end)
-
-    {[], sol_info}
   end
 
   # def push_final_result(final_result) do
@@ -177,12 +184,12 @@ defmodule Jumble.PickTree do
         {rem_letters, next_word_length, stash_pid}
 
 
-      ({_done, [], last_acc_finished_words}) ->
+      ({_done, last_word_index, [], last_acc_finished_words}) ->
         words =
-          [Enum.join(finished_letters) | last_acc_finished_words]
+          [{last_word_index, Enum.join(finished_letters)} | last_acc_finished_words]
           |> Enum.sort
           |> Keyword.values
-          |> PickTree.process_raw_result
+          |> process_raw_result
 
         :done
     end)
