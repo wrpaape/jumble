@@ -25,63 +25,63 @@ defmodule Jumble.PickTree do
 
   # end
 
-  # def push_raw_result(final_words) do
-  #   __MODULE__
-  #   |> Agent.update(fn
-  #     ({acc_raw_results, words_cache})->
-  #     {[final_words | acc_raw_results], words_cache}
-  #   end)
-  # end
-
-  def process_raw_result(raw_string_ids) do
+  def push_raw_result(final_words) do
     __MODULE__
-    |> Agent.update(fn(last_final_results = {acc_final_results, words_cache = %{sol_lengths: sol_lengths, invalid_ids: invalid_ids}}) ->
-      result_is_invalid =
-        raw_string_ids
-        # |> IO.inspect
-        |> Enum.any?(fn(string_id) ->
-          invalid_ids
-          |> Set.member?(string_id)
-        end)
-      
-      if result_is_invalid do
-        last_final_results
-      else
-        raw_string_ids
-        |> Enum.reduce_while({sol_lengths, []}, fn(string_id, {[string_length | rem_string_lengths], acc_valids}) ->
-          valid_words = 
-            # ordered_lengths
-            # string_id
-            # |> String.length
-            # |> Map.get(word_index)
-            string_length
-            |> LengthDict.get(string_id)
-
-          if valid_words do
-            {:cont, {rem_string_lengths, [valid_words | acc_valids]}}
-          else
-            next_words_cache =
-              words_cache
-              |> Map.update!(:invalid_ids, &Set.put(&1, string_id))
-
-            {:halt, next_words_cache}
-          end
-        end)
-        |> case do
-          {_last_pick, all_valid_words} ->
-            next_acc_final_results =
-              all_valid_words
-              |> Stats.combinations
-              |> IO.inspect
-              |> Enum.concat(acc_final_results)
-
-            {next_acc_final_results, words_cache}
-          next_words_cache ->
-            {acc_final_results, next_words_cache}
-        end
-      end
+    |> Agent.update(fn
+      ({acc_raw_results, words_cache})->
+      {[final_words | acc_raw_results], words_cache}
     end)
   end
+
+  # def process_raw_result(raw_string_ids) do
+  #   __MODULE__
+  #   |> Agent.update(fn(last_final_results = {acc_final_results, words_cache = %{sol_lengths: sol_lengths, invalid_ids: invalid_ids}}) ->
+  #     result_is_invalid =
+  #       raw_string_ids
+  #       # |> IO.inspect
+  #       |> Enum.any?(fn(string_id) ->
+  #         invalid_ids
+  #         |> Set.member?(string_id)
+  #       end)
+      
+  #     if result_is_invalid do
+  #       last_final_results
+  #     else
+  #       raw_string_ids
+  #       |> Enum.reduce_while({sol_lengths, []}, fn(string_id, {[string_length | rem_string_lengths], acc_valids}) ->
+  #         valid_words = 
+  #           # ordered_lengths
+  #           # string_id
+  #           # |> String.length
+  #           # |> Map.get(word_index)
+  #           string_length
+  #           |> LengthDict.get(string_id)
+
+  #         if valid_words do
+  #           {:cont, {rem_string_lengths, [valid_words | acc_valids]}}
+  #         else
+  #           next_words_cache =
+  #             words_cache
+  #             |> Map.update!(:invalid_ids, &Set.put(&1, string_id))
+
+  #           {:halt, next_words_cache}
+  #         end
+  #       end)
+  #       |> case do
+  #         {_last_pick, all_valid_words} ->
+  #           next_acc_final_results =
+  #             all_valid_words
+  #             |> Stats.combinations
+  #             |> IO.inspect
+  #             |> Enum.concat(acc_final_results)
+
+  #           {next_acc_final_results, words_cache}
+  #         next_words_cache ->
+  #           {acc_final_results, next_words_cache}
+  #       end
+  #     end
+  #   end)
+  # end
 
   def init_master_tree(sol_info), do: {[], sol_info}
 
@@ -189,7 +189,7 @@ defmodule Jumble.PickTree do
           [{last_word_index, Enum.join(finished_letters)} | last_acc_finished_words]
           |> Enum.sort
           |> Keyword.values
-          |> process_raw_result
+          |> push_raw_result
 
         :done
     end)
