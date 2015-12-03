@@ -1,7 +1,7 @@
 defmodule Jumble.Picker do
   alias Jumble.PickTree
 
-  def start_next_word(rem_letters, word_length, stash_pid) do
+  def start_next_word({rem_letters, word_length, stash_pid}) do
     {initial_valid_picks, initial_downstream_picks} =
       rem_letters
       |> Enum.split(1 - word_length)
@@ -16,13 +16,13 @@ defmodule Jumble.Picker do
       stash_pid
       |> PickTree.next_root_state([last_pick | acc_letters])
       |> case do
-        {next_rem_letters, next_word_length, next_stash_pid} ->
-          next_rem_letters
-          |> start_next_word(next_word_length, next_stash_pid)
+        next_root_state =
+          {_next_rem_letters, _next_word_length, _next_stash_pid} ->
+          
+          next_root_state
+          |> start_next_word
 
-        {:done, words} ->
-          words
-          |> PickTree.process_raw_result
+        :done -> exit(:normal)
       end
     end)
   end

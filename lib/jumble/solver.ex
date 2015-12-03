@@ -52,11 +52,12 @@ defmodule Jumble.Solver do
         IO.puts unjumbled_sol
 
         word_bank
+        |> Enum.sort(&>=/2)
         |> PickTree.start_link(sol_info)
 
         IO.puts "processing..."
 
-        :timer.sleep(500)
+        # :timer.sleep(500)
 
         PickTree.report_results
 

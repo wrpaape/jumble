@@ -103,18 +103,20 @@ defmodule Jumble.CLI do
     sol_lengths =
       parse_ints(sol_lengths_string)
 
-    ordered_sol_lengths =
-      sol_lengths
-      |> Helper.with_index(1, :leading)
-      |> Enum.into(Map.new)
+    # ordered_sol_lengths =
+      # sol_lengths
+      # |> Helper.with_index(1, :leading)
+      # |> Enum.into(Map.new)
 
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
+      |> Helper.with_index(1, :leading)
       |> Helper.partition_dups
 
 
     uniq_pick_orders =
-      # uniq_sol_lengths
+      uniq_sol_lengths
+      |> Stats.uniq_pick_orders(dup_tail)
       # |> Helper.with_counter(1)
       # |> Stats.combinations
       # |> Enum.sort
@@ -130,17 +132,19 @@ defmodule Jumble.CLI do
       # end)
       # uniq_sol_lengths
       # {uniq_sol_lengths, dup_tail} =
-      sol_lengths
-      |> Helper.partition_dups
-      |> Stats.uniq_pick_orders
-      |> IO.inspect
+      # sol_lengths
+      # |> Stats.uniq_pick_orders
+      # |> IO.inspect
 
 
 
     Map.new
     |> Map.put(:clue, clue)
+    # |> Map.put(:num_words, length(sol_lengths))
+    |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, Enum.into(uniq_sol_lengths, HashSet.new))
-    # |> Map.put(:uniq_pick_orders, uniq_pick_orders)
+    |> Map.put(:pick_orders, uniq_pick_orders)
+    |> Map.put(:invalid_ids, HashSet.new)
   end
 
   def parse_arg_strings(jumble_string) do
