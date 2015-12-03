@@ -51,7 +51,6 @@ defmodule Jumble.Helper do
     |> Tuple.delete_at(2)
   end
 
-  
   # def store_state(state) do
   #   Agent.start_link(fn ->
   #     state

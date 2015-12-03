@@ -57,7 +57,7 @@ defmodule Jumble.Solver do
 
         IO.puts "processing..."
 
-        :timer.sleep(:infinity)
+        # :timer.sleep(:infinity)
 
         PickTree.report_results
 
