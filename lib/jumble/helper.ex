@@ -51,6 +51,9 @@ defmodule Jumble.Helper do
     |> Tuple.delete_at(2)
   end
 
+  def wrap_prepend(second, first), do: {first, second}
+  def wrap_append(first, second),  do: {first, second}
+
   # def store_state(state) do
   #   Agent.start_link(fn ->
   #     state
