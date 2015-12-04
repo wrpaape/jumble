@@ -33,8 +33,6 @@ defmodule Jumble.Solver do
     args
   end
 
-
-  # def solve(%{clue: clue, final_lengths: final_lengths, uniq_lengths: uniq_lengths, jumble_maps: jumble_maps}) do
   def solve(%{jumble_info: %{jumble_maps: jumble_maps}}) do
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
@@ -49,19 +47,11 @@ defmodule Jumble.Solver do
           {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
         end)
 
-        IO.puts unjumbled_sol
+      IO.puts unjumbled_sol
 
-        word_bank
-        |> Enum.sort(&>=/2)
-        |> PickTree.spawn_pickers
-
-        IO.puts "processing..."
-
-        # :timer.sleep(:infinity)
-
-        PickTree.report_results
-
-        # Agent.stop(PickTree)
+      word_bank
+      |> Enum.sort(&>=/2)
+      |> PickTree.spawn_pickers
     end)
   end
 end
