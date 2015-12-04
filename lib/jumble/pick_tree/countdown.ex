@@ -11,7 +11,7 @@ defmodule Jumble.PickTree.Countdown do
 
   def start_countdown(timeout) do
     __MODULE__
-    |> spawn(:countdown, timeout)
+    |> spawn(:countdown, [timeout])
   end
 
   def reset_countdown(countdown_pid) do

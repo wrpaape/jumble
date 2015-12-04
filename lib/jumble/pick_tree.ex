@@ -1,6 +1,4 @@
 defmodule Jumble.PickTree do
-  @idle_timeout 500
-
   use GenServer
 
   alias Jumble.PickTree.Branch
@@ -30,6 +28,8 @@ defmodule Jumble.PickTree do
   def init(sol_info), do: {:ok, {[], sol_info}}
 
   def handle_cast({:spawn_pickers, word_bank}, intial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
+    Countdown.start_countdown
+
     pick_orders
     |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
       branch_pid =

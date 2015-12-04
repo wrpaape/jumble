@@ -5,6 +5,7 @@ defmodule Jumble.Solver do
   alias Jumble.Stats
   alias Jumble.Helper
   alias Jumble.PickTree
+  alias Jumble.PickTree.Countdown
 
   @unjumbled_sol_spacer "unscrambling for:\n  "   <> ANSI.magenta
   @clue_sol_spacer       "\n    "                 <> ANSI.cyan
@@ -56,7 +57,7 @@ defmodule Jumble.Solver do
 
       IO.puts unjumbled_sol
       
-      @idle_timeout
+      @pick_tree_timeout
       |> Countdown.start_link
 
       word_bank
@@ -65,8 +66,6 @@ defmodule Jumble.Solver do
 
       receive do
         {:done, results} -> IO.inspect(length(results))
-
-        after 5000 -> IO.puts "DED"
       end
     end)
   end
