@@ -15,8 +15,6 @@ defmodule Jumble.Solver do
     |> Agent.cast(&solve/1)
   end
 
-  def resume, do: Agent.cast(__MODULE__, :start_countdown)
-
   def push_unjumbled(jumble, unjumbled, key_letters) do
     push = fn(unjumbleds) ->
       [{unjumbled, key_letters} | unjumbleds]
