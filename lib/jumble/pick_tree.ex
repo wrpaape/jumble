@@ -1,4 +1,6 @@
 defmodule Jumble.PickTree do
+  @idle_timeout 500
+
   use GenServer
 
   alias Jumble.PickTree.Branch
@@ -11,24 +13,40 @@ defmodule Jumble.PickTree do
   def start_link(args = %{sol_info: sol_info}) do
     __MODULE__
     |> GenServer.start_link(sol_info, name: __MODULE__)
-    
+
     args
   end
 
-  def spawn_pickers(word_bank), do: GenServer.start_link(__MODULE__, {:spawn_pickers, word_bank})
+  def spawn_pickers(word_bank), do: GenServer.cast(__MODULE__, {:spawn_pickers, word_bank})
 
   def process_raw(string_ids),  do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
   def report_results,           do: GenServer.cast(__MODULE__, :report_results)
 
+  def get_results,              do: GenServer.call(__MODULE__, :get_results)
+
 
 
   def init(sol_info), do: {:ok, {[], sol_info}}
 
-  def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, words_cache}) do
-    Countdown.reset
+  def handle_cast({:spawn_pickers, word_bank}, intial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
+    pick_orders
+    |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
+      branch_pid =
+        {word_bank, first_word_index, rem_word_lengths, []}
+        |> Branch.new_branch
 
-    words_cache
+      Picker
+      |> spawn(:start_next_word, [{word_bank, first_word_length, branch_pid}])
+    end)
+
+    {:noreply, intial_state}
+  end
+
+  def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
+    Countdown.reset_countdown
+
+    last_words_cache
     |> pre_process(string_ids)
     |> case do
       :already_processed ->
@@ -43,7 +61,7 @@ defmodule Jumble.PickTree do
         |> case do
           {:found_invalid_id, invalid_id} ->
             words_cache
-            |> Map.update!(:invalid_ids &Set.put(&1, invalid_id))
+            |> Map.update!(:invalid_ids, &Set.put(&1, invalid_id))
             |> Helper.wrap_prepend(acc_final_results)
 
           {[], all_valid_words} ->
@@ -55,6 +73,21 @@ defmodule Jumble.PickTree do
     end
     |> Helper.wrap_prepend(:noreply)
   end
+
+  def handle_cast(:report_results, final_state = {final_results, words_cache}) do
+    final_results
+    # |> Enum.each(&IO.inspect/1)
+    |> length
+    |> IO.inspect
+
+    {:noreply, final_state}
+  end
+
+  def handle_call(:get_results, _from, final_state = {final_results, _words_cache}) do
+    {:reply, final_results, final_state}
+  end
+
+
 
   def not_processed?(processed_raw, string_ids) do
     processed_raw
@@ -69,20 +102,24 @@ defmodule Jumble.PickTree do
     end)
   end
 
-  def pre_process(words_cache = %{processed_raw: processed_raw, invalid_ids: invalid_ids}, string_ids) do
+  def pre_process(last_words_cache = %{processed_raw: processed_raw, invalid_ids: invalid_ids}, string_ids) do
     processed_raw
     |> not_processed?(string_ids)
     |> if do
       :already_processed
     else
-      next_words_cache =
-        words_cache
+      words_cache =
+        last_words_cache
         |> Map.update!(:processed_raw, &Set.put(&1, string_ids))
+
 
       invalid_ids
       |> any_invalid?(string_ids)
-      |> if do: :includes_invalid_id, else: :proceed
-      |> Helper.wrap_append(next_words_cache)
+      |> if do
+       :includes_invalid_id
+      else
+        :proceed
+      end |> Helper.wrap_append(words_cache)
     end
   end
 
@@ -99,21 +136,5 @@ defmodule Jumble.PickTree do
         {:halt, {:found_invalid_id, string_id}}
       end
     end)
-  end
-
-  def spawn_pickers(intial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
-    pick_orders
-    |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
-      {:ok, branch_pid} =
-        {word_bank, first_word_index, rem_word_lengths, []}
-        |> Branch.new_branch
-
-      Picker
-      |> spawn(:start_next_word, [{word_bank, first_word_length, branch_pid}])
-    end)
-
-    Countdown.start
-    
-    {:noreply, intial_state}
   end
 end

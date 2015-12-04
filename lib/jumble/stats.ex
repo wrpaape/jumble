@@ -6,6 +6,8 @@ defmodule Jumble.Stats do
   |> Helper.with_index(1, :leading)
   |> Enum.into(Map.new)
 
+  def combinations(list), do: combinations(list, [], [])
+
   def combinations([last_list], els, acc) do
     last_list
     |> Enum.reduce(acc, fn(last_el, last_acc) ->
@@ -13,7 +15,7 @@ defmodule Jumble.Stats do
     end)
   end
 
-  def combinations([head_list | tail_lists], els \\ [], acc \\ []) do
+  def combinations([head_list | tail_lists], els, acc) do
     head_list
     |> Enum.reduce(acc, fn(el, next_acc) ->
       combinations(tail_lists, [el | els], next_acc)

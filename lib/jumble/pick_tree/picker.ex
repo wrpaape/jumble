@@ -1,6 +1,5 @@
 defmodule Jumble.PickTree.Picker do
-  @timeout 3000
-  alias Jumble.PickTree
+  alias Jumble.PickTree.Branch
 
   def start_next_word({rem_letters, word_length, branch_pid}) do
     {initial_valid_picks, initial_downstream_picks} =
@@ -17,7 +16,7 @@ defmodule Jumble.PickTree.Picker do
     last_valid_picks
     |> Enum.each(fn(last_pick) ->
       branch_pid
-      |> Branch.next_root_state([last_pick | acc_letters])
+      |> Branch.next_branch_state([last_pick | acc_letters])
       |> start_next_word
     end)
   end

@@ -1,4 +1,6 @@
 defmodule Jumble.Solver do
+  @pick_tree_timeout 500
+
   alias IO.ANSI
   alias Jumble.Stats
   alias Jumble.Helper
@@ -11,6 +13,8 @@ defmodule Jumble.Solver do
     __MODULE__
     |> Agent.cast(&solve/1)
   end
+
+  def resume, do: Agent.cast(__MODULE__, :start_countdown)
 
   def push_unjumbled(jumble, unjumbled, key_letters) do
     push = fn(unjumbleds) ->
@@ -34,6 +38,9 @@ defmodule Jumble.Solver do
   end
 
   def solve(%{jumble_info: %{jumble_maps: jumble_maps}}) do
+    __MODULE__
+    |> :global.register_name(self)
+
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
@@ -48,10 +55,19 @@ defmodule Jumble.Solver do
         end)
 
       IO.puts unjumbled_sol
+      
+      @idle_timeout
+      |> Countdown.start_link
 
       word_bank
       |> Enum.sort(&>=/2)
       |> PickTree.spawn_pickers
+
+      receive do
+        {:done, results} -> IO.inspect(length(results))
+
+        after 5000 -> IO.puts "DED"
+      end
     end)
   end
 end
