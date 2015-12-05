@@ -1,6 +1,11 @@
 defmodule Jumble.Timer do
   # alias Jumble.PickTree
   # alias Jumble.BruteSolver
+  @def_opts Map.new
+    |> Map.put(:task,      {:task, fn -> end})
+    |> Map.put(:ticker,    {:ticker_int, 100})
+    |> Map.put(:countdown, {:timeout, 500})
+    |> Map.put(:callback,  {:callback, fn -> end})
 
   @ticks = 3..5
   |> Enum.concat([2])
@@ -11,54 +16,63 @@ defmodule Jumble.Timer do
   |> Stream.cycle
 
   def monitor(opts) do
-    {countdown_args, next_opts} =
-      [:timeout, :callback]
-      |> Enum.map_reduce(init_opts, fn(opt_key, opts)->
-        opts
-        |> Keyword.pop_first(opt_key)
-      end)
+    # opts
+    # |> fetch_args(:ticker)
+    # |> build_named_agent(:ticker)
+    # |> start_agent_task
 
-      countdown_agent =
-        [__MODULE__, :countdown_agent, countdown_args, name: __MODULE__]
+    ticker
 
+    # [ticker, countdown] =
+    #   [:ticker, :countdown]
+    #   |> Enum.map(fn(agent_name)->
+    #     opts
+    #     |> fetch_opts(agent_name)
+    #     |> init_agent(agent_name)
 
-      countdown_task =
-        Agent
-        |> Task.async(:start_link, countdown_agent)
-        
+    #     agent_name
+    #     |> start_agent_task
+    #   end)
 
-      # Agent.start_link(fn -> opts end, name: __MODULE__)
-
-    # countdown = 
-    #   __MODULE__
-    #   |> Task.await(:countdown, countdown_args)
-
+    start_countdown
+    |> Task.await
 
   end
 
-  def start_link(opts), do: Agent.start_link(fn -> opts end, name: __MODULE__)
+  def fetch_opts(opts, agent_name) do
+    {def_opt, def_val} =
+      @def_opts
+      |> Map.get(agent_name)
 
-  def start_countdown,  do: Agent.cast(__MODULE__, &start_countdown/1)
-
-  def reset_countdown,  do: Agent.cast(__MODULE__, &reset_countdown/1)
-
-  def init(timer_opts) do
-    # ticker = 
-    #   Map.new
-    # Map.new
-    # |> Map.put(:timeout, timeout)
-    # |> Map.put(:ticker, ticker_interval)
-    # |> Map.put(:callback, callback)
+    opts 
+    |> Keyword.get(def_opt, def_val)
   end
 
-  def start_countdown(init_opts) do
-    timeout = Keyword.split(init_opts, :timeout)
+  # def get_agent_fun(name) do
+  #   "start_"
+  #   <> to_string(name)
+  #   |> String.to_atom
+  # end
 
-    
 
-    __MODULE__
-    |> spawn(:countdown, countdown_args)
-    |> 
+  def init_agent(intial_state, name) do
+    Agent.start_link(fn -> intial_state end, name: name)
+  end
+
+  def start_countdown do
+    :countdown
+    |> Agent.get_and_update(fn(timeout)->
+      task =
+        %Task{pid: task_pid} = 
+          __MODULE__
+          |> Task.async(:countdown, [timeout])
+        {task, task_pid}
+    end)
+  end
+
+  def reset_countdown do
+    :countdown
+    |> Agent.cast(__MODULE__, :reset_countdown, [])
   end
 
   def reset_countdown(countdown_pid) do
@@ -68,17 +82,24 @@ defmodule Jumble.Timer do
     countdown_pid
   end
 
-  def countdown(timeout, callback) do
+  # def countdown(module, fun, args) do
+  #   countdown =
+  #     :countdown
+  #     |> start_agent_task
+
+  #   countdown
+  #   |> Task.await
+  # end
+
+
+  def countdown(timeout) do
     receive do
       :reset ->
-        timeout
-        |> countdown(callback)
-
+        countdown(timeout)
         exit(:normal)
 
       after timeout ->
-        callback
-        |> apply
+        Agent.stop(:countdown)
     end
   end
 end
