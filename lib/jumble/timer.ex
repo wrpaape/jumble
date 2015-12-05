@@ -1,27 +1,42 @@
 defmodule Jumble.Timer do
-  alias Jumble.PickTree
-  alias Jumble.BruteSolver
+  # alias Jumble.PickTree
+  # alias Jumble.BruteSolver
 
-  def start_link(timer_specs) do
-    __MODULE__
-    |> Agent.start_link(:init, timer_specs, name: __MODULE__)
+  @ticks = 3..5
+  |> Enum.concat([2])
+  |> Enum.flat_map(fn(level) ->
+    [level, level + 6]
+    |> Enum.map(&<<8590 + &1 :: utf8>>)
+  end)
+  |> Stream.cycle
 
-  def start_countdown,     do: Agent.cast(__MODULE__, &start_countdown/1)
+  def start_link(opts), do: Agent.start_link(fn -> opts end, name: __MODULE__)
 
-  def reset_countdown,     do: Agent.cast(__MODULE__, &reset_countdown/1)
+  def start_countdown,  do: Agent.cast(__MODULE__, &start_countdown/1)
 
-  def init({timeout, ticker_interval, ticker_prompt, callback}) do
-    ticker = 
-      Map.new
-    Map.new
-    |> Map.put(:timeout, timeout)
-    |> Map.put(:ticker, ticker_interval)
-    |> Map.put(:callback, callback)
+  def reset_countdown,  do: Agent.cast(__MODULE__, &reset_countdown/1)
+
+  def init(timer_opts) do
+    # ticker = 
+    #   Map.new
+    # Map.new
+    # |> Map.put(:timeout, timeout)
+    # |> Map.put(:ticker, ticker_interval)
+    # |> Map.put(:callback, callback)
   end
 
-  def start_countdown(timeout) do
+  def start_countdown(init_opts) do
+    timeout = Keyword.split(init_opts, :timeout)
+
+    {countdown_args, next_opts} =
+      [:timeout, :callback]
+      |> Enum.map_reduce(init_opts, fn(opt_key, opts)->
+        opts
+        |> Keyword.pop_first(opt_key)
+      end)
+
     __MODULE__
-    |> spawn(:countdown, [timeout])
+    |> spawn(:countdown, countdown_args)
   end
 
   def reset_countdown(countdown_pid) do
@@ -42,9 +57,7 @@ defmodule Jumble.Timer do
         __MODULE__
         |> Agent.stop
         
-        BruteSolver
-        |> :global.whereis_name
-        |> send({:done, PickTree.get_results})
+        
     end
   end
 end

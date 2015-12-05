@@ -1,9 +1,15 @@
 defmodule Jumble.PickTree do
+  @countdown_opts [
+    timeout: 500
+    ticker_int: 1000
+  ]
+  |> Keyword.put(:ticker_int, 1000)
+
   use GenServer
 
   alias Jumble.PickTree.Branch
   alias Jumble.PickTree.Picker
-  alias Jumble.PickTree.Countdown
+  alias Jumble.Timer
   alias Jumble.LengthDict
   alias Jumble.Helper
   alias Jumble.Stats
@@ -15,21 +21,31 @@ defmodule Jumble.PickTree do
     args
   end
 
-  def spawn_pickers(word_bank), do: GenServer.cast(__MODULE__, {:spawn_pickers, word_bank})
+  def pick_valid_sols(word_bank), do: GenServer.cast(__MODULE__, {:pick_valid_sols, word_bank})
 
-  def process_raw(string_ids),  do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
+  def process_raw(string_ids),    do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
-  def report_results,           do: GenServer.cast(__MODULE__, :report_results)
+  def get_results,                do: GenServer.call(__MODULE__, :get_results)
 
-  def get_results,              do: GenServer.call(__MODULE__, :get_results)
+  # def report_results,          do: GenServer.cast(__MODULE__, :report_results)
 
 
+  # def process(word_bank) do
+  #   countdown =
+  #     Timer
+  #     |> Task.await(:start_countdown, [@countdown_opts, &get_results/0])
+
+  #   pick_valid_sols
+
+  #   countdown
+  #   |> Task.await
+
+  #   get_results
+  # end
 
   def init(sol_info), do: {:ok, {[], sol_info}}
 
-  def handle_cast({:spawn_pickers, word_bank}, intial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
-    Countdown.start_countdown
-
+  def handle_cast({:pick_valid_sols, word_bank}, state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
     pick_orders
     |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
       branch_pid =
@@ -39,12 +55,10 @@ defmodule Jumble.PickTree do
       Picker
       |> spawn(:start_next_word, [{word_bank, first_word_length, branch_pid}])
     end)
-
-    {:noreply, intial_state}
   end
 
   def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
-    Countdown.reset_countdown
+    Timer.reset_countdown
 
     last_words_cache
     |> pre_process(string_ids)

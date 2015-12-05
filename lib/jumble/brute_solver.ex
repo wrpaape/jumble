@@ -5,14 +5,16 @@ defmodule Jumble.BruteSolver do
   alias Jumble.PickTree
   alias Jumble.Timer
 
-  @ticker_interval 1000
-  @pick_tree_timeout 500
-  @unjumbled_sol_spacer ANSI.blue <> "solving for:\n\n  " <> ANSI.magenta
-  @timer_callback fn ->
-    __MODULE__
-    |> :global.whereis_name
-    |> send({:done, PickTree.get_results})
-  end
+  @prompt_lcap Helper.cap("solving for:\n\n  ", ANSI.blue, ANSI.magenta)
+  @prompt_rcap ANSI.white <> "   ..."
+
+  @timer_opts Keyword.new
+  |> Keyword.put(:timeout, 500)
+  |> Keyword.put(:ticker_int, 1000)
+  |> Keyword.put(:task, [PickTree, :get_results, []])
+  |> Keyword.put(:callback, [PickTree, :get_results, []])
+
+    
 
   def process, do: Agent.cast(__MODULE__, &process/1)
 
@@ -48,30 +50,50 @@ defmodule Jumble.BruteSolver do
     end)
     |> Stats.combinations
     |> Enum.each(fn(sol_combo) ->
-      {word_bank, unjumbled_sol} =
+      {word_bank, prompt} =
         sol_combo
-        |> Enum.flat_map_reduce(@unjumbled_sol_spacer, fn({unjumbled, key_letters}, unjumbled_sol) ->
+        |> Enum.flat_map_reduce(@prompt_lcap, fn({unjumbled, key_letters}, unjumbled_sol) ->
           {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
         end)
 
-      unjumbled_sol
-      |> IO.write
-
-      ticker =
-        Task.async(&:timer.apply_interval(@ticker_interval, IO, :write, "  ."))
+      # ticker =
+      #   Task.async(&:timer.apply_interval(@ticker_interval, IO, :write, "  ."))
       
-      @pick_tree_timeout
-      |> Timer.start_link
+      # @timer_opts
+      # |> Keyword.put(:ticker_msg, ticker_msg)
+      # |> Timer.start_link
 
-      word_bank
-      |> Enum.sort(&>=/2)
-      |> PickTree.spawn_pickers
+      prompt
+      <> @prompt_rcap
+      |> IO.puts
 
-      receive do
-        {:done, results} ->
-          sol_combo
-          |> Jumble.report_and_record(results)
-      end
+      # word_bank
+      # |> Enum.sort(&>=/2)
+      # |> PickTree.process
+
+
+      Timer.start_link()
+
+      countdown =
+        Timer
+        |> Task.await(:start_countdown, [@countdown_opts, &get_results/0])
+
+      pick_valid_sols
+
+      countdown
+      |> Task.await
+
+      get_results
+
+      PickTree
+      |> Task.await(:process, [Enum.sort(word_bank, &>=/2)])
+      |> IO.puts
+
+      # receive do
+      #   {:done, results} ->
+      #     sol_combo
+      #     |> Jumble.report_and_record(results)
+      # end
     end)
   end
 end
