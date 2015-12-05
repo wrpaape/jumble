@@ -1,27 +1,28 @@
-defmodule Jumble.Solver do
-  @pick_tree_timeout 500
-
+defmodule Jumble.BruteSolver do
   alias IO.ANSI
   alias Jumble.Stats
   alias Jumble.Helper
   alias Jumble.PickTree
-  alias Jumble.PickTree.Countdown
+  alias Jumble.Timer
 
-  @unjumbled_sol_spacer "unscrambling for:\n  "   <> ANSI.magenta
-  @clue_sol_spacer       "\n    "                 <> ANSI.cyan
-
-  def solve do
+  @ticker_interval 1000
+  @pick_tree_timeout 500
+  @unjumbled_sol_spacer ANSI.blue <> "solving for:\n\n  " <> ANSI.magenta
+  @timer_callback fn ->
     __MODULE__
-    |> Agent.cast(&solve/1)
+    |> :global.whereis_name
+    |> send({:done, PickTree.get_results})
   end
 
+  def process, do: Agent.cast(__MODULE__, &process/1)
+
   def push_unjumbled(jumble, unjumbled, key_letters) do
-    push = fn(unjumbleds) ->
+    push_fun = fn(unjumbleds) ->
       [{unjumbled, key_letters} | unjumbleds]
     end
 
     __MODULE__
-    |> Agent.cast(Kernel, :update_in, [[:jumble_info, :jumble_maps, jumble, :unjumbleds], push])
+    |> Agent.cast(Kernel, :update_in, [[:jumble_info, :jumble_maps, jumble, :unjumbleds], push_fun])
   end
 
   def start_link(args) do
@@ -36,7 +37,7 @@ defmodule Jumble.Solver do
     args
   end
 
-  def solve(%{jumble_info: %{jumble_maps: jumble_maps}}) do
+  def process(%{jumble_info: %{jumble_maps: jumble_maps}}) do
     __MODULE__
     |> :global.register_name(self)
 
@@ -53,17 +54,23 @@ defmodule Jumble.Solver do
           {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
         end)
 
-      IO.puts unjumbled_sol
+      unjumbled_sol
+      |> IO.write
+
+      ticker =
+        Task.async(&:timer.apply_interval(@ticker_interval, IO, :write, "  ."))
       
       @pick_tree_timeout
-      |> Countdown.start_link
+      |> Timer.start_link
 
       word_bank
       |> Enum.sort(&>=/2)
       |> PickTree.spawn_pickers
 
       receive do
-        {:done, results} -> IO.inspect(length(results))
+        {:done, results} ->
+          sol_combo
+          |> Jumble.report_and_record(results)
       end
     end)
   end

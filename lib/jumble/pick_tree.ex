@@ -84,6 +84,8 @@ defmodule Jumble.PickTree do
   # end
 
   def handle_call(:get_results, _from, final_state = {final_results, _words_cache}) do
+
+    
     {:reply, final_results, final_state}
   end
 

@@ -53,28 +53,6 @@ defmodule Jumble.Helper do
 
   def wrap_prepend(second, first), do: {first, second}
   def wrap_append(first, second),  do: {first, second}
-
-  # def store_state(state) do
-  #   Agent.start_link(fn ->
-  #     state
-  #   end)
-  # end
-
-  # def fetch_state(pid) do
-  #   pid
-  #   |> Agent.get(fn(last_state)->
-  #     last_state
-  #   end)
-  # end
-
-  # def permutations([last_el | []], acc), do: [last_el | acc]
-
-  # def permutations(list = [next_el | tail]) do
-  #   tail
-  #   |> Enum.map(acc, fn(el, next_acc) ->
-  #     permutations([el | tail], [next_el | acc])
-  #   end)
-  # end
 end
 
 
