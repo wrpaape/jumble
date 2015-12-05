@@ -74,14 +74,14 @@ defmodule Jumble.PickTree do
     |> Helper.wrap_prepend(:noreply)
   end
 
-  def handle_cast(:report_results, final_state = {final_results, words_cache}) do
-    final_results
-    # |> Enum.each(&IO.inspect/1)
-    |> length
-    |> IO.inspect
+  # def handle_cast(:report_results, final_state = {final_results, words_cache}) do
+  #   final_results
+  #   # |> Enum.each(&IO.inspect/1)
+  #   |> length
+  #   |> IO.inspect
 
-    {:noreply, final_state}
-  end
+  #   {:noreply, final_state}
+  # end
 
   def handle_call(:get_results, _from, final_state = {final_results, _words_cache}) do
     {:reply, final_results, final_state}

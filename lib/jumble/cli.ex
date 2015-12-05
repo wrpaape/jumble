@@ -105,38 +105,14 @@ defmodule Jumble.CLI do
     sol_lengths =
       parse_ints(sol_lengths_string)
 
-    # ordered_sol_lengths =
-      # sol_lengths
-      # |> Helper.with_index(1, :leading)
-      # |> Enum.into(Map.new)
-
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
       |> Helper.with_index(1, :leading)
       |> Helper.partition_dups_by_val
 
-
     pick_orders =
       uniq_sol_lengths
       |> Stats.uniq_pick_orders(dup_tail)
-      # |> Helper.with_counter(1)
-      # |> Stats.combinations
-      # |> Enum.sort
-      # |> Enum.reduce(Map.new, fn([pick_index, uniq_pick_length], pick_map)->
-      #   pick_map
-      #   |> Map.update(pick_index, [uniq_pick_length], fn(acc_pick_lengths)->
-      #     [uniq_pick_length | acc_pick_lengths]
-      #   end)
-      # end)
-      # |> IO.inspect
-      # |> Enum.reduce(fn({_pick_index, uniq_starts})->
-      #   uniq_starts ++ dup_tail
-      # end)
-      # uniq_sol_lengths
-      # {uniq_sol_lengths, dup_tail} =
-      # sol_lengths
-      # |> Stats.uniq_pick_orders
-      # |> IO.inspect
 
       uniq_lengths =
         uniq_sol_lengths
@@ -145,7 +121,6 @@ defmodule Jumble.CLI do
 
     Map.new
     |> Map.put(:clue, clue)
-    # |> Map.put(:num_words, length(sol_lengths))
     |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, uniq_lengths)
     |> Map.put(:pick_orders, pick_orders)
