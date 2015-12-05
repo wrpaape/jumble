@@ -9,14 +9,13 @@ defmodule Jumble.BruteSolver do
   @prompt_rcap ANSI.white <> "   ..."
 
   @timer_opts Keyword.new
-  |> Keyword.put(:timeout, 500)
-  |> Keyword.put(:ticker_int, 1000)
-  |> Keyword.put(:task, [PickTree, :get_results, []])
   |> Keyword.put(:callback, [PickTree, :get_results, []])
+  |> Keyword.put(:task, [PickTree, :pick_valid_sols])
+  |> Keyword.put(:ticker_int, 1000)
+  |> Keyword.put(:timeout, 500)
 
-    
 
-  def process, do: Agent.cast(__MODULE__, &process/1)
+  def process, do: Agent.cast(__MODULE__, :process, [])
 
   def push_unjumbled(jumble, unjumbled, key_letters) do
     push_fun = fn(unjumbleds) ->
@@ -39,9 +38,12 @@ defmodule Jumble.BruteSolver do
     args
   end
 
+  def update_timer_opts(word_bank) do
+    @timer_opts
+    |> Keyword.update!(:task, &List.insert_at(&1, -1, [word_bank]))
+  end
+
   def process(%{jumble_info: %{jumble_maps: jumble_maps}}) do
-    __MODULE__
-    |> :global.register_name(self)
 
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
@@ -56,44 +58,15 @@ defmodule Jumble.BruteSolver do
           {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
         end)
 
-      # ticker =
-      #   Task.async(&:timer.apply_interval(@ticker_interval, IO, :write, "  ."))
-      
-      # @timer_opts
-      # |> Keyword.put(:ticker_msg, ticker_msg)
-      # |> Timer.start_link
-
       prompt
       <> @prompt_rcap
       |> IO.puts
 
-      # word_bank
-      # |> Enum.sort(&>=/2)
-      # |> PickTree.process
-
-
-      Timer.start_link()
-
-      countdown =
-        Timer
-        |> Task.await(:start_countdown, [@countdown_opts, &get_results/0])
-
-      pick_valid_sols
-
-      countdown
-      |> Task.await
-
-      get_results
-
-      PickTree
-      |> Task.await(:process, [Enum.sort(word_bank, &>=/2)])
+      word_bank
+      |> Enum.sort(&>=/2)
+      |> update_timer_opts
+      |> Timer.monitor
       |> IO.puts
-
-      # receive do
-      #   {:done, results} ->
-      #     sol_combo
-      #     |> Jumble.report_and_record(results)
-      # end
     end)
   end
 end

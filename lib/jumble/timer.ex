@@ -10,6 +10,32 @@ defmodule Jumble.Timer do
   end)
   |> Stream.cycle
 
+  def monitor(opts) do
+    {countdown_args, next_opts} =
+      [:timeout, :callback]
+      |> Enum.map_reduce(init_opts, fn(opt_key, opts)->
+        opts
+        |> Keyword.pop_first(opt_key)
+      end)
+
+      countdown_agent =
+        [__MODULE__, :countdown_agent, countdown_args, name: __MODULE__]
+
+
+      countdown_task =
+        Agent
+        |> Task.async(:start_link, countdown_agent)
+        
+
+      # Agent.start_link(fn -> opts end, name: __MODULE__)
+
+    # countdown = 
+    #   __MODULE__
+    #   |> Task.await(:countdown, countdown_args)
+
+
+  end
+
   def start_link(opts), do: Agent.start_link(fn -> opts end, name: __MODULE__)
 
   def start_countdown,  do: Agent.cast(__MODULE__, &start_countdown/1)
@@ -28,15 +54,11 @@ defmodule Jumble.Timer do
   def start_countdown(init_opts) do
     timeout = Keyword.split(init_opts, :timeout)
 
-    {countdown_args, next_opts} =
-      [:timeout, :callback]
-      |> Enum.map_reduce(init_opts, fn(opt_key, opts)->
-        opts
-        |> Keyword.pop_first(opt_key)
-      end)
+    
 
     __MODULE__
     |> spawn(:countdown, countdown_args)
+    |> 
   end
 
   def reset_countdown(countdown_pid) do
@@ -46,18 +68,17 @@ defmodule Jumble.Timer do
     countdown_pid
   end
 
-  def countdown(timeout) do
+  def countdown(timeout, callback) do
     receive do
       :reset ->
-        countdown(timeout)
+        timeout
+        |> countdown(callback)
 
         exit(:normal)
 
       after timeout ->
-        __MODULE__
-        |> Agent.stop
-        
-        
+        callback
+        |> apply
     end
   end
 end

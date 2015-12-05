@@ -29,20 +29,6 @@ defmodule Jumble.PickTree do
 
   # def report_results,          do: GenServer.cast(__MODULE__, :report_results)
 
-
-  # def process(word_bank) do
-  #   countdown =
-  #     Timer
-  #     |> Task.await(:start_countdown, [@countdown_opts, &get_results/0])
-
-  #   pick_valid_sols
-
-  #   countdown
-  #   |> Task.await
-
-  #   get_results
-  # end
-
   def init(sol_info), do: {:ok, {[], sol_info}}
 
   def handle_cast({:pick_valid_sols, word_bank}, state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
