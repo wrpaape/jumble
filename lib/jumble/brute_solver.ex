@@ -6,7 +6,7 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Timer
 
   @prompt_spacer Helper.cap("solving for:\n\n  ", ANSI.blue, ANSI.magenta)
-  @report_spacer ANSI.white <> "\n    "
+  # @report_spacer ANSI.white <> "\n    "
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
   @timer_opts [
@@ -60,7 +60,13 @@ defmodule Jumble.BruteSolver do
     |> Keyword.update!(:task, &List.insert_at(&1, -1, [word_bank]))
   end
 
-  def report(num_uniqs, next_total, time_elapsed) do
+  def report(num_uniqs, next_total, micro_sec) do
+    """
+        unique sols:  #{num_uniqs}/#{next_total} (current/total)
+        time_elapsed: #{div(micro_sec, 1000)} ms
+    """
+    |> Helper.cap(ANSI.white, "\n")
+
     cap_args =
       [
         {next_total,   "", ") (current/total)\n"},
