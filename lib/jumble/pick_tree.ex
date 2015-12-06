@@ -1,10 +1,4 @@
 defmodule Jumble.PickTree do
-  @countdown_opts [
-    timeout: 500,
-    ticker_int: 1000
-  ]
-  |> Keyword.put(:ticker_int, 1000)
-
   use GenServer
 
   alias Jumble.PickTree.Branch

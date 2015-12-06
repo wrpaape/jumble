@@ -69,10 +69,15 @@ defmodule Jumble.ArgParser do
       uniq_sol_lengths
       |> Stats.uniq_pick_orders(dup_tail)
 
-      uniq_lengths =
-        uniq_sol_lengths
-        |> Keyword.values
-        |> Enum.into(HashSet.new)
+    uniq_lengths =
+      uniq_sol_lengths
+      |> Keyword.values
+      |> Enum.into(HashSet.new)
+
+    brute_map =
+      Map.new
+      |> Map.put(:total, 0)
+      |> Map.put(:sols, [])
 
     Map.new
     |> Map.put(:clue, clue)
@@ -81,6 +86,7 @@ defmodule Jumble.ArgParser do
     |> Map.put(:pick_orders, pick_orders)
     |> Map.put(:invalid_ids, HashSet.new)
     |> Map.put(:processed_raw, HashSet.new)
+    |> Map.put(:brute, brute_map)
   end
 
   def parse_arg_strings(jumble_string) do

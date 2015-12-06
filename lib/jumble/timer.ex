@@ -4,58 +4,45 @@ defmodule Jumble.Timer do
 
   @def_opts [
     ticker:  100,
-    timeout: 500
+    timeout: 1000
   ]
-    
+
   def time_countdown(opts) do
     __MODULE__
-    |> :timer.tc(:countdown, fetch_args(opts))
+    |> :timer.tc(:countdown_process, fetch_args(opts))
   end
 
-  def default_funs do
-    [
-      task:     [fn -> end, []],
-      callback: [fn -> end, []]
-    ]
-  end
-
-  def fetch_args(opts) do
-    @def_opts
-    |> Enum.concat(default_funs)
-    |> Enum.map(fn({key, default})->
-      opts
-      |> Keyword.get(key, default)
-    end)
-  end
-
-  def countdown(ticker_int, timeout, task, callback) do
+  def countdown_process(ticker_int, timeout, task, callback) do
     ticker =
       __MODULE__
       |> Task.async(:ticker, [ticker_int])
 
-    countdown =
-      timeout
-      |> start_countdown
+    timeout
+    |> start_countdown
 
-    Kernel
-    |> apply(:apply, task)
+    task
+    |> apply_funlist
 
-    countdown
-    |> Task.await
+    await_countdown
 
-    [countdown, ticker]
-    |> Enum.each(&Task.shutdown/2)
+    ticker
+    |> Task.shutdown
 
-    Kernel
-    |> apply(:apply, callback)
+    callback
+    |> apply_funlist
   end
 
-  def tick_colors do
+  defp await_countdown do
+    :countdown
+    |> Agent.get(Task, :await, [])
+  end
+
+  defp tick_colors do
     ~w(red yellow green blue cyan magenta)a
     |> Enum.map(&apply(ANSI, &1, []))
   end
 
-  def ticks do
+  defp ticks do
     3..5
     |> Enum.concat([2])
     |> Enum.flat_map(fn(level) ->
@@ -69,7 +56,6 @@ defmodule Jumble.Timer do
     |> Stream.zip(ticks)
     |> Stream.cycle
     |> Enum.each(fn({color, tick})->
-
       color
       |> Helper.cap(ANSI.clear_line, tick)
       |> IO.write
@@ -80,28 +66,20 @@ defmodule Jumble.Timer do
   end
 
 
-  def start_countdown(timeout) do
-    Task
-    |> Agent.start_link(:async, [__MODULE__, :countdown, [timeout]], name: :countdown)
-
+  def reset_countdown do
     :countdown
-    |> Agent.get_and_update(fn(task = %Task{pid: task_pid}) ->
-      {task, task_pid}
+    |> Agent.cast(fn(task = %Task{pid: countdown_pid})->
+      countdown_pid
+      |> send(:reset)
+
+      task
     end)
   end
 
-  def reset_countdown do
-    :countdown
-    |> Agent.cast(__MODULE__, :reset_countdown, [])
+  defp start_countdown(timeout) do
+    Task
+    |> Agent.start_link(:async, [__MODULE__, :countdown, [timeout]], name: :countdown)
   end
-
-  def reset_countdown(countdown_pid) do
-    countdown_pid
-    |> send(:reset)
-
-    countdown_pid
-  end
-
 
   def countdown(timeout) do
     receive do
@@ -110,7 +88,25 @@ defmodule Jumble.Timer do
         exit(:normal)
 
       after timeout ->
-        Agent.stop(:countdown)
+        :done
     end
   end
+
+  defp default_funs do
+    [
+      task:     [fn -> end, []],
+      callback: [fn -> end, []]
+    ]
+  end
+
+  defp fetch_args(opts) do
+    @def_opts
+    |> Enum.concat(default_funs)
+    |> Enum.map(fn({key, default})->
+      opts
+      |> Keyword.get(key, default)
+    end)
+  end
+
+  defp apply_funlist(fun_list), do: apply(Kernel, :apply, fun_list)
 end
