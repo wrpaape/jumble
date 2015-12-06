@@ -8,6 +8,7 @@ defmodule Jumble.BruteSolver do
   @prompt_spacer Helper.cap("solving for:\n\n  ", ANSI.blue, ANSI.magenta)
   @report_spacer ANSI.white <> "\n    "
   @total_key_path ~w(sol_info brute total)a
+  @sols_key_path  ~w(sol_info brute sols)a
   @timer_opts [
     ticker_int: 100,
     timeout: 500,
@@ -40,13 +41,13 @@ defmodule Jumble.BruteSolver do
     |> push_in_agent({unjumbled, key_letters})
   end
 
-  def push_in_agent(key_path, key_val) do
-    update_in_agent(key_path, &[key_val | &1])
+  def push_in_agent(key_path, el) do
+    update_in_agent(key_path, &[el | &1])
   end
 
   def get_in_agent(key_path) do
     __MODULE__
-    |> Agent.get(Kernel, :get_in, key_path)
+    |> Agent.get(Kernel, :get_in, [key_path])
   end
   def update_in_agent(key_path, fun) do
     __MODULE__
@@ -59,17 +60,22 @@ defmodule Jumble.BruteSolver do
     |> Keyword.update!(:task, &List.insert_at(&1, -1, [word_bank]))
   end
 
-  def report(time_elapsed, num_uniqs, next_total) do
-    [
-      {time_elapsed, "time elapsed: ", " μs"},
-      {num_uniqs,   "unique sols: (", "/"},
-      {next_total,   ")", " (current/total)"}
-    ]
-    |> Enum.map(fn({int, lcap, rcap})->
-      int
-      |> Integer.to_string
-      |> Helper.cap(lcap, rcap)
-    end)
+  def report(num_uniqs, next_total, time_elapsed) do
+    cap_args =
+      [
+        {next_total,   "", ") (current/total)\n"},
+        {num_uniqs,   "\nunique sols: (", "/"},
+        {time_elapsed, "time elapsed: ", " μs\n"}
+      ]
+      |> Enum.map(fn({int, lcap, rcap})->
+        int
+        |> Integer.to_string
+        |> Helper.cap(lcap, rcap)
+      end)
+
+    Helper
+    |> apply(:cap, cap_args)
+    |> IO.puts
   end
 
   def report_and_record({time_elapsed, results}, unjumbled_sols) do
@@ -82,21 +88,14 @@ defmodule Jumble.BruteSolver do
       |> get_in_agent
       |> + num_uniqs
 
-    time_elapsed
-    |> report(num_uniqs, next_total)
+    num_uniqs
+    |> report(next_total, time_elapsed)
     
+    @sols_key_path
+    |> push_in_agent({unjumbled_sols, results})
 
-    time_prompt = 
-      time_elapsed
-      |> Integer.to_string
-      |> Helper.cap(, " μs")
-
-
-    new_total =
-
-
-
-
+    @total_key_path
+    |> update_in_agent(fn _ -> next_total end)
   end
 
   def process(jumble_maps) do
