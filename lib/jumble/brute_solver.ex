@@ -11,7 +11,7 @@ defmodule Jumble.BruteSolver do
   @sols_key_path  ~w(sol_info brute sols)a
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
-    timeout: 600,
+    timeout: 50,
     ticker_int: 100
   ]
 
@@ -109,7 +109,7 @@ defmodule Jumble.BruteSolver do
       |> Enum.sort(&>=/2)
       |> update_timer_opts
       |> Countdown.time_async
-      |> report_and_record(sol_combo, PickTree.get_results)
+      |> report_and_record(sol_combo, PickTree.dump_results)
     end)
   end
 end

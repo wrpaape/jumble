@@ -1,6 +1,6 @@
 defmodule Jumble.CLI do
-  @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
-
+  # @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
+  @argv_test ~w(clue/6/7 hnuck/1/2/3 turet/1/2/3 birsec/1/2/5/6 pajloy/1/4/6)
 
   alias Jumble.ArgParser
   alias Jumble.LengthDict

@@ -19,7 +19,7 @@ defmodule Jumble.PickTree do
 
   def process_raw(string_ids),    do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
-  def get_results,                do: GenServer.call(__MODULE__, :get_results)
+  def dump_results,                do: GenServer.call(__MODULE__, :dump_results)
 
   def init(sol_info), do: {:ok, {[], sol_info}}
 
@@ -69,8 +69,13 @@ defmodule Jumble.PickTree do
   end
 
 
-  def handle_call(:get_results, _from, final_state = {final_results, _words_cache}) do
-    {:reply, final_results, final_state}
+  def handle_call(:dump_results, _from, {final_results, words_cache}) do
+    # {:reply, final_results, {[], words_cache}}
+    {:reply, final_results, {final_results, words_cache}}
+  end
+
+  def handle_call(:get_results, _from, state = {results, _words_cache}) do
+    {:reply, state, state}
   end
 
   def not_processed?(processed_raw, string_ids) do
