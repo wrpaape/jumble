@@ -3,7 +3,7 @@ defmodule Jumble.PickTree do
 
   alias Jumble.PickTree.Branch
   alias Jumble.PickTree.Picker
-  alias Jumble.Timer
+  alias Jumble.Countdown
   alias Jumble.LengthDict
   alias Jumble.Helper
   alias Jumble.Stats
@@ -38,7 +38,7 @@ defmodule Jumble.PickTree do
   end
 
   def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
-    Timer.reset_countdown
+    Countdown.reset_countdown
 
     last_words_cache
     |> pre_process(string_ids)

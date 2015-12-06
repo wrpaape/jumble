@@ -3,17 +3,16 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Stats
   alias Jumble.Helper
   alias Jumble.PickTree
-  alias Jumble.Timer
+  alias Jumble.Countdown
 
   @prompt_spacer Helper.cap("solving for:\n\n ", ANSI.blue, ANSI.magenta)
   @report_spacer ANSI.white <> "\n"
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
   @timer_opts [
-    ticker_int: 100,
+    task: {PickTree, :pick_valid_sols},
     timeout: 600,
-    task: [PickTree, :pick_valid_sols],
-    callback: [PickTree, :get_results, []]
+    ticker_int: 100
   ]
 
   def start_link(args) do
@@ -57,7 +56,7 @@ defmodule Jumble.BruteSolver do
 
   def update_timer_opts(word_bank) do
     @timer_opts
-    |> Keyword.update!(:task, &List.insert_at(&1, -1, [word_bank]))
+    |> Keyword.update!(:task, &Tuple.append(&1, [word_bank]))
   end
 
   def report(num_uniqs, next_total, micro_sec) do
@@ -69,7 +68,7 @@ defmodule Jumble.BruteSolver do
     |> IO.puts
   end
 
-  def report_and_record({time_elapsed, results}, unjumbled_sols) do
+  def report_and_record(time_elapsed, unjumbled_sols, results) do
     num_uniqs =
       results
       |> length
@@ -109,8 +108,8 @@ defmodule Jumble.BruteSolver do
       word_bank
       |> Enum.sort(&>=/2)
       |> update_timer_opts
-      |> Timer.time_countdown
-      |> report_and_record(sol_combo)
+      |> Countdown.time_async
+      |> report_and_record(sol_combo, PickTree.get_results)
     end)
   end
 end
