@@ -1,6 +1,6 @@
 defmodule Jumble.Unjumbler do
   alias Jumble.Helper
-  alias Jumble.Solver
+  alias Jumble.BruteSolver
   alias Jumble.LengthDict
   alias IO.ANSI
 
@@ -36,7 +36,7 @@ defmodule Jumble.Unjumbler do
       |> Regex.run(unjumbled, capture: :all_but_first)
 
     jumble
-    |> Solver.push_unjumbled(unjumbled, key_letters)
+    |> BruteSolver.push_unjumbled(unjumbled, key_letters)
 
     reg_match_keys
     |> Regex.split(unjumbled, on: :all_but_first)

@@ -8,23 +8,12 @@ defmodule Jumble.BruteSolver do
   @prompt_lcap Helper.cap("solving for:\n\n  ", ANSI.blue, ANSI.magenta)
   @prompt_rcap ANSI.white <> "   ..."
 
-  @timer_opts Keyword.new
-  |> Keyword.put(:callback, [PickTree, :get_results, []])
-  |> Keyword.put(:task, [PickTree, :pick_valid_sols])
-  |> Keyword.put(:ticker_int, 1000)
-  |> Keyword.put(:timeout, 500)
-
-
-  def process, do: Agent.cast(__MODULE__, :process, [])
-
-  def push_unjumbled(jumble, unjumbled, key_letters) do
-    push_fun = fn(unjumbleds) ->
-      [{unjumbled, key_letters} | unjumbleds]
-    end
-
-    __MODULE__
-    |> Agent.cast(Kernel, :update_in, [[:jumble_info, :jumble_maps, jumble, :unjumbleds], push_fun])
-  end
+  @timer_opts [
+    ticker_int: 1000,
+    timeout: 500,
+    task: [PickTree, :pick_valid_sols],
+    callback: [PickTree, :get_results, []]
+  ]
 
   def start_link(args) do
     into_map = fn(jumble_maps) ->
@@ -38,13 +27,24 @@ defmodule Jumble.BruteSolver do
     args
   end
 
+  def process, do: Agent.cast(__MODULE__, __MODULE__, :process, [])
+
+  def push_unjumbled(jumble, unjumbled, key_letters) do
+    push_fun = fn(unjumbleds) ->
+      [{unjumbled, key_letters} | unjumbleds]
+    end
+
+    __MODULE__
+    |> Agent.cast(Kernel, :update_in, [[:jumble_info, :jumble_maps, jumble, :unjumbleds], push_fun])
+  end
+
+
   def update_timer_opts(word_bank) do
     @timer_opts
     |> Keyword.update!(:task, &List.insert_at(&1, -1, [word_bank]))
   end
 
   def process(%{jumble_info: %{jumble_maps: jumble_maps}}) do
-
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
@@ -65,7 +65,7 @@ defmodule Jumble.BruteSolver do
       word_bank
       |> Enum.sort(&>=/2)
       |> update_timer_opts
-      |> Timer.monitor
+      |> Timer.time_countdown
       |> IO.puts
     end)
   end

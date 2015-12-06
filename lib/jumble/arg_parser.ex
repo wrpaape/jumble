@@ -56,11 +56,7 @@ defmodule Jumble.ArgParser do
   end
 
 
-  def parse_arg_strings([message_string, sol_lengths_string]) do
-    clue =
-      message_string
-      |> split_on_slashes
-
+  def parse_arg_strings([clue, sol_lengths_string]) do
     sol_lengths =
       parse_ints(sol_lengths_string)
 

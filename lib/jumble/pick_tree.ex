@@ -1,6 +1,6 @@
 defmodule Jumble.PickTree do
   @countdown_opts [
-    timeout: 500
+    timeout: 500,
     ticker_int: 1000
   ]
   |> Keyword.put(:ticker_int, 1000)
@@ -27,11 +27,9 @@ defmodule Jumble.PickTree do
 
   def get_results,                do: GenServer.call(__MODULE__, :get_results)
 
-  # def report_results,          do: GenServer.cast(__MODULE__, :report_results)
-
   def init(sol_info), do: {:ok, {[], sol_info}}
 
-  def handle_cast({:pick_valid_sols, word_bank}, state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
+  def handle_cast({:pick_valid_sols, word_bank}, initial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
     pick_orders
     |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
       branch_pid =
@@ -41,6 +39,8 @@ defmodule Jumble.PickTree do
       Picker
       |> spawn(:start_next_word, [{word_bank, first_word_length, branch_pid}])
     end)
+
+    {:noreply, initial_state}
   end
 
   def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
@@ -74,22 +74,10 @@ defmodule Jumble.PickTree do
     |> Helper.wrap_prepend(:noreply)
   end
 
-  # def handle_cast(:report_results, final_state = {final_results, words_cache}) do
-  #   final_results
-  #   # |> Enum.each(&IO.inspect/1)
-  #   |> length
-  #   |> IO.inspect
-
-  #   {:noreply, final_state}
-  # end
 
   def handle_call(:get_results, _from, final_state = {final_results, _words_cache}) do
-
-    
     {:reply, final_results, final_state}
   end
-
-
 
   def not_processed?(processed_raw, string_ids) do
     processed_raw

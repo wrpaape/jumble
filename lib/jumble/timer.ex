@@ -1,28 +1,27 @@
 defmodule Jumble.Timer do
+  alias IO.ANSI
+  alias Jumble.Helper
+
   @def_opts [
-    ticker:   100,
-    timeout:  500,
-    task:     [fn -> end, []],
-    callback: [fn -> end, []]
+    ticker:  100,
+    timeout: 500
   ]
-
-  @ticks 3..5
-  |> Enum.concat([2])
-  |> Enum.flat_map(fn(level) ->
-    [level, level + 6]
-    |> Enum.map(&<<8590 + &1 :: utf8>>)
-  end)
-  |> Stream.cycle
-
-  
-
+    
   def time_countdown(opts) do
     __MODULE__
     |> :timer.tc(:countdown, fetch_args(opts))
   end
 
+  def default_funs do
+    [
+      task:     [fn -> end, []],
+      callback: [fn -> end, []]
+    ]
+  end
+
   def fetch_args(opts) do
     @def_opts
+    |> Enum.concat(default_funs)
     |> Enum.map(fn({key, default})->
       opts
       |> Keyword.get(key, default)
@@ -32,7 +31,7 @@ defmodule Jumble.Timer do
   def countdown(ticker_int, timeout, task, callback) do
     ticker =
       __MODULE__
-      |> Task.async(:ticker, ticker_int)
+      |> Task.async(:ticker, [ticker_int])
 
     countdown =
       timeout
@@ -51,11 +50,28 @@ defmodule Jumble.Timer do
     |> apply(:apply, callback)
   end
 
+  def tick_colors do
+    ~w(red yellow green blue cyan magenta)a
+    |> Enum.map(&apply(ANSI, &1, []))
+  end
+
+  def ticks do
+    3..5
+    |> Enum.concat([2])
+    |> Enum.flat_map(fn(level) ->
+      [level, level + 6]
+      |> Enum.map(&<<8590 + &1 :: utf8>>)
+    end)
+  end
+
   def ticker(ticker_int) do
-    @ticks
-    |> Enum.each(fn(tick)->
-      tick
-      <> "  "
+    tick_colors
+    |> Stream.zip(ticks)
+    |> Stream.cycle
+    |> Enum.each(fn({color, tick})->
+
+      color
+      |> Helper.cap(ANSI.clear_line, tick)
       |> IO.write
 
       ticker_int

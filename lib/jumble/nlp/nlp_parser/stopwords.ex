@@ -1,4 +1,4 @@
-defmodule Jumble.Parser.NLPParser.Stopwords do
+defmodule Jumble.NLP.NLPParser.Stopwords do
   def get do
     [
       "a", "a's", "able", "about", "above", "according", "accordingly", "across",
