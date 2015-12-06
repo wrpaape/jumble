@@ -17,8 +17,9 @@ defmodule Jumble.Timer do
       __MODULE__
       |> Task.async(:ticker, [ticker_int])
 
+
     timeout
-    |> start_countdown
+    |> start_countdown()
 
     task
     |> apply_funlist
@@ -65,6 +66,19 @@ defmodule Jumble.Timer do
     end)
   end
 
+  def start_countdown(timeout) do
+    timeout
+    |> :timer.apply_after()
+
+  end
+
+  def reset_countdown(tref) do
+    tref
+    |> :timer.cancel  
+
+
+  end
+
 
   def reset_countdown do
     :countdown
@@ -76,9 +90,14 @@ defmodule Jumble.Timer do
     end)
   end
 
-  defp start_countdown(timeout) do
-    Task
-    |> Agent.start_link(:async, [__MODULE__, :countdown, [timeout]], name: :countdown)
+  # defp start_countdown(timeout) do
+  #   Task
+  #   |> Agent.start_link(:async, [__MODULE__, :countdown, [timeout]], name: :countdown)
+  # end
+
+  def _countdown(timeout, callback) do
+    :timer
+    |> Agent.update()
   end
 
   def countdown(timeout) do
