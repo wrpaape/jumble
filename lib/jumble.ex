@@ -4,7 +4,7 @@ defmodule Jumble do
   alias Jumble.BruteSolver
   alias Jumble.Helper
 
-  @header    ANSI.underline <> ANSI.blue <> "JUMBLES:\n\n" <> ANSI.no_underline <> ANSI.white
+  @header    ANSI.underline <> ANSI.blue <> "\n\n\nJUMBLES:\n\n" <> ANSI.no_underline <> ANSI.white
   @clue_sol_spacer "\n    " <> ANSI.cyan
 
 

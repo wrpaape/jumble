@@ -40,6 +40,9 @@ defmodule Jumble.Countdown do
         ticker
         |> Task.shutdown
 
+        ANSI.clear_line
+        |> IO.write
+
       time_elapsed
     end
   end

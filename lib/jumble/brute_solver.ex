@@ -7,8 +7,10 @@ defmodule Jumble.BruteSolver do
 
   @prompt_spacer Helper.cap("solving for:\n\n ", ANSI.blue, ANSI.magenta)
   @report_spacer ANSI.white <> "\n"
+  @report_indent String.duplicate(" ", 4)
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
+  @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
     timeout: 50,
@@ -59,11 +61,49 @@ defmodule Jumble.BruteSolver do
     |> Keyword.update!(:task, &Tuple.append(&1, [word_bank]))
   end
 
-  def report(num_uniqs, next_total, micro_sec) do
-    """
-        unique sols:  #{num_uniqs}/#{next_total} (current/total)
-        time_elapsed: #{div(micro_sec, 1000)} ms
-    """
+  def report(results, num_uniqs, next_total, micro_sec) do
+    samp_results =
+      results
+      |> Enum.take_random(@show_num_results)
+      |> Enum.map_join("\n", fn(words)->
+        words
+        |> Enum.reduce(@report_indent <> "  -", fn(word, line)->
+          " "
+          |> Helper.cap(line, word)
+        end)
+      end)
+      
+      num_rem = num_uniqs - @show_num_results
+
+      results_tail = "\n"
+
+      if num_rem > 0 do
+        rem_tail =
+          num_rem
+          |> Integer.to_string
+          |> Helper.cap("  - (", " more) . . .\n")
+
+        results_tail = Helper.cap(@report_indent, results_tail, rem_tail)
+      end
+
+    sols_counts =
+      [num_uniqs, next_total]
+      |> Enum.reduce({"unique sols:  ", ["/", " (current/total)"]}, fn(int, {lcap, [rcap | rest]})->
+        int
+        |> Integer.to_string
+        |> Helper.cap(lcap, rcap)
+        |> Helper.wrap_append(rest)
+      end)
+      |> elem(0)
+    
+    time_elapsed =
+      micro_sec
+      |> div(1000)
+      |> Integer.to_string
+      |> Helper.cap("time_elapsed: ", " ms")
+
+    [samp_results <> results_tail, sols_counts, time_elapsed]
+    |> Enum.join("\n" <> @report_indent)
     |> Helper.cap(@report_spacer, "\n")
     |> IO.puts
   end
@@ -78,8 +118,8 @@ defmodule Jumble.BruteSolver do
       |> get_in_agent
       |> + num_uniqs
 
-    num_uniqs
-    |> report(next_total, time_elapsed)
+    results
+    |> report(num_uniqs, next_total, time_elapsed)
     
     @sols_key_path
     |> push_in_agent({unjumbled_sols, results})
@@ -96,16 +136,20 @@ defmodule Jumble.BruteSolver do
     end)
     |> Stats.combinations
     |> Enum.each(fn(sol_combo) ->
-      {word_bank, prompt} =
+      {letter_bank, {prompt, prompt_tail}} =
         sol_combo
-        |> Enum.flat_map_reduce(@prompt_spacer, fn({unjumbled, key_letters}, unjumbled_sol) ->
-          {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
+        |> Enum.flat_map_reduce({@prompt_spacer, "\n  ("}, fn({unjumbled, key_letters}, {unjumbled_sol, tail}) ->
+          next_unjumbled_sol = Helper.cap(" ", unjumbled_sol, unjumbled)
+          next_tail =          Helper.cap(" ", tail, Enum.join(key_letters, " "))
+
+          {key_letters, {next_unjumbled_sol, next_tail}}
         end)
 
-      prompt
+      prompt_tail
+      |> Helper.cap(prompt, " )")
       |> IO.puts
 
-      word_bank
+      letter_bank
       |> Enum.sort(&>=/2)
       |> update_timer_opts
       |> Countdown.time_async
