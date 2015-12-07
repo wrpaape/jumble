@@ -4,13 +4,12 @@ defmodule Jumble.Unjumbler do
   alias Jumble.LengthDict
   alias IO.ANSI
 
-  @jumble_spacer    "\n\n" <> ANSI.white
-  @unjumbled_spacer "\n  " <> ANSI.yellow
-  @cc_spacer          ". " <> ANSI.red
+  @jumble_spacer       "\n\n" <> ANSI.white
+  @unjumbled_spacer    "\n  " <> ANSI.yellow
+  @cc_spacer             ". " <> ANSI.red
   @key_spacer ANSI.blink_slow <> ANSI.green
   @rem_spacer ANSI.blink_off  <> ANSI.red
-  @header "JUMBLES"
-    |> Helper.cap(ANSI.clear, "\n\n")
+  @header "JUMBLES\n\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline) 
     |> Helper.cap(ANSI.blue, ANSI.white)
 

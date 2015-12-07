@@ -6,15 +6,14 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Countdown
 
   @prompt_spacer Helper.cap("solving for:\n\n ", ANSI.blue, ANSI.magenta)
-  @report_spacer ANSI.white <> "\n"
   @report_indent String.duplicate(" ", 4)
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
-    timeout: 50,
-    ticker_int: 50
+    timeout: 10,
+    ticker_int: 17
   ]
 
   def start_link(args) do
@@ -63,32 +62,42 @@ defmodule Jumble.BruteSolver do
 
   def report(results, num_uniqs, next_total, micro_sec) do
     samp_results =
-      results
-      |> Enum.take_random(@show_num_results)
-      |> Enum.map_join("\n", fn(words)->
-        words
-        |> Enum.reduce(@report_indent <> "  -", fn(word, line)->
-          " "
-          |> Helper.cap(line, word)
-        end)
-      end)
-      
-      num_rem = num_uniqs - @show_num_results
+      if num_uniqs == 0 do
+        @report_indent <> "  ( none )"
+      else
+        body =
+          results
+          |> Enum.take_random(@show_num_results)
+          |> Enum.map_join("\n", fn(words)->
+            words
+            |> Enum.reduce(@report_indent <> "  -", fn(word, line)->
+              " "
+              |> Helper.cap(line, word)
+            end)
+          end)
+        
+        num_rem = num_uniqs - @show_num_results
+        
+        if num_rem <= 0 do
+          body
+        else
+          rem_tail =
+            num_rem
+            |> Integer.to_string
+            |> Helper.cap(@report_indent <> "  - (", " more) . . .")
 
-      results_tail = "\n"
-
-      if num_rem > 0 do
-        rem_tail =
-          num_rem
-          |> Integer.to_string
-          |> Helper.cap("  - (", " more) . . .\n")
-
-        results_tail = Helper.cap(@report_indent, results_tail, rem_tail)
+          "\n"
+          |> Helper.cap(body, rem_tail)
+        end
       end
+
+    samp_results =
+      samp_results
+      |> Helper.cap("\n")
 
     sols_counts =
       [num_uniqs, next_total]
-      |> Enum.reduce({"valid solutions: ", ["/", " (current/total)"]}, fn(int, {lcap, [rcap | rest]})->
+      |> Enum.reduce({"valid and unique: ", ["/", " (last solved/running)"]}, fn(int, {lcap, [rcap | rest]})->
         int
         |> Integer.to_string
         |> Helper.cap(lcap, rcap)
@@ -102,9 +111,9 @@ defmodule Jumble.BruteSolver do
       |> Integer.to_string
       |> Helper.cap("time elapsed:    ", " ms")
 
-    [samp_results <> results_tail, sols_counts, time_elapsed]
+    [samp_results, sols_counts, time_elapsed]
     |> Enum.join("\n" <> @report_indent)
-    |> Helper.cap(@report_spacer, "\n")
+    |> Helper.cap(ANSI.white, "\n")
     |> IO.puts
   end
 

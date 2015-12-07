@@ -10,7 +10,6 @@ defmodule Jumble.Countdown do
 
   def reset_countdown, do: Agent.cast(:countdown, &reset_countdown/1)
 
-  # def time_async({module, fun, args}, timeout, ticker_int) do
   def time_async(opts) do
     [ticker_int, timeout, {module, fun, args}] =
       opts
@@ -63,6 +62,19 @@ defmodule Jumble.Countdown do
     {timer_ref, timeout, master_pid}
   end 
 
+  def ticker(ticker_int) do
+    tick_colors
+    |> Stream.zip(ticks)
+    |> Stream.cycle
+    |> Enum.each(fn({color, tick})->
+      color
+      |> Helper.cap(ANSI.clear_line, tick)
+      |> IO.write
+
+      ticker_int
+      |> :timer.sleep
+    end)
+  end
 
   defp tick_colors do
     ~w(red yellow green blue cyan magenta)a
@@ -75,20 +87,6 @@ defmodule Jumble.Countdown do
     |> Enum.flat_map(fn(level) ->
       [level, level + 6]
       |> Enum.map(&<<8590 + &1 :: utf8>>)
-    end)
-  end
-
-  def ticker(ticker_int) do
-    tick_colors
-    |> Stream.zip(ticks)
-    |> Stream.cycle
-    |> Enum.each(fn({color, tick})->
-      color
-      |> Helper.cap(ANSI.clear_line, tick)
-      |> IO.write
-
-      ticker_int
-      |> :timer.sleep
     end)
   end
 

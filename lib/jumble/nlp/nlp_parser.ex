@@ -1,16 +1,19 @@
 defmodule Jumble.NLP.NLPParser do
   alias Jumble.NLP.NLPParser.Stopwords
   alias Jumble.Helper
-
-  @reg_split_propers ~r/(?<lbound>\b)[A-Z]\w+(\s+[\d.]+)*(?<rbound>\b)/
+# [^\p{L}'-]
+  @reg_bounds_propers ~r/(?<lbound>\b)[A-Z]\w+(\s+[\p{N}.]+)*(?<rbound>\b)/u
+  @reg_tokens         ~r/[\p{L}'-]+/u
   @stopwords_pattern Stopwords.get
   |> Enum.map(&Helper.cap(&1, "/"))
-  |> Enum.into([" ", "/"])
+  |> Enum.into(~w(/ , ; : . ? !))
+  |> List.insert_at(0, " ")
 
   def tokenize(sentence) do
     {propers, impropers} =
       sentence
       |> parse_propers
+      |> IO.inspect
 
     impropers
     |> filter_stopwords
@@ -24,14 +27,15 @@ defmodule Jumble.NLP.NLPParser do
 
     impropers
     |> String.downcase
-    |> String.replace(~r/\b/, "/")
+    |> String.replace(@reg_tokens, "/\\0/")
+    |> IO.inspect
     |> :binary.split(copmiled_pattern, [:global, :trim_all])
   end
 
   def parse_propers(sentence) do
-    @reg_split_propers
+    @reg_bounds_propers
     |> Regex.split(sentence, on: :all_names, trim: true)
-    |> IO.inspect
+    # |> IO.inspect
     |> partition_propers
   end
 

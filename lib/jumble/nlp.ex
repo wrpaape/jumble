@@ -17,16 +17,11 @@ defmodule Jumble.NLP do
   def report_tokens do
     __MODULE__
     |> Agent.get(& &1)
-    |> Enum.reduce("", fn(token, list)->
+    |> Enum.reduce(@header, fn(token, list)->
       "\n  - "
       |> Helper.cap(list, token)
     end)
-    |> Helper.cap(@header, "\n\n")
+    |> Helper.cap(ANSI.clear, "\n\n")
     |> IO.puts
   end
-
-  # def process(clue) do
-  #   clue
-  #   |> IO.inspect
-  # end
 end
