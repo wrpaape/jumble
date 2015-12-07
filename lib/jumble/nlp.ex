@@ -3,7 +3,7 @@ defmodule Jumble.NLP do
   alias Jumble.Helper
   alias Jumble.NLP.NLPParser
 
-  @tokens_spacer "\n\nCLUE TOKENS"
+  @header "CLUE TOKENS\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
     |> Helper.cap(ANSI.blue, ANSI.cyan)
 
@@ -17,8 +17,11 @@ defmodule Jumble.NLP do
   def report_tokens do
     __MODULE__
     |> Agent.get(& &1)
-    |> Enum.join("\n  - ")
-    |> Helper.cap("\n")
+    |> Enum.reduce("", fn(token, list)->
+      "\n  - "
+      |> Helper.cap(list, token)
+    end)
+    |> Helper.cap(@header, "\n\n")
     |> IO.puts
   end
 

@@ -11,7 +11,7 @@ defmodule Jumble.Unjumbler do
   @rem_spacer ANSI.blink_off  <> ANSI.red
   @header "JUMBLES"
     |> Helper.cap(ANSI.clear, "\n\n")
-    |> Helper.cap(ANSI.underline, ANSI.underline) 
+    |> Helper.cap(ANSI.underline, ANSI.no_underline) 
     |> Helper.cap(ANSI.blue, ANSI.white)
 
   def start_link(%{jumble_info: %{jumble_maps: jumble_maps}}) do
