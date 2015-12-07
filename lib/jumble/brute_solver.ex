@@ -59,6 +59,7 @@ defmodule Jumble.BruteSolver do
     |> Enum.each(fn(sol_combo) ->
       {letter_bank, {prompt, prompt_tail}} =
         sol_combo
+        |> IO.inspect
         |> Enum.flat_map_reduce({@prompt_spacer, @letter_bank_lcap}, fn({unjumbled, key_letters}, {unjumbled_sol, tail}) ->
           next_unjumbled_sol = Helper.cap(" ", unjumbled_sol, unjumbled)
           next_tail =          Helper.cap(" ", tail, Enum.join(key_letters, " "))
