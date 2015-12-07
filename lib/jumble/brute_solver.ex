@@ -3,15 +3,17 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Helper.Stats
   alias Jumble.Helper
   alias Jumble.BruteSolver.PickTree
+  alias Jumble.BruteSolver.Printer
   alias Jumble.Countdown
 
   @prompt_spacer ANSI.blue  <> "solving for:\n\n "
   @sol_spacer    ANSI.white <> " or\n "
-  @report_indent String.duplicate(" ", 4)
+  @report_indent "\n" <> String.duplicate(" ", 4)
   @letter_bank_lcap     "\n  { " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
-  @total_key_path ~w(sol_info brute total)a
-  @sols_key_path  ~w(sol_info brute sols)a
+  @counts_key_path ~w(sol_info brute counts)a
+  @total_key_path  ~w(sol_info brute counts total)a
+  @sols_key_path   ~w(sol_info brute sols)a
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
@@ -66,12 +68,8 @@ defmodule Jumble.BruteSolver do
 
       sols_by_letterbank
       |> Map.update(Enum.sort(letter_bank, &>=/2), [unjumbled_sols], &[unjumbled_sols | &1])
-      # fn(acc_sols)->
-      #   @sol_spacer
-      #   |> Helper.cap(acc_sols, unjumbled_sols)
-      # end)
     end)
-    |> Enum.each(fn({letter_bank, sols})->
+    |> Enum.reduce(0, fn({letter_bank, sols}, sol_groups)->
       @letter_bank_lcap
       |> Helper.cap(Enum.join(sols, @sol_spacer), Enum.join(letter_bank, " "))
       |> Helper.cap(@prompt_spacer, @letter_bank_rcap)
@@ -80,11 +78,14 @@ defmodule Jumble.BruteSolver do
       letter_bank
       |> update_timer_opts
       |> Countdown.time_async
-      |> report_and_record(sols, PickTree.dump_results)
+      |> report_and_record(letter_bank, sols, PickTree.dump_results)
+
+      sol_groups + 1
     end)
+    |> Printer.print_solutions(get_in_agent(@counts_key_path), get_in_agent(@sols_key_path))
   end
 
-  defp report_and_record(time_elapsed, unjumbled_sols, results) do
+  defp report_and_record(time_elapsed, letter_bank, unjumbled_sols, results) do
     num_uniqs =
       results
       |> length
@@ -94,54 +95,22 @@ defmodule Jumble.BruteSolver do
       |> get_in_agent
       |> + num_uniqs
 
-    results
-    |> report(num_uniqs, next_total, time_elapsed)
+    num_uniqs
+    |> report(next_total, time_elapsed)
     
     @sols_key_path
-    |> push_in_agent({unjumbled_sols, results})
+    |> push_in_agent({letter_bank, unjumbled_sols, results})
 
-    @total_key_path
-    |> update_in_agent(fn _ -> next_total end)
+    @counts_key_path
+    |> update_in_agent(fn(%{total: _last_total, indivs: indivs})->
+      %{total: next_total, indivs: [num_uniqs | indivs]}
+    end)
   end
 
-  defp report(results, num_uniqs, next_total, micro_sec) do
-    samp_results =
-      if num_uniqs == 0 do
-        @report_indent <> "  [ none ]"
-      else
-        body =
-          results
-          |> Enum.take_random(@show_num_results)
-          |> Enum.map_join("\n", fn(words)->
-            words
-            |> Enum.reduce(@report_indent <> "  -", fn(word, line)->
-              " "
-              |> Helper.cap(line, word)
-            end)
-          end)
-        
-        num_rem = num_uniqs - @show_num_results
-        
-        if num_rem <= 0 do
-          body
-        else
-          rem_tail =
-            num_rem
-            |> Integer.to_string
-            |> Helper.cap(@report_indent <> "  [ ", " more ]")
-
-          "\n\n"
-          |> Helper.cap(body, rem_tail)
-        end
-      end
-
-    samp_results =
-      samp_results
-      |> Helper.cap("\n")
-
+  defp report(num_uniqs, next_total, micro_sec) do
     sols_counts =
       [num_uniqs, next_total]
-      |> Enum.reduce({"valid and unique: ", ["/", " (last solved/running)"]}, fn(int, {lcap, [rcap | rest]})->
+      |> Enum.reduce({"valid and unique: ", ["/", " (solved/total)"]}, fn(int, {lcap, [rcap | rest]})->
         int
         |> Integer.to_string
         |> Helper.cap(lcap, rcap)
@@ -155,8 +124,11 @@ defmodule Jumble.BruteSolver do
       |> Integer.to_string
       |> Helper.cap("time elapsed:     ", " ms")
 
-    [samp_results, sols_counts, time_elapsed]
-    |> Enum.join("\n" <> @report_indent)
+    [sols_counts, time_elapsed]
+    |> Enum.reduce(@report_indent, fn(line, report)->
+      line
+      |> Helper.cap(report, @report_indent)
+    end)
     |> Helper.cap(ANSI.white, "\n")
     |> IO.puts
   end

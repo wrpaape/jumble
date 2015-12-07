@@ -16,7 +16,6 @@ defmodule Jumble.NLP.NLPParser do
     {propers, impropers} =
       sentence
       |> parse_propers
-      |> IO.inspect
 
     impropers
     |> filter_stopwords
@@ -34,7 +33,6 @@ defmodule Jumble.NLP.NLPParser do
     impropers
     |> String.downcase
     |> String.replace(@reg_tokens, "/\\0/")
-    |> IO.inspect
     |> :binary.split(copmiled_pattern, [:global, :trim_all])
   end
 

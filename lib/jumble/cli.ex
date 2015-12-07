@@ -8,6 +8,7 @@ defmodule Jumble.CLI do
   alias Jumble.LengthDict
   alias Jumble.NLP
   alias Jumble.BruteSolver.PickTree
+  alias Jumble.BruteSolver.Printer
   alias Jumble.BruteSolver
   alias Jumble.Unjumbler
 
@@ -42,6 +43,7 @@ defmodule Jumble.CLI do
     |> PickTree.start_link
     |> BruteSolver.start_link
     |> Unjumbler.start_link
+    |> Printer.start_link
 
     Jumble.process
   end

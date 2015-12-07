@@ -16,8 +16,10 @@ defmodule Jumble.Unjumbler do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def start_link(%{jumble_info: %{jumble_maps: jumble_maps}}) do
+  def start_link(args = %{jumble_info: %{jumble_maps: jumble_maps}}) do
     Agent.start_link(fn -> jumble_maps end, name: __MODULE__)
+
+    args
   end
 
   def process do

@@ -63,7 +63,13 @@ defmodule Jumble.ArgParser do
 
   defp parse_arg_strings([clue, sol_lengths_string]) do
     sol_lengths =
-      parse_ints(sol_lengths_string)
+      [first_sol_length | rem_sol_lengths] =
+        sol_lengths_string
+        |> parse_ints
+
+    final_sol_length =
+      rem_sol_lengths
+      |> Enum.reduce(first_sol_length, &(&1 + &2 + 1))
 
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
@@ -79,13 +85,19 @@ defmodule Jumble.ArgParser do
       |> Keyword.values
       |> Enum.into(HashSet.new)
 
-    brute_map =
+    counts_map =
       Map.new
       |> Map.put(:total, 0)
+      |> Map.put(:indivs, [])
+
+    brute_map =
+      Map.new
+      |> Map.put(:counts, counts_map)
       |> Map.put(:sols, [])
 
     Map.new
     |> Map.put(:clue, clue)
+    |> Map.put(:final_length, final_sol_length)
     |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, uniq_lengths)
     |> Map.put(:pick_orders, pick_orders)
