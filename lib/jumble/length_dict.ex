@@ -1,4 +1,7 @@
 defmodule Jumble.LengthDict do
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
   def get(length_word, string_id) do
     __MODULE__
     |> Agent.get(Map, :get, [length_word])
@@ -15,6 +18,9 @@ defmodule Jumble.LengthDict do
 
     args
   end
+
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
 
   def build_dict(lengths) do
     lengths

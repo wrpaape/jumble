@@ -8,6 +8,9 @@ defmodule Jumble.Countdown do
     task: {IO, :puts, ["no task given!"]},
   ]
 
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
   def reset_countdown, do: Agent.cast(:countdown, &reset_countdown/1)
 
   def time_async(opts) do
@@ -46,6 +49,9 @@ defmodule Jumble.Countdown do
     end
   end
 
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
+
   def reset_countdown({timer_ref, timeout, master_pid}) do
     timer_ref
     |> :timer.cancel
@@ -63,17 +69,24 @@ defmodule Jumble.Countdown do
   end 
 
   def ticker(ticker_int) do
-    tick_colors
-    |> Stream.zip(ticks)
-    |> Stream.cycle
+    tick_stream
     |> Enum.each(fn({color, tick})->
       color
-      |> Helper.cap(ANSI.clear_line, tick)
+      <> tick
       |> IO.write
 
       ticker_int
       |> :timer.sleep
     end)
+  end
+
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  defp tick_stream do
+    tick_colors
+    |> Stream.zip(ticks)
+    |> Stream.cycle
   end
 
   defp tick_colors do

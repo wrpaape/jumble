@@ -7,6 +7,9 @@ defmodule Jumble.NLP do
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
     |> Helper.cap(ANSI.blue, ANSI.cyan)
 
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
   def start_link(args = %{sol_info: %{clue: clue}}) do
     NLPParser
     |> Agent.start_link(:tokenize, [clue], name: __MODULE__)
@@ -24,4 +27,7 @@ defmodule Jumble.NLP do
     |> Helper.cap(ANSI.clear, "\n\n")
     |> IO.puts
   end
+
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
 end

@@ -7,7 +7,7 @@ defmodule Jumble.CLI do
   alias Jumble.ArgParser
   alias Jumble.LengthDict
   alias Jumble.NLP
-  alias Jumble.PickTree
+  alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver
   alias Jumble.Unjumbler
 

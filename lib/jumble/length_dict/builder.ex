@@ -3,8 +3,7 @@ defmodule Jumble.LengthDict.Builder do
 
   @dict_path Application.get_env(:jumble, :dict_path)
   @dir       Application.get_env(:jumble, :length_dict_dir)
-  @indent    String.duplicate(" ", 25)
-
+  @indent    String.duplicate(" ", 4)
 
   def build do
     @dict_path
@@ -22,18 +21,11 @@ defmodule Jumble.LengthDict.Builder do
         |> inspect(pretty: :true, limit: :infinity)
         |> String.replace(~r/(?<=\n)/, @indent)
 
-      module_attr =
-        length_string
-        |> Helper.cap("@length_", "_length_dict")
-        |> String.ljust(22)
-
       contents =
         """
         defmodule Jumble.LengthDict.Length#{length} do
-          #{module_attr} #{string_id_map}
-          
           def get(string_id) do
-            #{module_attr}
+            #{string_id_map}
             |> Map.get(string_id)
           end
         end

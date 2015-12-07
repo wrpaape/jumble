@@ -1,12 +1,14 @@
 defmodule Jumble.BruteSolver do
   alias IO.ANSI
-  alias Jumble.Stats
+  alias Jumble.Helper.Stats
   alias Jumble.Helper
-  alias Jumble.PickTree
+  alias Jumble.BruteSolver.PickTree
   alias Jumble.Countdown
 
   @prompt_spacer Helper.cap("solving for:\n\n ", ANSI.blue, ANSI.magenta)
   @report_indent String.duplicate(" ", 4)
+  @letter_bank_lcap      "\n  {" <> ANSI.green
+  @letter_bank_rcap ANSI.magenta <> " }"
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
   @show_num_results 10
@@ -15,6 +17,9 @@ defmodule Jumble.BruteSolver do
     timeout: 10,
     ticker_int: 17
   ]
+
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def start_link(args) do
     into_map = fn(jumble_maps) ->
@@ -28,6 +33,11 @@ defmodule Jumble.BruteSolver do
     args
   end
 
+  def push_unjumbled(jumble, unjumbled, key_letters) do
+    [:jumble_info, :jumble_maps, jumble, :unjumbleds]
+    |> push_in_agent({unjumbled, key_letters})
+  end
+
   def process do
     __MODULE__
     |> Agent.get(fn(%{jumble_info: %{jumble_maps: jumble_maps}})->
@@ -36,34 +46,62 @@ defmodule Jumble.BruteSolver do
     |> brute_solve
   end
 
-  def push_unjumbled(jumble, unjumbled, key_letters) do
-    [:jumble_info, :jumble_maps, jumble, :unjumbleds]
-    |> push_in_agent({unjumbled, key_letters})
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
+
+  defp brute_solve(jumble_maps) do
+    jumble_maps
+    |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
+    |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
+      unjumbleds
+    end)
+    |> Stats.combinations
+    |> Enum.each(fn(sol_combo) ->
+      {letter_bank, {prompt, prompt_tail}} =
+        sol_combo
+        |> Enum.flat_map_reduce({@prompt_spacer, @letter_bank_lcap}, fn({unjumbled, key_letters}, {unjumbled_sol, tail}) ->
+          next_unjumbled_sol = Helper.cap(" ", unjumbled_sol, unjumbled)
+          next_tail =          Helper.cap(" ", tail, Enum.join(key_letters, " "))
+
+          {key_letters, {next_unjumbled_sol, next_tail}}
+        end)
+
+      prompt_tail
+      |> Helper.cap(prompt, @letter_bank_rcap)
+      |> IO.puts
+
+      letter_bank
+      |> Enum.sort(&>=/2)
+      |> update_timer_opts
+      |> Countdown.time_async
+      |> report_and_record(sol_combo, PickTree.dump_results)
+    end)
   end
 
-  def push_in_agent(key_path, el) do
-    update_in_agent(key_path, &[el | &1])
+  defp report_and_record(time_elapsed, unjumbled_sols, results) do
+    num_uniqs =
+      results
+      |> length
+
+    next_total =
+      @total_key_path
+      |> get_in_agent
+      |> + num_uniqs
+
+    results
+    |> report(num_uniqs, next_total, time_elapsed)
+    
+    @sols_key_path
+    |> push_in_agent({unjumbled_sols, results})
+
+    @total_key_path
+    |> update_in_agent(fn _ -> next_total end)
   end
 
-  def get_in_agent(key_path) do
-    __MODULE__
-    |> Agent.get(Kernel, :get_in, [key_path])
-  end
-  def update_in_agent(key_path, fun) do
-    __MODULE__
-    |> Agent.cast(Kernel, :update_in, [key_path, fun])
-  end
-
-
-  def update_timer_opts(word_bank) do
-    @timer_opts
-    |> Keyword.update!(:task, &Tuple.append(&1, [word_bank]))
-  end
-
-  def report(results, num_uniqs, next_total, micro_sec) do
+  defp report(results, num_uniqs, next_total, micro_sec) do
     samp_results =
       if num_uniqs == 0 do
-        @report_indent <> "  ( none )"
+        @report_indent <> "  [ none ]"
       else
         body =
           results
@@ -84,9 +122,9 @@ defmodule Jumble.BruteSolver do
           rem_tail =
             num_rem
             |> Integer.to_string
-            |> Helper.cap(@report_indent <> "  - (", " more) . . .")
+            |> Helper.cap(@report_indent <> "  [ ", " more ]")
 
-          "\n"
+          "\n\n"
           |> Helper.cap(body, rem_tail)
         end
       end
@@ -109,7 +147,7 @@ defmodule Jumble.BruteSolver do
       micro_sec
       |> div(1000)
       |> Integer.to_string
-      |> Helper.cap("time elapsed:    ", " ms")
+      |> Helper.cap("time elapsed:     ", " ms")
 
     [samp_results, sols_counts, time_elapsed]
     |> Enum.join("\n" <> @report_indent)
@@ -117,53 +155,26 @@ defmodule Jumble.BruteSolver do
     |> IO.puts
   end
 
-  def report_and_record(time_elapsed, unjumbled_sols, results) do
-    num_uniqs =
-      results
-      |> length
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-    next_total =
-      @total_key_path
-      |> get_in_agent
-      |> + num_uniqs
-
-    results
-    |> report(num_uniqs, next_total, time_elapsed)
-    
-    @sols_key_path
-    |> push_in_agent({unjumbled_sols, results})
-
-    @total_key_path
-    |> update_in_agent(fn _ -> next_total end)
+  defp push_in_agent(key_path, el) do
+    update_in_agent(key_path, &[el | &1])
   end
 
-  def brute_solve(jumble_maps) do
-    jumble_maps
-    |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
-    |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
-      unjumbleds
-    end)
-    |> Stats.combinations
-    |> Enum.each(fn(sol_combo) ->
-      {letter_bank, {prompt, prompt_tail}} =
-        sol_combo
-        |> Enum.flat_map_reduce({@prompt_spacer, "\n  ("}, fn({unjumbled, key_letters}, {unjumbled_sol, tail}) ->
-          next_unjumbled_sol = Helper.cap(" ", unjumbled_sol, unjumbled)
-          next_tail =          Helper.cap(" ", tail, Enum.join(key_letters, " "))
+  defp get_in_agent(key_path) do
+    __MODULE__
+    |> Agent.get(Kernel, :get_in, [key_path])
+  end
 
-          {key_letters, {next_unjumbled_sol, next_tail}}
-        end)
+  defp update_in_agent(key_path, fun) do
+    __MODULE__
+    |> Agent.cast(Kernel, :update_in, [key_path, fun])
+  end
 
-      prompt_tail
-      |> Helper.cap(prompt, " )")
-      |> IO.puts
-
-      letter_bank
-      |> Enum.sort(&>=/2)
-      |> update_timer_opts
-      |> Countdown.time_async
-      |> report_and_record(sol_combo, PickTree.dump_results)
-    end)
+  defp update_timer_opts(word_bank) do
+    @timer_opts
+    |> Keyword.update!(:task, &Tuple.append(&1, [word_bank]))
   end
 end
 

@@ -3,7 +3,10 @@ defmodule Jumble.ArgParser do
                aliases:  [ h:    :help   ]]
 
   alias Jumble.Helper
-  alias Jumble.Stats
+  alias Jumble.Helper.Stats
+
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def parse_args(argv) do
     argv
@@ -55,15 +58,17 @@ defmodule Jumble.ArgParser do
     end
   end
 
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
 
-  def parse_arg_strings([clue, sol_lengths_string]) do
+  defp parse_arg_strings([clue, sol_lengths_string]) do
     sol_lengths =
       parse_ints(sol_lengths_string)
 
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
       |> Helper.with_index(1, :leading)
-      |> Helper.partition_dups_by_val
+      |> partition_dups_by_val
 
     pick_orders =
       uniq_sol_lengths
@@ -89,7 +94,7 @@ defmodule Jumble.ArgParser do
     |> Map.put(:brute, brute_map)
   end
 
-  def parse_arg_strings(jumble_string) do
+  defp parse_arg_strings(jumble_string) do
     [arg, ints_string] =
       jumble_string
       |> split_on_slashes(parts: 2)
@@ -97,13 +102,28 @@ defmodule Jumble.ArgParser do
     {arg, parse_ints(ints_string)}
   end
 
-  def parse_ints(ints_string) do
+  defp parse_ints(ints_string) do
     ints_string
     |> split_on_slashes
     |> Enum.map(&String.to_integer/1)
   end
 
-  def split_on_slashes(string, opts \\ []) do
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  defp partition_dups_by_val(keyword) do
+    keyword
+    |> Enum.reduce({[], [], HashSet.new}, fn(el = {_key, val}, {uniqs, dups, uniq_vals})->
+      if Set.member?(uniq_vals, val) do
+        {uniqs, [el | dups], uniq_vals}
+      else
+        {[el | uniqs], dups, Set.put(uniq_vals, val)}
+      end
+    end)
+    |> Tuple.delete_at(2)
+  end
+
+  defp split_on_slashes(string, opts \\ []) do
     string
     |> String.split(~r{/}, opts)
   end
