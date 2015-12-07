@@ -5,7 +5,7 @@ defmodule Jumble.NLP do
 
   @header "CLUE TOKENS\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
-    |> Helper.cap(ANSI.blue, ANSI.cyan)
+    |> Helper.cap(ANSI.yellow, ANSI.cyan)
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#

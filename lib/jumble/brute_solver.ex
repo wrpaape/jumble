@@ -5,9 +5,10 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.PickTree
   alias Jumble.Countdown
 
-  @prompt_spacer Helper.cap("solving for:\n\n ", ANSI.blue, ANSI.magenta)
+  @prompt_spacer ANSI.blue  <> "solving for:\n\n "
+  @sol_spacer    ANSI.white <> " or\n "
   @report_indent String.duplicate(" ", 4)
-  @letter_bank_lcap      "\n  {" <> ANSI.green
+  @letter_bank_lcap     "\n  { " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
   @total_key_path ~w(sol_info brute total)a
   @sols_key_path  ~w(sol_info brute sols)a
@@ -56,26 +57,30 @@ defmodule Jumble.BruteSolver do
       unjumbleds
     end)
     |> Stats.combinations
-    |> Enum.each(fn(sol_combo) ->
-      {letter_bank, {prompt, prompt_tail}} =
+    |> Enum.reduce(Map.new, fn(sol_combo, sols_by_letterbank) ->
+      {letter_bank, unjumbled_sols} =
         sol_combo
-        |> IO.inspect
-        |> Enum.flat_map_reduce({@prompt_spacer, @letter_bank_lcap}, fn({unjumbled, key_letters}, {unjumbled_sol, tail}) ->
-          next_unjumbled_sol = Helper.cap(" ", unjumbled_sol, unjumbled)
-          next_tail =          Helper.cap(" ", tail, Enum.join(key_letters, " "))
-
-          {key_letters, {next_unjumbled_sol, next_tail}}
+        |> Enum.flat_map_reduce(ANSI.magenta, fn({unjumbled, key_letters}, unjumbled_sol) ->
+          {key_letters, Helper.cap(" ", unjumbled_sol, unjumbled)}
         end)
 
-      prompt_tail
-      |> Helper.cap(prompt, @letter_bank_rcap)
+      sols_by_letterbank
+      |> Map.update(Enum.sort(letter_bank, &>=/2), [unjumbled_sols], &[unjumbled_sols | &1])
+      # fn(acc_sols)->
+      #   @sol_spacer
+      #   |> Helper.cap(acc_sols, unjumbled_sols)
+      # end)
+    end)
+    |> Enum.each(fn({letter_bank, sols})->
+      @letter_bank_lcap
+      |> Helper.cap(Enum.join(sols, @sol_spacer), Enum.join(letter_bank, " "))
+      |> Helper.cap(@prompt_spacer, @letter_bank_rcap)
       |> IO.puts
 
       letter_bank
-      |> Enum.sort(&>=/2)
       |> update_timer_opts
       |> Countdown.time_async
-      |> report_and_record(sol_combo, PickTree.dump_results)
+      |> report_and_record(sols, PickTree.dump_results)
     end)
   end
 

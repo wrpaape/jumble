@@ -5,13 +5,13 @@ defmodule Jumble.Unjumbler do
   alias IO.ANSI
 
   @jumble_spacer       "\n\n" <> ANSI.magenta
-  @unjumbled_spacer    "\n  " <> ANSI.yellow
+  @unjumbled_spacer    "\n  " <> ANSI.blue
   @cc_spacer             ". " <> ANSI.red
   @key_spacer ANSI.blink_slow <> ANSI.green
   @rem_spacer ANSI.blink_off  <> ANSI.red
   @header "JUMBLES\n\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline) 
-    |> Helper.cap(ANSI.blue, ANSI.magenta)
+    |> Helper.cap(ANSI.yellow, ANSI.magenta)
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
