@@ -14,7 +14,7 @@ defmodule Jumble.BruteSolver do
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
     timeout: 50,
-    ticker_int: 100
+    ticker_int: 50
   ]
 
   def start_link(args) do
@@ -34,7 +34,7 @@ defmodule Jumble.BruteSolver do
     |> Agent.get(fn(%{jumble_info: %{jumble_maps: jumble_maps}})->
       jumble_maps
     end)
-    |> process
+    |> brute_solve
   end
 
   def push_unjumbled(jumble, unjumbled, key_letters) do
@@ -88,7 +88,7 @@ defmodule Jumble.BruteSolver do
 
     sols_counts =
       [num_uniqs, next_total]
-      |> Enum.reduce({"unique sols:  ", ["/", " (current/total)"]}, fn(int, {lcap, [rcap | rest]})->
+      |> Enum.reduce({"valid solutions: ", ["/", " (current/total)"]}, fn(int, {lcap, [rcap | rest]})->
         int
         |> Integer.to_string
         |> Helper.cap(lcap, rcap)
@@ -100,7 +100,7 @@ defmodule Jumble.BruteSolver do
       micro_sec
       |> div(1000)
       |> Integer.to_string
-      |> Helper.cap("time_elapsed: ", " ms")
+      |> Helper.cap("time elapsed:    ", " ms")
 
     [samp_results <> results_tail, sols_counts, time_elapsed]
     |> Enum.join("\n" <> @report_indent)
@@ -128,7 +128,7 @@ defmodule Jumble.BruteSolver do
     |> update_in_agent(fn _ -> next_total end)
   end
 
-  def process(jumble_maps) do
+  def brute_solve(jumble_maps) do
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->

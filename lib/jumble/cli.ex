@@ -9,6 +9,7 @@ defmodule Jumble.CLI do
   alias Jumble.NLP
   alias Jumble.PickTree
   alias Jumble.BruteSolver
+  alias Jumble.Unjumbler
 
     # ~w("when the acupuncture worked the patient said it was/3/4/4" nagld/2/4/5 ramoj/3/4 camble/1/2/4 wraley/1/3/5)
     # job well done
@@ -40,7 +41,7 @@ defmodule Jumble.CLI do
     |> NLP.start_link
     |> PickTree.start_link
     |> BruteSolver.start_link
-    |> Jumble.start_link
+    |> Unjumbler.start_link
 
     Jumble.process
   end

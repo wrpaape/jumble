@@ -7,6 +7,24 @@ defmodule Jumble.Unjumbler do
   @jumble_spacer    "\n\n" <> ANSI.white
   @unjumbled_spacer "\n  " <> ANSI.yellow
   @cc_spacer          ". " <> ANSI.red
+  @key_spacer ANSI.blink_slow <> ANSI.green
+  @rem_spacer ANSI.blink_off  <> ANSI.red
+  @header "JUMBLES"
+    |> Helper.cap(ANSI.clear, "\n\n")
+    |> Helper.cap(ANSI.underline, ANSI.underline) 
+    |> Helper.cap(ANSI.blue, ANSI.white)
+
+  def start_link(%{jumble_info: %{jumble_maps: jumble_maps}}) do
+    Agent.start_link(fn -> jumble_maps end, name: __MODULE__)
+  end
+
+  def process do
+    __MODULE__
+    |> Agent.get(& &1)
+    |> unjumble
+    |> Helper.cap(@header, "\n\n")
+    |> IO.puts
+  end
 
   def unjumble(jumble_maps) do
     jumble_maps
@@ -49,7 +67,8 @@ defmodule Jumble.Unjumbler do
     |> Enum.zip(excess_rest)
     |> Enum.reduce(excess_head, fn({key, excess}, acc) ->
       key
-      |> Helper.cap(ANSI.red, ANSI.green)
+      # |> Helper.cap(ANSI.green, ANSI.red)
+      |> Helper.cap(@key_spacer, @rem_spacer)
       |> Helper.cap(acc, excess)
     end)
   end
@@ -78,5 +97,4 @@ defmodule Jumble.Unjumbler do
     <> spacer
     <> string
   end
-  
 end
