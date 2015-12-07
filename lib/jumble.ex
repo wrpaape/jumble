@@ -6,9 +6,9 @@ defmodule Jumble do
   alias Jumble.Helper
 
   def process do
-    Unjumbler.process
-
     NLP.report_tokens
+    
+    Unjumbler.process
 
     BruteSolver.process
   end
