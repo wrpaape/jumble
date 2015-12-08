@@ -38,7 +38,6 @@ defmodule Jumble.BruteSolver.Printer do
     allocated_cols =
       counts
       |> allocate_cols(total_content_cols - num_sol_groups, col_width)
-      |> IO.inspect
 
     {header_info, content_info} =
        sol_info
@@ -48,11 +47,11 @@ defmodule Jumble.BruteSolver.Printer do
       header_info
       |> print_header(pads)
     
-    IO.puts @report_colors <> header
+    # IO.puts @report_colors <> header
 
-    # content =
-    #   content_info
-    #   |> print_content(total_content_rows, pads)
+    content =
+      content_info
+      |> print_content(total_content_rows, pads)
   end
 
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -77,6 +76,10 @@ defmodule Jumble.BruteSolver.Printer do
       {header <> next_line, {rem_lcaps, rem_rcaps}}
     end)
     |> elem(0)
+  end
+
+  def print_content(content_info, total_content_rows, pads) do
+    IO.inspect content_info
   end
  
 
@@ -136,29 +139,6 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols) do
-
-    # IO.inspect [{letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols]
-    # :timer.sleep :infinity
-
-#[{"\e[35m{ \e[32mw o n l l j e e d b a\e[35m }",
-# ["\e[35m gland major becalm lawyer"],
-# [["jed", "blae", "lown"], ["jed", "bela", "lown"], ["jed", "beal", "lown"],
-#  ["jed", "bale", "lown"], ["jed", "albe", "lown"], ["jed", "able", "lown"],
-#  ["jab", "leed", "lown"], ["jab", "lede", "lown"], ["jab", "dele", "lown"],
-#  ["dab", "jeel", "lown"], ["bad", "jeel", "lown"], ["jed", "ball", "wone"],
-#  ["jed", "ball", "enow"], ["jed", "bell", "woan"], ["jab", "dell", "wone"],
-#  ["jab", "dell", "enow"], ["jab", "elle", "down"], ["dab", "jell", "wone"],
-#  ["bad", "jell", "wone"], ["dab", "jell", "enow"], ["bad", "jell", "enow"],
-#  ["bae", "jell", "down"], ["deb", "jell", "woan"], ["bed", "jell", "woan"],
-#  ["lab", "jeel", "down"], ["bal", "jeel", "down"], ["alb", "jeel", "down"],
-#  ["lad", "bene", "jowl"], ["dal", "bene", "jowl"], ["lad", "been", "jowl"],
-#  ["dal", "been", "jowl"], ["lab", "need", "jowl"], ["bal", "need", "jowl"],
-#  ["alb", "need", "jowl"], ["lab", "dene", "jowl"], ["bal", "dene", "jowl"],
-#  ["alb", "dene", "jowl"], ["lea", "bend", "jowl"], ["ale", "bend", "jowl"],
-#  ["elb", "jade", "lown"], ["bel", "jade", "lown"], ["elb", "dean", "jowl"],
-#  ["bel", "dean", "jowl"], ["elb", "jean", "wold"], ["bel", "jean", ...],
-#  ["elb", ...], [...], ...]}, {25, 27}, 3, 15, 47]
-
     letter_bank_string =
         num_cols
         |> - letter_bank_length
@@ -179,7 +159,6 @@ defmodule Jumble.BruteSolver.Printer do
       head_seg =
         cols_per_unjumbled
         |> split_pad_rem_cap(head_unjumbled)
-        |> IO.inspect
 
       unjumbleds_string =
         tail_unjumbleds
@@ -187,12 +166,10 @@ defmodule Jumble.BruteSolver.Printer do
           unjumbled_string =
             cols
             |> split_pad_rem_cap(unjumbled)
-            |> IO.inspect
 
           next_unjumbles_string =
             @unjumbleds_joiner
             |> Helper.cap(unjumbleds_string, unjumbled_string)
-            |> IO.inspect
 
           {next_unjumbles_string, next_cols, cols}
         end)
