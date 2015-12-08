@@ -24,10 +24,10 @@ defmodule Jumble.ArgParser do
           |> split_on_slashes(parts: 2)
           |> parse_arg_strings
 
-        {jumble_maps, {uniq_jumble_lengths, total_jumbles_length}} =
+        {jumble_maps, {uniq_jumble_lengths, unjumbleds_length}} =
           jumble_strings
           |> Helper.with_index(1)
-          |> Enum.map_reduce({HashSet.new, 0}, fn({jumble_string, index}, {uniq_jumble_lengths, total_jumbles_length}) ->
+          |> Enum.map_reduce({HashSet.new, -1}, fn({jumble_string, index}, {uniq_jumble_lengths, unjumbleds_length}) ->
             {jumble, keys_at} =
               jumble_string
               |> parse_arg_strings
@@ -44,14 +44,14 @@ defmodule Jumble.ArgParser do
               |> Map.put(:keys_at, keys_at)
               |> Map.put(:unjumbleds, [])
 
-            {{jumble, jumble_map}, {Set.put(uniq_jumble_lengths, length_jumble), total_jumbles_length + length_jumble}} 
+            {{jumble, jumble_map}, {Set.put(uniq_jumble_lengths, length_jumble), unjumbleds_length + length_jumble + 1}} 
           end)
 
         jumble_info =
           Map.new
           |> Map.put(:jumble_maps, jumble_maps)
           |> Map.put(:uniq_lengths, uniq_jumble_lengths)
-          |> Map.put(:total_length, total_jumbles_length)
+          |> Map.put(:unjumbleds_length, unjumbleds_length)
 
         Map.new        
         |> Map.put(:sol_info, sol_info)
@@ -68,9 +68,11 @@ defmodule Jumble.ArgParser do
         sol_lengths_string
         |> parse_ints
 
-    final_sol_length =
+    {letter_bank_length, final_sol_length} =
       rem_sol_lengths
-      |> Enum.reduce(first_sol_length, &(&1 + &2 + 1))
+      |> Enum.reduce({first_sol_length * 2 + 3, first_sol_length}, fn(sol_length, {letter_bank_length, final_sol_length})->
+        {letter_bank_length + sol_length * 2, final_sol_length + sol_length + 1}
+      end)
 
     {uniq_sol_lengths, dup_tail} =
       sol_lengths
@@ -98,6 +100,7 @@ defmodule Jumble.ArgParser do
 
     Map.new
     |> Map.put(:clue, clue)
+    |> Map.put(:letter_bank_length, letter_bank_length)
     |> Map.put(:final_length, final_sol_length)
     |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, uniq_lengths)

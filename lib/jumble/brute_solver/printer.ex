@@ -3,11 +3,15 @@ defmodule Jumble.BruteSolver.Printer do
   alias Jumble.Helper
 
   @report_colors ANSI.white_background <> ANSI.black
-  @jumble_join              ANSI.black <> " or "
+  @unjumbleds_join          ANSI.black <> " or "
   @cap_pieces [
     {"╔", "╦", "╗"},
     {"╚", "╩", "╝"}
   ]
+
+  @header_joins ["╦", "╬", "╬", "╩"]
+  @header_lcaps ["╔", "║", "║", "╠"]
+  @header_rcaps ["╗", "║", "║", "╣"]
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -17,9 +21,9 @@ defmodule Jumble.BruteSolver.Printer do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
   
-  def start_link(%{sol_info: %{final_length: final_length}, jumble_info: %{total_length: total_jumbles_length}}) do
+  def start_link(%{sol_info: %{letter_bank_length: letter_bank_length, final_length: final_length}, jumble_info: %{unjumbleds_length: unjumbleds_length}}) do
     __MODULE__
-    |> Agent.start_link(:init, [final_length + 2, total_jumbles_length], name: __MODULE__)
+    |> Agent.start_link(:init, [final_length + 2, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
   end
 
   def print_solutions(num_sol_groups, counts, sols) do
@@ -31,40 +35,75 @@ defmodule Jumble.BruteSolver.Printer do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  defp print_solutions({num_rows_content, total_content_cols, col_width, total_jumbles_length, pads}, num_sol_groups, counts, sol_info) do
-    # IO.inspect [{num_rows_content, total_content_cols, col_width, pads}, num_sol_groups, counts, sol_info]
+  defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, num_sol_groups, counts, sol_info) do
+    # IO.inspect [{total_content_rows, total_content_cols, col_width, pads}, num_sol_groups, counts, sol_info]
     allocated_cols =
       counts
       |> allocate_cols(total_content_cols - num_sol_groups, col_width)
-      |> IO.inspect
+
     {header_info, content_info} =
-     sol_info
-     |> ordered_and_split_sol_info(total_jumbles_length, allocated_cols)
+       sol_info
+       |> ordered_and_split_sol_info(col_width, lengths_tup, allocated_cols)
 
     header =
       header_info
       |> print_header(pads)
+      |> IO.puts
 
-    content =
-      content_info
-      |> print_content(num_rows_content, pads)
+    # content =
+    #   content_info
+    #   |> print_content(total_content_rows, pads)
   end
+
+# ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
 
   def print_header(header_info, {lpad, rpad}) do
-    # tcap =
-    #   header_info
-    #   |> Enum.map_join("╦", &Helper.pad(elem(&1, 1) * (col_width + 1) - 1, "═"))
-    #   |> Helper.cap("╔", "╗")
-    #   |> Helper.cap(@report_colors <> lpad, rpad)
+    {tcap, unjumbleds, letter_banks, bcaps} =
+      header_info
+      |> Enum.unzip
+      |> Tuple.to_list
+      |> Enum.map_join(fn(lines)->
+
+      end)
+  end
+  # def print_header(header_info = [header_head | header_tail], {lpad, rpad}) do
+    # tcap, header_line, letter_bank_line, bcap =
+      # header_info
+      # |> Enum.reduce(["", "", "", ""], fn({header_string, letter_bank_string, bar_pad}, lines)->
+      #   strings =
+      #     [bar_pad, header_string, letter_bank_string, bar_pad]
+
+      #   lines
+      #   |> Enum.map_reduce({@header_joins, strings}, fn(line, {[join | rem_joins], [string | rem_strings]})->
+      #     join
+      #     |> Helper.cap(string, line)
+      #     |> Helper.wrap_append({rem_joins, rem_strings})
+      #   end)
+      #   |> elem(0)
+      # end)
+      # |> Enum.reduce({"", @header_lcaps, @header_rcaps}, fn(line, {header, [lcap | rem_lcaps], [rcap | rem_rcaps]})->
+      #   next_line =
+      #     line
+      #     |> Helper.cap(lcap, rcap)
+      #     |> Helper.cap(lpad, rpad)
+
+      #   {header <> next_line, rem_lcaps, rem_rcaps}
+      # end)
+      # |> elem(0)
+
+
+      # |> Enum.map_join("╦", &Helper.pad(elem(&1, 1) * (col_width + 1) - 1, "═"))
+      # |> Helper.cap("╔", "╗")
+      # |> Helper.cap(@report_colors <> lpad, rpad)
   end
 
-  def print_content(sol_info, num_rows_content, pads) do
+  def print_content(sol_info, total_content_rows, pads) do
       
 
 
   end
 
-  def init(content_col_width, total_jumbles_length) do
+  def init(content_col_width, lengths_tup) do
     [rows, cols] = get_dims
 
     total_content_cols =
@@ -78,7 +117,7 @@ defmodule Jumble.BruteSolver.Printer do
       |> - content_cols_with_pad_and_borders
       |> split_pad_rem
 
-    {rows - 5, total_content_cols, content_col_width, total_jumbles_length, pads}
+    {rows - 5, total_content_cols, content_col_width, lengths_tup, pads}
   end
 
 ####################################### helpers ########################################
@@ -91,17 +130,67 @@ defmodule Jumble.BruteSolver.Printer do
     {Helper.pad(lpad_len), Helper.pad(rpad_len)}
   end
 
-  def ordered_and_split_sol_info(sol_info, total_jumbles_length, allocated_cols) do
+  def split_pad_rem_cap(rem_len, string) do
+    {lpad, rpad} =
+      rem_len
+      |> split_pad_rem
+
+    string
+    |> Helper.cap(lpad, rpad)
+  end
+
+  def ordered_and_split_sol_info(sol_info, content_col_width, {letter_bank_length, unjumbleds_length}, allocated_cols) do
     allocated_cols
     |> Enum.reduce({[], []}, fn({index, num_content_cols, num_cols}, {header_info, content_info})->
-      {letter_bank, unjumbleds, sols} =
+      {letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols} =
         sol_info
         |> Enum.at(index)
 
-        rem_header_cols = 
-          num_content_cols
+      letter_bank_string =
+        num_cols
+        |> - letter_bank_length
+        |> split_pad_rem_cap(letter_bank)
+      
+      num_unjumbleds =
+        unjumbleds
+        |> length
 
-      {[{letter_bank, unjumbleds, num_content_cols} | header_info], [{sols, num_content_cols} | content_info]}
+      header_cols = num_unjumbleds * (unjumbleds_length + 3) - 3
+
+      total_header_pad_cols = num_cols - header_cols
+
+      cols_per_unjumbled      = div(total_header_pad_cols, num_unjumbleds)
+      next_cols_per_unjumbled = rem(total_header_pad_cols, num_unjumbleds) + cols_per_unjumbled
+
+      head_seg =
+        cols_per_unjumbled
+        |> split_pad_rem_cap(head_unjumbled)
+
+      unjumbleds_string =
+        tail_unjumbleds
+        |> Enum.reduce({head_seg, next_cols_per_unjumbled, cols_per_unjumbled}, fn(unjumbled, {unjumbleds_string, cols, next_cols})->
+          unjumbled_string =
+            cols
+            |> split_pad_rem_cap(unjumbled)
+
+          next_unjumbles_string =
+            @unjumbleds_join
+            |> Helper.cap(unjumbleds_string, unjumbled_string)
+
+          {next_unjumbles_string, next_cols, cols}
+        end)
+        |> elem(0)
+
+      bar_pad =
+        num_cols
+        |> Helper.pad("═")
+
+      next_header_info = {bar_pad, unjumbleds_string, letter_bank_string, bar_pad}
+
+      next_content_info = {sols, split_pad_rem(content_col_width)}
+
+
+      {[next_header_info | header_info], [next_content_info | content_info]}
     end)
   end
 
