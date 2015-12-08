@@ -9,9 +9,9 @@ defmodule Jumble.BruteSolver.Printer do
     {"╚", "╩", "╝"}
   ]
 
-  @header_joins ["╦", "╬", "╬", "╩"]
-  @header_lcaps ["╔", "║", "║", "╠"]
-  @header_rcaps ["╗", "║", "║", "╣"]
+  @header_joiners ["╦", "║", "║", "╬"]
+  @header_caps   {["╔", "║", "║", "╠"],
+                  ["╗", "║", "║", "╣"]}
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -23,7 +23,7 @@ defmodule Jumble.BruteSolver.Printer do
   
   def start_link(%{sol_info: %{letter_bank_length: letter_bank_length, final_length: final_length}, jumble_info: %{unjumbleds_length: unjumbleds_length}}) do
     __MODULE__
-    |> Agent.start_link(:init, [final_length + 2, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
+    |> Agent.start_link(:init, [final_length + 2, {letter_bank_length, unjumbleds_length + 2}], name: __MODULE__)
   end
 
   def print_solutions(num_sol_groups, counts, sols) do
@@ -48,7 +48,7 @@ defmodule Jumble.BruteSolver.Printer do
     header =
       header_info
       |> print_header(pads)
-      |> IO.inspect
+      |> IO.puts
 
     # content =
     #   content_info
@@ -58,17 +58,27 @@ defmodule Jumble.BruteSolver.Printer do
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
 
   def print_header([first_header_col | rem_header_cols], {lpad, rpad}) do
-
-      rem_header_cols
-      |> Enum.reduce(first_header_col, fn(header_col, header_lines)->
-        header_col
-        |> Enum.map_reduce({header_lines, @header_joins}, fn(header_cell, {[line | rem_lines], [join | rem_joins]})->
-          join
-          |> Helper.cap(line, header_cell)
-          |> Helper.wrap_append({rem_lines, rem_joins})
-        end)
-        |> elem(0)
+    rem_header_cols
+    |> Enum.reduce(first_header_col, fn(header_col, header_lines)->
+      header_col
+      |> Enum.map_reduce({header_lines, @header_joiners}, fn(header_cell, {[line | rem_lines], [joiner | rem_joiners]})->
+        joiner
+        |> Helper.cap(line, header_cell)
+        |> Helper.wrap_append({rem_lines, rem_joiners})
       end)
+      |> elem(0)
+    end)
+    |> Enum.reduce({"", @header_caps}, fn(line, {header, {[lcap | rem_lcaps], [rcap | rem_rcaps]}})->
+      next_line =
+        line
+        |> Helper.cap(lcap, rcap)
+        |> Helper.cap(lpad, rpad)
+
+      IO.inspect String.length(line)
+
+      {header <> next_line, {rem_lcaps, rem_rcaps}}
+    end)
+    |> elem(0)
   end
   # def print_header(header_info = [header_head | header_tail], {lpad, rpad}) do
     # tcap, header_line, letter_bank_line, bcap =
@@ -126,10 +136,17 @@ defmodule Jumble.BruteSolver.Printer do
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+  def split_pad_len_rem(rem_len, parts) do
+    lpad_len = div(rem_len, parts)
+    rpad_len = rem(rem_len, parts) + lpad_len
+
+    {lpad_len, rpad_len}
+  end
 
   def split_pad_rem(rem_len) do
-    lpad_len = div(rem_len, 2)
-    rpad_len = rem(rem_len, 2) + lpad_len
+    {lpad_len, rpad_len} =
+      rem_len
+      |> split_pad_len_rem(2)
 
     {Helper.pad(lpad_len), Helper.pad(rpad_len)}
   end
@@ -165,12 +182,16 @@ defmodule Jumble.BruteSolver.Printer do
         unjumbleds
         |> length
 
-      header_cols = num_unjumbleds * (unjumbleds_length + 3) - 3
+      header_cols = num_unjumbleds * (unjumbleds_length + 2) - 2
 
       total_header_pad_cols = num_cols - header_cols
 
-      cols_per_unjumbled      = div(total_header_pad_cols, num_unjumbleds)
-      next_cols_per_unjumbled = rem(total_header_pad_cols, num_unjumbleds) + cols_per_unjumbled
+      {cols_per_unjumbled, next_cols_per_unjumbled} =
+        total_header_pad_cols
+        |> split_pad_len_rem(num_unjumbleds)
+
+      # cols_per_unjumbled      = div(total_header_pad_cols, num_unjumbleds)
+      # next_cols_per_unjumbled = rem(total_header_pad_cols, num_unjumbleds) + cols_per_unjumbled
 
       head_seg =
         cols_per_unjumbled
