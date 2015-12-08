@@ -3,7 +3,7 @@ defmodule Jumble.LengthDict.Builder do
 
   @dict_path Application.get_env(:jumble, :dict_path)
   @dir       Application.get_env(:jumble, :length_dict_dir)
-  @indent    String.duplicate(" ", 4)
+  @indent    Helper.pad(4)
 
   def build do
     @dict_path

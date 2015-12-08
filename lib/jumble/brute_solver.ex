@@ -8,8 +8,8 @@ defmodule Jumble.BruteSolver do
 
   @prompt_spacer ANSI.blue  <> "solving for:\n\n "
   @sol_spacer    ANSI.white <> " or\n "
-  @report_indent "\n" <> String.duplicate(" ", 4)
-  @letter_bank_lcap      "\n  {" <> ANSI.green
+  @report_indent "\n" <> Helper.pad(4)
+  @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
   @counts_key_path ~w(sol_info brute counts)a
   @total_key_path  ~w(sol_info brute counts total)a
@@ -60,33 +60,30 @@ defmodule Jumble.BruteSolver do
     end)
     |> Stats.combinations
     |> Enum.reduce(Map.new, fn(sol_combo, sols_by_letterbank) ->
-      {letter_bank, {letter_bank_string, unjumbled_sols}} =
+      {letter_bank, unjumbled_sols} =
         sol_combo
-        |> Enum.flat_map_reduce({@letter_bank_lcap, ANSI.magenta}, fn({unjumbled, key_letters}, {letter_bank_string, unjumbled_sols}) ->
-          next_letter_bank_string =
-            [letter_bank_string | key_letters]
-            |> Enum.join(" ")
-
-          next_unjumbled_sols =
-            " "
-            |> Helper.cap(unjumbled_sols, unjumbled)
-
-          {key_letters, {next_letter_bank_string, next_unjumbled_sols}}
+        |> Enum.flat_map_reduce(ANSI.magenta, fn({unjumbled, key_letters}, unjumbled_sols) ->
+          {key_letters, Helper.cap(" ", unjumbled_sols, unjumbled)}
         end)
 
       sols_by_letterbank
-      |> Map.update({Enum.sort(letter_bank, &>=/2), letter_bank_string <> @letter_bank_rcap}, [unjumbled_sols], &[unjumbled_sols | &1])
+      |> Map.update(Enum.sort(letter_bank, &>=/2), [unjumbled_sols], &[unjumbled_sols | &1])
     end)
-    |> Enum.reduce(0, fn({{letter_bank, letter_bank_string}, sols}, sol_groups)->
+    |> Enum.reduce(0, fn({letter_bank, sols}, sol_groups)->
+      letter_bank_string =
+        letter_bank
+        |> Enum.join(" ")
+        |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
 
-      Enum.join(sols, @sol_spacer)
-      |> Helper.cap(@prompt_spacer, letter_bank_string)
+      sols
+      |> Enum.join(@sol_spacer)
+      |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
       |> IO.puts
 
       letter_bank
       |> update_timer_opts
       |> Countdown.time_async
-      |> report_and_record({letter_bank, String.lstrip(letter_bank_string)}, sols, PickTree.dump_results)
+      |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
 
       sol_groups + 1
     end)

@@ -5,6 +5,8 @@ defmodule Jumble.Helper do
     |> Enum.sort
     |> Enum.join
   end
+
+  def pad(pad_len, pad \\ " "), do: String.duplicate(pad, pad_len)
   
   def cap(string, lcap, rcap), do: lcap <> string <> rcap
   def cap(string, cap),        do:  cap <> string <> cap

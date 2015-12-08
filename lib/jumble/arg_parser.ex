@@ -24,10 +24,10 @@ defmodule Jumble.ArgParser do
           |> split_on_slashes(parts: 2)
           |> parse_arg_strings
 
-        {jumble_maps, uniq_jumble_lengths} =
+        {jumble_maps, {uniq_jumble_lengths, total_jumbles_length}} =
           jumble_strings
           |> Helper.with_index(1)
-          |> Enum.map_reduce(HashSet.new, fn({jumble_string, index}, uniq_jumble_lengths) ->
+          |> Enum.map_reduce({HashSet.new, 0}, fn({jumble_string, index}, {uniq_jumble_lengths, total_jumbles_length}) ->
             {jumble, keys_at} =
               jumble_string
               |> parse_arg_strings
@@ -44,13 +44,14 @@ defmodule Jumble.ArgParser do
               |> Map.put(:keys_at, keys_at)
               |> Map.put(:unjumbleds, [])
 
-            {{jumble, jumble_map}, Set.put(uniq_jumble_lengths, length_jumble)} 
+            {{jumble, jumble_map}, {Set.put(uniq_jumble_lengths, length_jumble), total_jumbles_length + length_jumble}} 
           end)
 
         jumble_info =
           Map.new
           |> Map.put(:jumble_maps, jumble_maps)
           |> Map.put(:uniq_lengths, uniq_jumble_lengths)
+          |> Map.put(:total_length, total_jumbles_length)
 
         Map.new        
         |> Map.put(:sol_info, sol_info)
