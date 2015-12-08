@@ -62,8 +62,10 @@ defmodule Jumble.BruteSolver.Printer do
       header_info
       |> Enum.unzip
       |> Tuple.to_list
+      |> Enum.zip({@header_lcaps, @header_joins, @header_r})
       |> Enum.map_join(fn(lines)->
-
+        lines
+        |> Enum.map_join
       end)
   end
   # def print_header(header_info = [header_head | header_tail], {lpad, rpad}) do
@@ -95,13 +97,13 @@ defmodule Jumble.BruteSolver.Printer do
       # |> Enum.map_join("╦", &Helper.pad(elem(&1, 1) * (col_width + 1) - 1, "═"))
       # |> Helper.cap("╔", "╗")
       # |> Helper.cap(@report_colors <> lpad, rpad)
-  end
+  # end
 
-  def print_content(sol_info, total_content_rows, pads) do
+  # def print_content(sol_info, total_content_rows, pads) do
       
 
 
-  end
+  # end
 
   def init(content_col_width, lengths_tup) do
     [rows, cols] = get_dims
@@ -139,14 +141,20 @@ defmodule Jumble.BruteSolver.Printer do
     |> Helper.cap(lpad, rpad)
   end
 
-  def ordered_and_split_sol_info(sol_info, content_col_width, {letter_bank_length, unjumbleds_length}, allocated_cols) do
+  def ordered_and_split_sol_info(sol_info, content_col_width, lengths_tup, allocated_cols) do
     allocated_cols
     |> Enum.reduce({[], []}, fn({index, num_content_cols, num_cols}, {header_info, content_info})->
-      {letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols} =
+      {next_header_info, next_content_info} =
         sol_info
         |> Enum.at(index)
+        |> retreive_info(lengths_tup, num_content_cols, content_col_width, num_cols)
 
-      letter_bank_string =
+      {[next_header_info | header_info], [next_content_info | content_info]}
+    end)
+  end
+
+  def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols) do
+    letter_bank_string =
         num_cols
         |> - letter_bank_length
         |> split_pad_rem_cap(letter_bank)
@@ -185,13 +193,8 @@ defmodule Jumble.BruteSolver.Printer do
         num_cols
         |> Helper.pad("═")
 
-      next_header_info = {bar_pad, unjumbleds_string, letter_bank_string, bar_pad}
-
-      next_content_info = {sols, split_pad_rem(content_col_width)}
-
-
-      {[next_header_info | header_info], [next_content_info | content_info]}
-    end)
+      [bar_pad, unjumbleds_string, letter_bank_string, bar_pad]
+      |> Helper.wrap_append({sols, split_pad_rem(content_col_width)})
   end
 
   def allocate_cols(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
