@@ -3,16 +3,13 @@ defmodule Jumble.BruteSolver.Printer do
   alias Jumble.Helper
 
   @report_colors ANSI.white_background <> ANSI.black
-  @unjumbleds_join          ANSI.black <> " or "
-  @cap_pieces [
-    {"╔", "╦", "╗"},
-    {"╚", "╩", "╝"}
-  ]
+  @unjumbleds_joiner        ANSI.black <> "or"
+
 
   @black_col ANSI.black <> "║"
   @header_joiners ["╦", @black_col, @black_col, "╬"]
   @header_caps   {["╔", "║",        @black_col, "╠"],
-                  ["╗", "║",        @black_col, "╣"]}
+                  ["╗", @black_col, @black_col, "╣"]}
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -24,7 +21,7 @@ defmodule Jumble.BruteSolver.Printer do
   
   def start_link(%{sol_info: %{letter_bank_length: letter_bank_length, final_length: final_length}, jumble_info: %{unjumbleds_length: unjumbleds_length}}) do
     __MODULE__
-    |> Agent.start_link(:init, [final_length + 2, {letter_bank_length, unjumbleds_length + 2}], name: __MODULE__)
+    |> Agent.start_link(:init, [final_length, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
   end
 
   def print_solutions(num_sol_groups, counts, sols) do
@@ -41,6 +38,7 @@ defmodule Jumble.BruteSolver.Printer do
     allocated_cols =
       counts
       |> allocate_cols(total_content_cols - num_sol_groups, col_width)
+      |> IO.inspect
 
     {header_info, content_info} =
        sol_info
@@ -49,7 +47,8 @@ defmodule Jumble.BruteSolver.Printer do
     header =
       header_info
       |> print_header(pads)
-      |> IO.puts
+    
+    IO.puts @report_colors <> header
 
     # content =
     #   content_info
@@ -75,48 +74,11 @@ defmodule Jumble.BruteSolver.Printer do
         |> Helper.cap(lcap, rcap)
         |> Helper.cap(lpad, rpad)
 
-      IO.inspect String.length(line)
-
       {header <> next_line, {rem_lcaps, rem_rcaps}}
     end)
     |> elem(0)
   end
-  # def print_header(header_info = [header_head | header_tail], {lpad, rpad}) do
-    # tcap, header_line, letter_bank_line, bcap =
-      # header_info
-      # |> Enum.reduce(["", "", "", ""], fn({header_string, letter_bank_string, bar_pad}, lines)->
-      #   strings =
-      #     [bar_pad, header_string, letter_bank_string, bar_pad]
-
-      #   lines
-      #   |> Enum.map_reduce({@header_joins, strings}, fn(line, {[join | rem_joins], [string | rem_strings]})->
-      #     join
-      #     |> Helper.cap(string, line)
-      #     |> Helper.wrap_append({rem_joins, rem_strings})
-      #   end)
-      #   |> elem(0)
-      # end)
-      # |> Enum.reduce({"", @header_lcaps, @header_rcaps}, fn(line, {header, [lcap | rem_lcaps], [rcap | rem_rcaps]})->
-      #   next_line =
-      #     line
-      #     |> Helper.cap(lcap, rcap)
-      #     |> Helper.cap(lpad, rpad)
-
-      #   {header <> next_line, rem_lcaps, rem_rcaps}
-      # end)
-      # |> elem(0)
-
-
-      # |> Enum.map_join("╦", &Helper.pad(elem(&1, 1) * (col_width + 1) - 1, "═"))
-      # |> Helper.cap("╔", "╗")
-      # |> Helper.cap(@report_colors <> lpad, rpad)
-  # end
-
-  # def print_content(sol_info, total_content_rows, pads) do
-      
-
-
-  # end
+ 
 
   def init(content_col_width, lengths_tup) do
     [rows, cols] = get_dims
@@ -174,6 +136,29 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols) do
+
+    # IO.inspect [{letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols]
+    # :timer.sleep :infinity
+
+#[{"\e[35m{ \e[32mw o n l l j e e d b a\e[35m }",
+# ["\e[35m gland major becalm lawyer"],
+# [["jed", "blae", "lown"], ["jed", "bela", "lown"], ["jed", "beal", "lown"],
+#  ["jed", "bale", "lown"], ["jed", "albe", "lown"], ["jed", "able", "lown"],
+#  ["jab", "leed", "lown"], ["jab", "lede", "lown"], ["jab", "dele", "lown"],
+#  ["dab", "jeel", "lown"], ["bad", "jeel", "lown"], ["jed", "ball", "wone"],
+#  ["jed", "ball", "enow"], ["jed", "bell", "woan"], ["jab", "dell", "wone"],
+#  ["jab", "dell", "enow"], ["jab", "elle", "down"], ["dab", "jell", "wone"],
+#  ["bad", "jell", "wone"], ["dab", "jell", "enow"], ["bad", "jell", "enow"],
+#  ["bae", "jell", "down"], ["deb", "jell", "woan"], ["bed", "jell", "woan"],
+#  ["lab", "jeel", "down"], ["bal", "jeel", "down"], ["alb", "jeel", "down"],
+#  ["lad", "bene", "jowl"], ["dal", "bene", "jowl"], ["lad", "been", "jowl"],
+#  ["dal", "been", "jowl"], ["lab", "need", "jowl"], ["bal", "need", "jowl"],
+#  ["alb", "need", "jowl"], ["lab", "dene", "jowl"], ["bal", "dene", "jowl"],
+#  ["alb", "dene", "jowl"], ["lea", "bend", "jowl"], ["ale", "bend", "jowl"],
+#  ["elb", "jade", "lown"], ["bel", "jade", "lown"], ["elb", "dean", "jowl"],
+#  ["bel", "dean", "jowl"], ["elb", "jean", "wold"], ["bel", "jean", ...],
+#  ["elb", ...], [...], ...]}, {25, 27}, 3, 15, 47]
+
     letter_bank_string =
         num_cols
         |> - letter_bank_length
@@ -183,7 +168,7 @@ defmodule Jumble.BruteSolver.Printer do
         unjumbleds
         |> length
 
-      header_cols = num_unjumbleds * (unjumbleds_length + 2) - 2
+      header_cols = num_unjumbleds * (unjumbleds_length + 3) - 2
 
       total_header_pad_cols = num_cols - header_cols
 
@@ -191,12 +176,10 @@ defmodule Jumble.BruteSolver.Printer do
         total_header_pad_cols
         |> split_pad_len_rem(num_unjumbleds)
 
-      # cols_per_unjumbled      = div(total_header_pad_cols, num_unjumbleds)
-      # next_cols_per_unjumbled = rem(total_header_pad_cols, num_unjumbleds) + cols_per_unjumbled
-
       head_seg =
         cols_per_unjumbled
         |> split_pad_rem_cap(head_unjumbled)
+        |> IO.inspect
 
       unjumbleds_string =
         tail_unjumbleds
@@ -204,10 +187,12 @@ defmodule Jumble.BruteSolver.Printer do
           unjumbled_string =
             cols
             |> split_pad_rem_cap(unjumbled)
+            |> IO.inspect
 
           next_unjumbles_string =
-            @unjumbleds_join
+            @unjumbleds_joiner
             |> Helper.cap(unjumbleds_string, unjumbled_string)
+            |> IO.inspect
 
           {next_unjumbles_string, next_cols, cols}
         end)
@@ -228,6 +213,7 @@ defmodule Jumble.BruteSolver.Printer do
       indivs
       |> Enum.map_reduce({0, 0}, fn(count, {index, acc_trunc})->
         float = count * leftover_cols / total
+        
         leftover_cols_allocated = trunc(float)
 
         trunc = float - leftover_cols_allocated
@@ -250,7 +236,7 @@ defmodule Jumble.BruteSolver.Printer do
     end)
     |> Enum.concat(finalized)
     |> Enum.map(&Tuple.delete_at(&1, 0))
-    # |> Enum.sort_by(&elem(&1, 1), &>=/2)
+    # |> Enum.sort_by(&elem(&1, 1), &>=/2)"                                  "
     |> Enum.sort_by(&elem(&1, 1))
   end
 

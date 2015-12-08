@@ -104,7 +104,7 @@ defmodule Jumble.BruteSolver do
     |> report(next_total, time_elapsed)
     
     @sols_key_path
-    |> push_in_agent({letter_bank, unjumbled_sols, results})
+    |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, results})
 
     @counts_key_path
     |> update_in_agent(fn(%{total: _last_total, indivs: indivs})->
