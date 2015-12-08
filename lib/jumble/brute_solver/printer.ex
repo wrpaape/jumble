@@ -48,7 +48,7 @@ defmodule Jumble.BruteSolver.Printer do
     header =
       header_info
       |> print_header(pads)
-      |> IO.puts
+      |> IO.inspect
 
     # content =
     #   content_info
@@ -57,15 +57,17 @@ defmodule Jumble.BruteSolver.Printer do
 
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
 
-  def print_header(header_info, {lpad, rpad}) do
-    {tcap, unjumbleds, letter_banks, bcaps} =
-      header_info
-      |> Enum.unzip
-      |> Tuple.to_list
-      |> Enum.zip({@header_lcaps, @header_joins, @header_r})
-      |> Enum.map_join(fn(lines)->
-        lines
-        |> Enum.map_join
+  def print_header([first_header_col | rem_header_cols], {lpad, rpad}) do
+
+      rem_header_cols
+      |> Enum.reduce(first_header_col, fn(header_col, header_lines)->
+        header_col
+        |> Enum.map_reduce({header_lines, @header_joins}, fn(header_cell, {[line | rem_lines], [join | rem_joins]})->
+          join
+          |> Helper.cap(line, header_cell)
+          |> Helper.wrap_append({rem_lines, rem_joins})
+        end)
+        |> elem(0)
       end)
   end
   # def print_header(header_info = [header_head | header_tail], {lpad, rpad}) do
