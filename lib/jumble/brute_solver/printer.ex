@@ -1,7 +1,12 @@
 defmodule Jumble.BruteSolver.Printer do
   alias IO.ANSI
   alias Jumble.Helper
-  @sol_spacer    ANSI.white <> " or\n "
+  @sol_spacer               ANSI.white <> " or\n "
+  @report_colors ANSI.white_background <> ANSI.black
+  @cap_pieces [
+    {"╔", "╦", "╗"},
+    {"╚", "╩", "╝"}
+  ]
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -27,67 +32,59 @@ defmodule Jumble.BruteSolver.Printer do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  defp print_solutions({rows, cols}, num_sol_groups, counts, sols) do
-    counts
-    |> allocate_leftover_cols(cols - num_sol_groups)
-    |> IO.inspect
+  defp print_solutions({rows, cols, col_width, lpad, rpad}, num_sol_groups, counts, sols) do
+    allocated_cols =
+      counts
+      |> allocate_cols(cols - num_sol_groups)
+
+    tcap =
+      allocated_cols
+      |> IO.inspect
+      |> Enum.map_join("╦", &String.duplicate("═", &1 * (col_width + 1) - 1))
+      |> Helper.cap("╔", "╗")
+      |> Helper.cap(@report_colors <> lpad, rpad <> "x")
+      |> IO.puts
   end
 
+  def print_rows(allocated_cols, sols) do
 
-  def init(padded_col_width) do
+  end
+
+  def init(content_col_width) do
     [rows, cols] = get_dims
 
-    cols
-    |> num_cols(padded_col_width)
-    |> Helper.wrap_prepend(rows - 2)
+    num_cols_content =
+      cols
+      |> max_num_cols_content(content_col_width)
+
+    cols_content = num_cols_content * (content_col_width + 1) + 1
+    
+    leftover = cols - cols_content
+
+    lpad_len = div(leftover, 2)
+    rpad_len = rem(leftover, 2) + lpad_len
+
+    [lpad, rpad] = 
+      [lpad_len, rpad_len]
+      |> Enum.map(&String.duplicate(" ", &1))
+
+    {rows - 2, num_cols_content, content_col_width, lpad, rpad}
   end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-  
-  # fn(cols, num_sol_groups, indivs, total)->
-  # f = fn(cols,  indivs)->
-  #   num_sol_groups = length(indivs)
-  #   total = Enum.sum(indivs)
+  def allocate_cols(_counts, leftover_cols) when leftover_cols < 0, do: "not enough room!"
 
-  #   leftover_cols = cols - num_sol_groups
-
-  #   {ordered_indivs, {_last_index, next_leftover}} =
-  #     indivs
-  #     |> Enum.map_reduce({1, 0}, fn(count, {index, acc_trunc})->
-  #       float = count * leftover_cols / total
-  #       int = trunc(float)
-
-  #       trunc = float - int
-
-  #       {{trunc, int + 1, index}, {index + 1, acc_trunc + trunc}}
-  #     end)
-
-  #   {need_one_more, finalized} =
-  #     ordered_indivs
-  #     |> Enum.sort(&>=/2)
-  #     |> Enum.split(round(next_leftover))
-
-  #   need_one_more
-  #   |> Enum.map(fn({trunc, cols_allocated, index})->
-  #     {trunc, cols_allocated + 1, index}
-  #   end)
-  #   |> Enum.concat(finalized)
-  #   |> Enum.sort_by(&elem(&1, 2))
-  #   |> Enum.map(&elem(&1, 1))
-  # end
-
-
-  def allocate_leftover_cols(%{total: total, indivs: indivs}, leftover_cols) do
+  def allocate_cols(%{total: total, indivs: indivs}, leftover_cols) do
     {ordered_indivs, {_last_index, next_leftover}} =
       indivs
       |> Enum.map_reduce({1, 0}, fn(count, {index, acc_trunc})->
         float = count * leftover_cols / total
-        int = trunc(float)
+        leftover_cols_allocated = trunc(float)
 
-        trunc = float - int
+        trunc = float - leftover_cols_allocated
 
-        {{trunc, int + 1, index}, {index + 1, acc_trunc + trunc}}
+        {{trunc, leftover_cols_allocated + 1, index}, {index + 1, acc_trunc + trunc}}
       end)
 
     {need_one_more, finalized} =
@@ -113,14 +110,16 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  defp num_cols(cols, padded_col_width) do
-    cols
-    |> div(padded_col_width)
-    |> adjust(rem(cols, padded_col_width))
+  defp max_num_cols_content(all_cols, col_width) do
+    max_cols_content = all_cols - 2
+
+    max_cols_content
+    |> div(col_width)
+    |> adjust(rem(max_cols_content, col_width))
   end
 
-  defp adjust(max_num_cols, leftover) do
-    max_num_cols
-    |> + if leftover > max_num_cols, do: 0, else: -1
+  defp adjust(max_num_cols_content, leftover_content) do
+    max_num_cols_content
+    |> + if leftover_content > max_num_cols_content, do: 0, else: -1
   end 
 end
