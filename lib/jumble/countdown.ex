@@ -3,7 +3,7 @@ defmodule Jumble.Countdown do
   alias Jumble.Helper
 
   @def_opts [
-    ticker_int:  100,
+    ticker_int: 100,
     timeout: 1000,
     task: {IO, :puts, ["no task given!"]},
   ]
