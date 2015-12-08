@@ -9,9 +9,10 @@ defmodule Jumble.BruteSolver.Printer do
     {"╚", "╩", "╝"}
   ]
 
-  @header_joiners ["╦", "║", "║", "╬"]
-  @header_caps   {["╔", "║", "║", "╠"],
-                  ["╗", "║", "║", "╣"]}
+  @black_col ANSI.black <> "║"
+  @header_joiners ["╦", @black_col, @black_col, "╬"]
+  @header_caps   {["╔", "║",        @black_col, "╠"],
+                  ["╗", "║",        @black_col, "╣"]}
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
