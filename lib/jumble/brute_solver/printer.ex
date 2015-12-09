@@ -5,6 +5,8 @@ defmodule Jumble.BruteSolver.Printer do
   @report_colors ANSI.white_background <> ANSI.black
   @unjumbleds_joiner        ANSI.black <> "or"
 
+  @blank_lcap "║" <> ANSI.black_background
+  @blank_rcap ANSI.white_background <> "║"
 
   @black_col ANSI.black <> "║"
   @header_joiners ["╦", @black_col, @black_col, "╬"]
@@ -35,13 +37,13 @@ defmodule Jumble.BruteSolver.Printer do
 
   defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, num_sol_groups, counts, sol_info) do
     # IO.inspect [{total_content_rows, total_content_cols, col_width, pads}, num_sol_groups, counts, sol_info]
-    allocated_cols =
+    allocated_dims =
       counts
-      |> allocate_cols(total_content_cols - num_sol_groups, col_width)
+      |> allocate_dims(total_content_cols - num_sol_groups, col_width)
 
     {header_info, content_info} =
        sol_info
-       |> ordered_and_split_sol_info(col_width, lengths_tup, allocated_cols)
+       |> ordered_and_split_sol_info(col_width, lengths_tup, allocated_dims)
 
     header =
       header_info
@@ -51,7 +53,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     content =
       content_info
-      |> print_content(total_content_rows, pads)
+      |> print_content(pads)
   end
 
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -78,9 +80,24 @@ defmodule Jumble.BruteSolver.Printer do
     |> elem(0)
   end
 
-  def print_content(content_info, total_content_rows, pads) do
-    IO.inspect content_info
-  end
+  # def print_content(content_info, {lpad, rpad}) do
+  #   content_info
+  #   |> print_rows
+  #   |> Enum.reduce({[], []},fn({sols, content_cols}, {acc_row, rem_sols})->
+  #     {row_strings, rem_sols} =
+  #       sols
+  #       |> Enum.split(content_cols)
+
+  #     row_strings
+  #     |> Enum.join(" ")
+
+  #   end)
+  #   |> IO.inspect
+  #   # IO.inspect content_info
+
+  #   # content_info
+  #   # |> Enum.map(fn({sols, }))
+  # end
  
 
   def init(content_col_width, lengths_tup) do
@@ -126,19 +143,33 @@ defmodule Jumble.BruteSolver.Printer do
     |> Helper.cap(lpad, rpad)
   end
 
-  def ordered_and_split_sol_info(sol_info, content_col_width, lengths_tup, allocated_cols) do
-    allocated_cols
-    |> Enum.reduce({[], []}, fn({index, num_content_cols, num_cols}, {header_info, content_info})->
+  def ordered_and_split_sol_info(sol_info, content_col_width, lengths_tup, allocated_dims) do
+    allocated_dims
+    |> Enum.reduce({[], []}, fn({index, num_content_cols, num_cols, num_rows, trailing_sols, trailing_blank_string, num_empty_rows}, {header_info, content_info})->
       {next_header_info, next_content_info} =
         sol_info
         |> Enum.at(index)
-        |> retreive_info(lengths_tup, num_content_cols, content_col_width, num_cols)
+        |> retreive_info(lengths_tup, num_content_cols, content_col_width, num_cols, num_rows, trailing_sols, trailing_blank_string, num_empty_rows)
 
       {[next_header_info | header_info], [next_content_info | content_info]}
     end)
   end
 
-  def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols) do
+  def retreive_info({letter_bank, [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols, num_rows, trailing_sols, trailing_blank_string, num_empty_rows) do
+    # {
+      # {
+      #   letter_bank_length,
+      #   unjumbleds_length
+      # },
+    #   num_content_cols,
+    #   content_col_width,
+    #   num_cols,
+    #   num_rows,
+    #   trailing_sols,
+    #   trailing_blank_string,
+    #   num_empty_rows
+    # } = format_tup
+
     letter_bank_string =
         num_cols
         |> - letter_bank_length
@@ -179,13 +210,38 @@ defmodule Jumble.BruteSolver.Printer do
         num_cols
         |> Helper.pad("═")
 
-      [bar_pad, unjumbleds_string, letter_bank_string, bar_pad]
-      |> Helper.wrap_append({sols, split_pad_rem(content_col_width)})
+      {last_row_strings, rem_sol_strings} = 
+        sols
+        |> Enum.map(fn(sol_set)->
+          sol_set
+          |> Enum.reduce(" ", fn(sol, sol_string)->
+            sol
+            |> Helper.cap(sol_string, "   ")
+          end)
+        end)
+        |> Enum.split(trailing_sols)
+
+
+      last_row =
+        "  "
+        |> Helper.cap(last_row_strings, trailing_blank_string)
+        |> IO.inspect
+
+      # rows =
+      #   rem_sol_strings
+      #   |> print_rows([], num_content_cols)
+        # |> Enum.map_reduce([last_row], fn(sol_strings, acc_rows)->
+        #   sol
+        # end)
+
+
+    [bar_pad, unjumbleds_string, letter_bank_string, bar_pad]
+    |> Helper.wrap_append({sol_strings, num_content_cols})
   end
 
-  def allocate_cols(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
+  def allocate_dims(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
 
-  def allocate_cols(%{total: total, indivs: indivs}, leftover_cols, col_width) do
+  def allocate_dims(%{total: total, indivs: indivs}, leftover_cols, col_width) do
     {indexed_indivs, {_last_index, next_leftover}} =
       indivs
       |> Enum.map_reduce({0, 0}, fn(count, {index, acc_trunc})->
@@ -199,7 +255,7 @@ defmodule Jumble.BruteSolver.Printer do
 
         colspan = num_content_cols * (col_width + 1) - 1
 
-        {{trunc, index, num_content_cols, colspan}, {index + 1, acc_trunc + trunc}}
+        {{trunc, index, num_content_cols, colspan, count}, {index + 1, acc_trunc + trunc}}
       end)
 
     {need_one_more, finalized} =
@@ -207,14 +263,51 @@ defmodule Jumble.BruteSolver.Printer do
       |> Enum.sort(&>=/2)
       |> Enum.split(round(next_leftover))
 
-    need_one_more
-    |> Enum.map(fn({trunc, index, num_content_cols, colspan})->
-      {trunc, index, num_content_cols + 1, colspan + col_width + 1}
+    allocations =
+      [{_, _, _, max_rowspan, _, _} | _rest_allocations] =
+        need_one_more
+        |> Enum.map(fn({trunc, index, num_content_cols, colspan, count})->
+          {trunc, index, num_content_cols + 1, colspan + col_width + 1, count}
+        end)
+        |> Enum.concat(finalized)
+        # |> Enum.map(&Tuple.delete_at(&1, 0))
+        |> Enum.map(fn({_trunc, index, num_content_cols, colspan, count})->
+          {rowspan, trailing_sols, trailing_blanks} =
+            num_content_cols
+            |> rows_info(count)
+
+          trailing_blank_string =
+            trailing_blanks * (col_width + 1) - 1
+            |> Helper.pad
+            |> Helper.cap(ANSI.black_background, ANSI.white_background)
+
+          {index, num_content_cols, colspan, rowspan, trailing_sols, trailing_blank_string}
+        end)
+        |> Enum.sort_by(&elem(&1, 3), &>=/2)
+
+    allocations
+    |> Enum.map(fn(dim_tup = {_, _, _, rowspan, _, _})->
+      dim_tup
+      |> Tuple.append(max_rowspan - rowspan)
     end)
-    |> Enum.concat(finalized)
-    |> Enum.map(&Tuple.delete_at(&1, 0))
     # |> Enum.sort_by(&elem(&1, 1), &>=/2)"                                  "
-    |> Enum.sort_by(&elem(&1, 1))
+    # |> Enum.sort_by(&elem(&1, 1))
+  end
+
+  def rows_info(num_content_cols, count) do
+    rem_sols =
+      count
+      |> rem(num_content_cols)
+
+    full_rows =
+      count
+      |> div(num_content_cols)
+
+    if rem_sols > 0 do
+      {full_rows + 1, rem_sols, num_content_cols - rem_sols}
+    else
+      {full_rows, 0, 0}
+    end
   end
 
   defp get_dims do
