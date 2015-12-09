@@ -43,17 +43,41 @@ defmodule Jumble.BruteSolver.Printer do
     {header_info, content_info} =
        sol_info
        |> ordered_and_split_sol_info(lengths_tup, allocated_dims)
-       |> IO.inspect
 
     header =
       header_info
       |> print_header(pads)
     
-    # IO.puts @report_colors <> header
+    content =
+      content_info
+      |> print_content(pads)
 
-    # content =
-    #   content_info
-    #   |> print_content(pads)
+    header
+    |> Helper.cap(@report_colors, content)
+    |> IO.puts
+  end
+
+  def print_rows([next_col | rem_cols]) do
+    rem_cols
+    |> Enum.reduce(next_col, fn(col, acc_rows)->
+      acc_rows
+      |> Enum.map_reduce(col, fn(row, [next_cell | rem_cells])->
+        "║"
+        |> Helper.cap(row, next_cell)
+        |> Helper.wrap_append(rem_cells)
+      end)
+      |> elem(0)
+    end)
+  end
+
+  def print_content(content_info, {lpad, rpad}) do
+    content_info
+    |> print_rows
+    |> Enum.map_join(fn(row)->
+      row
+      |> Helper.cap("║")
+      |> Helper.cap(lpad, rpad)
+    end)
   end
 
   def print_header([first_header_col | rem_header_cols], {lpad, rpad}) do
@@ -193,16 +217,14 @@ defmodule Jumble.BruteSolver.Printer do
     {header_info, content_info}
   end
 
-
-
-  def format_content({trailing_sols, trailing_blanks, empty_rows}, num_content_cols, sol_strings) do
+  def format_content({trailing_sols, trailing_blank_string, empty_rows}, num_content_cols, sol_strings) do
     {last_row_strings, rem_sol_strings} = 
       sol_strings
       |> Enum.split(trailing_sols)
 
     last_row =
       " "
-      |> Helper.cap(Enum.join(last_row_strings, " "), trailing_blanks)
+      |> Helper.cap(Enum.join(last_row_strings, " "), trailing_blank_string)
 
     rem_sol_strings
     |> print_column(num_content_cols, [])
@@ -265,9 +287,9 @@ defmodule Jumble.BruteSolver.Printer do
                 trailing_blank_string =
                   trailing_blanks * (col_width + 1) - 1
                   |> Helper.pad
-                  |> Helper.cap(ANSI.black_background, ANSI.white_background)
+                  # |> Helper.cap(ANSI.black_background, ANSI.white_background)
 
-                {rowspan, trailing_sols, trailing_blanks}
+                {rowspan, trailing_sols, trailing_blank_string}
 
               even_rows_tup -> even_rows_tup
             end
