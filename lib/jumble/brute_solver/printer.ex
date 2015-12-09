@@ -3,6 +3,11 @@ defmodule Jumble.BruteSolver.Printer do
   alias Jumble.Helper
 
   @report_colors ANSI.white_background <> ANSI.black
+
+  @header "BRUTE FORCE SOLUTIONS\n\n"
+    |> Helper.cap(ANSI.underline, ANSI.no_underline)
+    |> Helper.cap(ANSI.yellow, @report_colors)
+
   @unjumbleds_joiner        ANSI.black <> "or"
 
   @blank_lcap "║" <> ANSI.black_background
@@ -40,11 +45,11 @@ defmodule Jumble.BruteSolver.Printer do
       counts
       |> allocate_dims(total_content_cols - num_sol_groups, col_width)
 
-    {header_info, content_info} =
+    {header_info, content_info, bar_pads} =
        sol_info
        |> ordered_and_split_sol_info(lengths_tup, allocated_dims)
 
-    header =
+    table_header =
       header_info
       |> print_header(pads)
     
@@ -52,9 +57,20 @@ defmodule Jumble.BruteSolver.Printer do
       content_info
       |> print_content(pads)
 
-    header
-    |> Helper.cap(@report_colors, content)
+    bcap =
+      bar_pads
+      |> print_base(pads)
+
+    table_header
+    |> Helper.cap(@header, content <> bcap)
     |> IO.puts
+  end
+
+  def print_base(bar_pads, {lpad, rpad}) do
+    bar_pads
+    |> Enum.join("╩")
+    |> Helper.cap("╚", "╝")
+    |> Helper.cap(lpad, rpad)
   end
 
   def print_rows([next_col | rem_cols]) do
@@ -147,13 +163,13 @@ defmodule Jumble.BruteSolver.Printer do
 
   def ordered_and_split_sol_info(sol_info, lengths_tup, allocated_dims) do
     allocated_dims
-    |> Enum.reduce({[], []}, fn({index, cols_tup, rows_tup}, {header_info, content_info})->
-      {next_header_info, next_content_info} =
+    |> Enum.reduce({[], [], []}, fn({index, cols_tup, rows_tup}, {header_info, content_info, bar_pads})->
+      {next_header_info, next_content_info, next_bar_pad} =
         sol_info
         |> Enum.at(index)
         |> retreive_info(lengths_tup, cols_tup, rows_tup)
 
-      {[next_header_info | header_info], [next_content_info | content_info]}
+      {[next_header_info | header_info], [next_content_info | content_info], [next_bar_pad | bar_pads]}
     end)
   end
 
@@ -214,7 +230,7 @@ defmodule Jumble.BruteSolver.Printer do
       rows_tup
       |> format_content(num_content_cols, sol_strings)
 
-    {header_info, content_info}
+    {header_info, content_info, bar_pad}
   end
 
   def format_content({trailing_sols, trailing_blank_string, empty_rows}, num_content_cols, sol_strings) do
