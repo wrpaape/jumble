@@ -86,12 +86,12 @@ defmodule Jumble.Countdown do
   defp tick_stream do
     tick_colors
     |> Stream.zip(ticks)
-    |> Stream.cycle
   end
 
   defp tick_colors do
     ~w(red yellow green blue cyan magenta)a
     |> Enum.map(&apply(ANSI, &1, []))
+    |> Stream.cycle
   end
 
   defp ticks do
@@ -101,6 +101,7 @@ defmodule Jumble.Countdown do
       [level, level + 6]
       |> Enum.map(&<<8590 + &1 :: utf8>>)
     end)
+    |> Stream.cycle
   end
 
   defp fetch_args(opts) do

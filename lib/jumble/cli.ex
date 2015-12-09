@@ -12,6 +12,26 @@ defmodule Jumble.CLI do
 
   # @argv_test ["your usual norm? drinks for all my friends, sammy! tomorrow, I'm buying. the regulars at the insect pub were/3/5", "clofa/1/5", "cleri/1/4", "pibsoh/1/3", "gentam/2/5"]
   # ./jumble "your usual norm? drinks for all my friends, sammy! tomorrow, I'm buying. the regulars at the insect pub were"/3/5 clofa/1/5 cleri/1/4 pibsoh/1/3 gentam/2/5
+  # bar flies (dict doesn't handle plural)
+
+  # ./jumble "we are live from Kennedy Space Center. the Apollo 11 mission has just lifted off. I could watch shows about the moon all day. when they watched the Apollo 11 mission on TV, they watched a"/5/7 rayrm/1/2/4 esege/1/4/5 torpyh/2/3/4 cipaee/1/2/5
+  # space program
+
+  # ./jumble "to learn his rope tricks the magician had"/2/2/4 neyah/3/5 ttcar/1/5 lurbyr/1/3 utdogu/4/6
+  # to be taut
+
+  # ./jumble "chewie's biggest worry isn't stormtroopers or sith lords it's"/9 tabae/1/2/3 sahls/1/2 errdah/1/3 vidler/3/6
+  # hairballs (didn't solve / plural)
+
+  # ./jumble "what the starter said to my wife right before the couples piggyback race"/2/4/4 ragdu/2/3/4 osmeo/1/2/3 rulsye/3/6 nerlke/1/4
+  # on your mark
+
+  # ./jumble "would you like to hear our specials the only reason fido is allowed in a restaurant is because he is a"/7/3 sogeo/1/3/5 farcs/1/2/4 dulhed/4/6 vitace/4/5
+  # service dog
+
+  # ./jumble "see? as good as new. using tape to patch his favorite chair was this."/4/5 afect/4/5 volce/1/4 dinkly/1/6 yalern/3/4/6
+
+  # ./jumble "when did you know that you wanted to be a quarterback? I've always known. He played qb in high school, college, and now the nfl because being a qb wasn't a"/7/5 mfiyl/1/2/5 nalgc/3/4/5 safcio/3/4/5 narpis/1/2/6
 
   alias Jumble.ArgParser
   alias Jumble.LengthDict

@@ -369,11 +369,5 @@ defmodule Jumble.BruteSolver.Printer do
 
     max_content_cols
     |> div(col_width)
-    # |> adjust(rem(max_content_cols, col_width))
   end
-
-  # def adjust(max_num_content_cols, leftover_content) do
-  #   max_num_content_cols
-  #   |> + if leftover_content > max_num_content_cols, do: 0, else: -1
-  # end 
 end
