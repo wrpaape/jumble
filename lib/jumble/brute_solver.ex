@@ -17,7 +17,7 @@ defmodule Jumble.BruteSolver do
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
-    timeout: 50,
+    timeout: 20,
     ticker_int: 17
   ]
 
@@ -69,7 +69,7 @@ defmodule Jumble.BruteSolver do
       sols_by_letterbank
       |> Map.update(Enum.sort(letter_bank, &>=/2), [unjumbled_sols], &[unjumbled_sols | &1])
     end)
-    |> Enum.reduce(0, fn({letter_bank, sols}, sol_groups)->
+    |> Enum.each(fn({letter_bank, sols})->
       letter_bank_string =
         letter_bank
         |> Enum.join(" ")
@@ -85,9 +85,10 @@ defmodule Jumble.BruteSolver do
       |> Countdown.time_async
       |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
 
-      sol_groups + 1
+      # sol_groups + 1
     end)
-    |> Printer.print_solutions(get_in_agent(@counts_key_path), get_in_agent(@sols_key_path))
+    
+    Printer.print_solutions(get_in_agent(@counts_key_path), get_in_agent(@sols_key_path))
   end
 
   defp report_and_record(time_elapsed, letter_bank, unjumbled_sols, results) do
@@ -103,13 +104,15 @@ defmodule Jumble.BruteSolver do
     num_uniqs
     |> report(next_total, time_elapsed)
     
-    @sols_key_path
-    |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, results})
+    if num_uniqs > 0 do
+      @sols_key_path
+      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, results})
 
-    @counts_key_path
-    |> update_in_agent(fn(%{total: _last_total, indivs: indivs})->
-      %{total: next_total, indivs: [num_uniqs | indivs]}
-    end)
+      @counts_key_path
+      |> update_in_agent(fn(%{total: _last_total, indivs: indivs, sol_groups: sol_groups})->
+        %{total: next_total, indivs: [num_uniqs | indivs], sol_groups: sol_groups + 1}
+      end)
+    end
   end
 
   defp report(num_uniqs, next_total, micro_sec) do

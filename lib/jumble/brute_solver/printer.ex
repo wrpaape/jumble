@@ -2,21 +2,21 @@ defmodule Jumble.BruteSolver.Printer do
   alias IO.ANSI
   alias Jumble.Helper
 
-  @report_colors ANSI.white_background <> ANSI.black
+  @report_colors ANSI.blue_background <> ANSI.yellow
 
   @header "BRUTE FORCE SOLUTIONS\n\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
     |> Helper.cap(ANSI.yellow, @report_colors)
 
-  @unjumbleds_joiner        ANSI.black <> "or"
+  @unjumbleds_joiner        ANSI.yellow <> "or"
 
   @blank_lcap "║" <> ANSI.black_background
-  @blank_rcap ANSI.white_background <> "║"
+  @blank_rcap ANSI.blue_background <> "║"
 
-  @black_col ANSI.black <> "║"
-  @header_joiners ["╦", @black_col, @black_col, "╬"]
-  @header_caps   {["╔", "║",        @black_col, "╠"],
-                  ["╗", @black_col, @black_col, "╣"]}
+  @colored_col ANSI.yellow <> "║"
+  @header_joiners ["╦", @colored_col, @colored_col, "╬"]
+  @header_caps   {["╔", "║",          @colored_col, "╠"],
+                  ["╗", @colored_col, @colored_col, "╣"]}
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
@@ -31,19 +31,19 @@ defmodule Jumble.BruteSolver.Printer do
     |> Agent.start_link(:init, [final_length, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
   end
 
-  def print_solutions(num_sol_groups, counts, sols) do
+  def print_solutions(counts, sols) do
      __MODULE__
      |> Agent.get(& &1)
-     |> print_solutions(num_sol_groups, counts, sols)
+     |> print_solutions(counts, sols)
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, num_sol_groups, counts, sol_info) do
+  defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, counts, sol_info) do
     allocated_dims =
       counts
-      |> allocate_dims(total_content_cols - num_sol_groups, col_width)
+      |> allocate_dims(total_content_cols - counts.sol_groups, col_width)
 
     {header_info, content_info, bar_pads} =
        sol_info
@@ -125,8 +125,8 @@ defmodule Jumble.BruteSolver.Printer do
       cols
       |> max_num_content_cols(content_col_width)
 
-    content_cols_with_pad_and_borders = total_content_cols * (content_col_width + 1) + 1
-    
+    content_cols_with_pad_and_borders = total_content_cols * content_col_width + 1
+
     pads =
       cols
       |> - content_cols_with_pad_and_borders
@@ -175,9 +175,9 @@ defmodule Jumble.BruteSolver.Printer do
 
   def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
     letter_bank_string =
-        colspan
-        |> - letter_bank_length
-        |> split_pad_rem_cap(letter_bank)
+      colspan
+      |> - letter_bank_length
+      |> split_pad_rem_cap(letter_bank)
       
     num_unjumbleds =
       unjumbleds
@@ -277,7 +277,7 @@ defmodule Jumble.BruteSolver.Printer do
 
         num_content_cols = leftover_cols_allocated + 1
 
-        colspan = num_content_cols * (col_width + 1) - 1
+        colspan = num_content_cols * col_width - 1
 
         {{trunc, index, num_content_cols, colspan, count}, {index + 1, acc_trunc + trunc}}
       end)
@@ -291,7 +291,7 @@ defmodule Jumble.BruteSolver.Printer do
       [{_index, _cols_tup, max_rowspan_tup} | _rest_allocations] =
         need_one_more
         |> Enum.map(fn({trunc, index, num_content_cols, colspan, count})->
-          {trunc, index, num_content_cols + 1, colspan + col_width + 1, count}
+          {trunc, index, num_content_cols + 1, colspan + col_width, count}
         end)
         |> Enum.concat(finalized)
         |> Enum.map(fn({_trunc, index, num_content_cols, colspan, count})->
@@ -301,7 +301,7 @@ defmodule Jumble.BruteSolver.Printer do
             |> case do
               {rowspan, trailing_sols, trailing_blanks} ->
                 trailing_blank_string =
-                  trailing_blanks * (col_width + 1) - 1
+                  trailing_blanks * col_width - 1
                   |> Helper.pad
                   # |> Helper.cap(ANSI.black_background, ANSI.white_background)
 
@@ -365,15 +365,15 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   defp max_num_content_cols(all_cols, col_width) do
-    max_content_cols = all_cols - 2
+    max_content_cols = all_cols - 1
 
     max_content_cols
     |> div(col_width)
-    |> adjust(rem(max_content_cols, col_width))
+    # |> adjust(rem(max_content_cols, col_width))
   end
 
-  defp adjust(max_num_content_cols, leftover_content) do
-    max_num_content_cols
-    |> + if leftover_content > max_num_content_cols, do: 0, else: -1
-  end 
+  # def adjust(max_num_content_cols, leftover_content) do
+  #   max_num_content_cols
+  #   |> + if leftover_content > max_num_content_cols, do: 0, else: -1
+  # end 
 end

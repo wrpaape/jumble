@@ -92,6 +92,7 @@ defmodule Jumble.ArgParser do
       Map.new
       |> Map.put(:total, 0)
       |> Map.put(:indivs, [])
+      |> Map.put(:sol_groups, 0)
 
     brute_map =
       Map.new
@@ -101,7 +102,7 @@ defmodule Jumble.ArgParser do
     Map.new
     |> Map.put(:clue, clue)
     |> Map.put(:letter_bank_length, letter_bank_length)
-    |> Map.put(:final_length, final_sol_length + 2)
+    |> Map.put(:final_length, final_sol_length + 3)
     |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, uniq_lengths)
     |> Map.put(:pick_orders, pick_orders)

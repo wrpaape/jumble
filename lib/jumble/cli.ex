@@ -4,6 +4,14 @@ defmodule Jumble.CLI do
   # @argv_test ~w(clue/4/5 ylsyh/1/4 setgu/1/4 lasivu/1/3/5 nofdef/1/4)
   # @argv_test ~w(clue/9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
   # @argv_test ["how they described their work on the instruction book I'm starting the assembly chapter/6/5", "sobas/1/5", "galuh/1/2/3", "larmin/2/4/6", "ramaad/1/2/3"]
+  # "how they described their work on the instruction book I'm starting the assembly chapter"/6/5 sobas/1/5 galuh/1/2/3 larmin/2/4/6 ramaad/1/2/3
+
+
+  # ./jumble "you're beautiful.  would you model for me? Absolutely! I'd love to. when the artist asked to make a stone likeness of her, she said"/6/4 emaco/1/4 smurt/1/2/3 plitup/1/2/3 suhaqs/1/3
+  # sculpt sure
+
+  # @argv_test ["your usual norm? drinks for all my friends, sammy! tomorrow, I'm buying. the regulars at the insect pub were/3/5", "clofa/1/5", "cleri/1/4", "pibsoh/1/3", "gentam/2/5"]
+  # ./jumble "your usual norm? drinks for all my friends, sammy! tomorrow, I'm buying. the regulars at the insect pub were"/3/5 clofa/1/5 cleri/1/4 pibsoh/1/3 gentam/2/5
 
   alias Jumble.ArgParser
   alias Jumble.LengthDict
