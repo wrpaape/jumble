@@ -36,15 +36,14 @@ defmodule Jumble.BruteSolver.Printer do
 ##################################### external API #####################################
 
   defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, num_sol_groups, counts, sol_info) do
-    # IO.inspect [{total_content_rows, total_content_cols, col_width, pads}, num_sol_groups, counts, sol_info]
     allocated_dims =
       counts
       |> allocate_dims(total_content_cols - num_sol_groups, col_width)
-      |> IO.inspect
 
     {header_info, content_info} =
        sol_info
        |> ordered_and_split_sol_info(lengths_tup, allocated_dims)
+       |> IO.inspect
 
     header =
       header_info
@@ -56,8 +55,6 @@ defmodule Jumble.BruteSolver.Printer do
     #   content_info
     #   |> print_content(pads)
   end
-
-# ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
 
   def print_header([first_header_col | rem_header_cols], {lpad, rpad}) do
     rem_header_cols
@@ -126,7 +123,6 @@ defmodule Jumble.BruteSolver.Printer do
 
   def ordered_and_split_sol_info(sol_info, lengths_tup, allocated_dims) do
     allocated_dims
-    # |> Enum.reduce({[], []}, fn({index, num_content_cols, colspan, num_rows, trailing_sols, trailing_blank_string, num_empty_rows}, {header_info, content_info})->
     |> Enum.reduce({[], []}, fn({index, cols_tup, rows_tup}, {header_info, content_info})->
       {next_header_info, next_content_info} =
         sol_info
@@ -137,7 +133,6 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  # def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, num_content_cols, content_col_width, num_cols, num_rows, trailing_sols, trailing_blank_string, num_empty_rows) do
   def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
     letter_bank_string =
         colspan
@@ -181,17 +176,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     header_info = [bar_pad, unjumbleds_string, letter_bank_string, bar_pad]
 
-    content_info =
-      rows_tup
-      |> format_content(sols)      
-
-    {header_info, content_info}
-  end
-
-
-
-  def format_content({trailing_sols, trailing_blanks, empty_rows}, sols) do
-    {last_row_strings, rem_sol_strings} = 
+    sol_strings =
       sols
       |> Enum.map(fn(sol_set)->
         sol_set
@@ -200,17 +185,44 @@ defmodule Jumble.BruteSolver.Printer do
           |> Helper.cap(sol_string, " ")
         end)
       end)
+
+    content_info =
+      rows_tup
+      |> format_content(num_content_cols, sol_strings)
+
+    {header_info, content_info}
+  end
+
+
+
+  def format_content({trailing_sols, trailing_blanks, empty_rows}, num_content_cols, sol_strings) do
+    {last_row_strings, rem_sol_strings} = 
+      sol_strings
       |> Enum.split(trailing_sols)
 
     last_row =
       " "
-      |> Helper.cap(Enum.join(last_row_strings, " "), trailing_blank_string)
-      |> IO.inspect
+      |> Helper.cap(Enum.join(last_row_strings, " "), trailing_blanks)
 
+    rem_sol_strings
+    |> print_column(num_content_cols, [])
+    |> Enum.concat([last_row | empty_rows])
   end
 
-  def format_content({empty_rows}, sols) do
+  def format_content({empty_rows}, num_content_cols, sol_strings) do
+    sol_strings
+    |> print_column(num_content_cols, [])
+    |> Enum.concat(empty_rows)
+  end
 
+  def print_column([], _strings_per_col, finished_col), do: finished_col
+  def print_column(strings, strings_per_col, acc_col)   do
+    {next_strings, rem_strings} =
+      strings
+      |> Enum.split(strings_per_col)
+
+    rem_strings
+    |> print_column(strings_per_col, [Enum.join(next_strings, " ") | acc_col])
   end
 
   def allocate_dims(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
@@ -262,14 +274,14 @@ defmodule Jumble.BruteSolver.Printer do
 
           {index, {num_content_cols, colspan, col_width}, rows_tup}
         end)
-        |> Enum.sort_by(&(elem(&1, 3) |> elem(0)), &>=/2)
+        |> Enum.sort_by(&(elem(&1, 2) |> elem(0)), &>=/2)
 
     allocations
     |> Enum.map(fn({index, cols_tup, rows_tup})->
       num_empty_rows =
         max_rowspan_tup
         |> elem(0)
-        |> - rowspan
+        |> - elem(rows_tup, 0)
 
       blank_row = 
         cols_tup
