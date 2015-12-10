@@ -1,16 +1,30 @@
+defmodule PathHelper do
+  def rel_lib_path(path_list) do
+    ~w(.. .. lib)
+    |> Enum.concat(path_list)
+    |> Path.join
+    |> Path.expand(Mix.Project.build_path)
+  end
+end
+
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
+
 use Mix.Config
 
 length_dict_dir =
-  ~w(.. .. lib jumble length_dict)
-  |> Path.join
-  |> Path.expand(Mix.Project.build_path)
+  ~w(jumble length_dict)
+  |> PathHelper.rel_lib_path
+
+scowl_dir =
+  ~w(jumble scowl)
+  |> PathHelper.rel_lib_path
 
 config :jumble,
   [
     dict_path:       Path.join(~w(/ usr share dict words)),
-    length_dict_dir: length_dict_dir
+    length_dict_dir: length_dict_dir,
+    scowl_dir:       scowl_dir
   ]
 
 # This configuration is loaded before any dependency and is restricted

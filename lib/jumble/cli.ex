@@ -39,7 +39,7 @@ defmodule Jumble.CLI do
   # ./jumble "don't worry, Stephan.  you're gonna win some and lose some. how could you forget my alibi?! A bad way for a lawyer to learn the criminal justice system."/5/5 laisa/2/3/4 laurr/1/3 bureek/1/2 prouot/3/5/6
   # trial error
 
-  # what they had when they went the distance to shop in Chicago. I wish we could have shopped even longer. we shopped the perfect length.
+  # ./jumble "what they had when they went the distance to shop in Chicago. I wish we could have shopped even longer. we shopped the perfect length."/11/4/8/5 alnca/1/2/3/5 mgsea/1/2/3/4 tlhgif/1/2/3/6 vnaeue/2/3/4/6 naievt/1/2/4/6 trsotiu/4/5/7 sdeimwt/1/2/3/5/7
   alias Jumble.ArgParser
   alias Jumble.LengthDict
   alias Jumble.NLP

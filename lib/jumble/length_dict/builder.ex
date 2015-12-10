@@ -5,9 +5,14 @@ defmodule Jumble.LengthDict.Builder do
   @dir       Application.get_env(:jumble, :length_dict_dir)
   @indent    Helper.pad(4)
 
-  def build do
+  def build_from_file do
     @dict_path
-    |>File.read!
+    |> File.read!
+    |> build
+  end
+
+  def build(newline_delim_string) do
+    newline_delim_string
     |> String.split
     |> Enum.group_by(&String.length/1)
     |> Enum.each(fn({length, words}) ->
@@ -36,5 +41,11 @@ defmodule Jumble.LengthDict.Builder do
       |> Path.expand(@dir)
       |> File.write(contents)
     end)
+  end
+
+  def clean do
+    Path.join(@dir, "length_*.ex")
+    |> Path.wildcard
+    |> Enum.each(&File.rm/1)
   end
 end
