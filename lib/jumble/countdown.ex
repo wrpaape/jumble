@@ -2,6 +2,7 @@ defmodule Jumble.Countdown do
   alias IO.ANSI
   alias Jumble.Helper
 
+  @timeout 10000
   @def_opts [
     ticker_int: 100,
     timeout: 1000,
@@ -37,7 +38,7 @@ defmodule Jumble.Countdown do
           |> :timer.now_diff(t1)
 
         :countdown
-        |> Agent.stop
+        |> Agent.stop(@timeout)
 
         ticker
         |> Task.shutdown

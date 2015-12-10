@@ -31,14 +31,21 @@ defmodule Jumble.BruteSolver.Printer do
     |> Agent.start_link(:init, [final_length, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
   end
 
-  def print_solutions(counts, sols) do
+  def print_solutions(sols, counts) do
      __MODULE__
      |> Agent.get(& &1)
-     |> print_solutions(counts, sols)
+     |> throttle_and_print
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+
+  def throttle_and_print({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, counts, sol_info) do
+    allocated_dims =
+      counts
+      |> allocate_dims(total_content_cols - counts.sol_groups, col_width)
+
+  end
 
   defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, counts, sol_info) do
     allocated_dims =

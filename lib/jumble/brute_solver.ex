@@ -17,7 +17,7 @@ defmodule Jumble.BruteSolver do
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
-    timeout: 20,
+    timeout: 50,
     ticker_int: 17
   ]
 
@@ -84,11 +84,11 @@ defmodule Jumble.BruteSolver do
       |> update_timer_opts
       |> Countdown.time_async
       |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
-
-      # sol_groups + 1
     end)
-    
-    Printer.print_solutions(get_in_agent(@counts_key_path), get_in_agent(@sols_key_path))
+
+    @sols_key_path
+    |> get_in_agent
+    |> Printer.print_solutions(get_in_agent(@counts_key_path))
   end
 
   defp report_and_record(time_elapsed, letter_bank, unjumbled_sols, results) do

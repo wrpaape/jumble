@@ -1,5 +1,5 @@
 defmodule Jumble.CLI do
-  @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
+  # @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
   # @argv_test ~w(clue/6/7 hnuck/1/2/3 turet/1/2/3 birsec/1/2/5/6 pajloy/1/4/6)
   # @argv_test ~w(clue/4/5 ylsyh/1/4 setgu/1/4 lasivu/1/3/5 nofdef/1/4)
   # @argv_test ~w(clue/9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
@@ -21,7 +21,7 @@ defmodule Jumble.CLI do
   # to be taut
 
   # ./jumble "chewie's biggest worry isn't stormtroopers or sith lords it's"/9 tabae/1/2/3 sahls/1/2 errdah/1/3 vidler/3/6
-  # hairballs (didn't solve / plural)
+  # hairballs
 
   # ./jumble "what the starter said to my wife right before the couples piggyback race"/2/4/4 ragdu/2/3/4 osmeo/1/2/3 rulsye/3/6 nerlke/1/4
   # on your mark
@@ -40,6 +40,8 @@ defmodule Jumble.CLI do
   # trial error
 
   # ./jumble "what they had when they went the distance to shop in Chicago. I wish we could have shopped even longer. we shopped the perfect length."/11/4/8/5 alnca/1/2/3/5 mgsea/1/2/3/4 tlhgif/1/2/3/6 vnaeue/2/3/4/6 naievt/1/2/4/6 trsotiu/4/5/7 sdeimwt/1/2/3/5/7
+  # rip CPU
+  
   alias Jumble.ArgParser
   alias Jumble.LengthDict
   alias Jumble.NLP
