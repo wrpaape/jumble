@@ -33,6 +33,13 @@ defmodule Jumble.CLI do
 
   # ./jumble "when did you know that you wanted to be a quarterback? I've always known. He played qb in high school, college, and now the nfl because being a qb wasn't a"/7/5 mfiyl/1/2/5 nalgc/3/4/5 safcio/3/4/5 narpis/1/2/6
 
+  # ./jumble "when the acupuncture worked the patient said it was/3/4/4" nagld/2/4/5 ramoj/3/4 camble/1/2/4 wraley/1/3/5
+  # jab well done
+
+  # ./jumble "don't worry, Stephan.  you're gonna win some and lose some. how could you forget my alibi?! A bad way for a lawyer to learn the criminal justice system."/5/5 laisa/2/3/4 laurr/1/3 bureek/1/2 prouot/3/5/6
+  # trial error
+
+  # what they had when they went the distance to shop in Chicago. I wish we could have shopped even longer. we shopped the perfect length.
   alias Jumble.ArgParser
   alias Jumble.LengthDict
   alias Jumble.NLP
