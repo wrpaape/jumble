@@ -28,49 +28,61 @@ defmodule Jumble.BruteSolver.Printer do
   
   def start_link(%{sol_info: %{letter_bank_length: letter_bank_length, final_length: final_length}, jumble_info: %{unjumbleds_length: unjumbleds_length}}) do
     __MODULE__
-    |> Agent.start_link(:init, [final_length, {letter_bank_length, unjumbleds_length}], name: __MODULE__)
+    |> Agent.start_link(:init, [final_length, letter_bank_length, unjumbleds_length], name: __MODULE__)
   end
 
-  def print_solutions(sols, counts) do
-     __MODULE__
-     |> Agent.get(& &1)
-     |> throttle_and_print
+  # def print_solutions(sols, %{total: total, indivs: indivs, sol_groups: sol_groups}) do
+  def print_solutions(sols) do
+    sols
+    |> Enum.sort_by(&elem(&1, 3), &>=/2)
+    |> throttle_and_print(Agent.get(__MODULE__, & &1), @header)
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+  
+  def throttle_and_print([], _format_state, final_results), do: IO.puts final_results
 
-  def throttle_and_print({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, counts, sol_info) do
-    allocated_dims =
-      counts
-      |> allocate_dims(total_content_cols - counts.sol_groups, col_width)
+  def throttle_and_print(sols, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
+    {next_sols, rem_sols} =
+      sols
+      |> Enum.split(div(total_content_cols, min_content_cols))
 
+    {sol_info, indiv_counts, total, leftover_cols} =
+      next_sols
+      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds, num_unjumbleds, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
+
+        {[{letter_bank, unjumbleds, num_unjumbleds, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
+      end)
+
+    next_results =
+      indiv_counts
+      |> allocate_dims(total, leftover_cols, min_content_cols, col_width)
+      |> print_sol_group(sol_info, lengths_tup, pads_tup)
+
+    rem_sols
+    |> throttle_and_print(format_state, acc_results <> next_results)
   end
 
-  defp print_solutions({total_content_rows, total_content_cols, col_width, lengths_tup, pads}, counts, sol_info) do
-    allocated_dims =
-      counts
-      |> allocate_dims(total_content_cols - counts.sol_groups, col_width)
-
+  defp print_sol_group(allocated_dims, sol_info, lengths_tup, pads_tup) do
     {header_info, content_info, bar_pads} =
        sol_info
        |> ordered_and_split_sol_info(lengths_tup, allocated_dims)
 
     table_header =
       header_info
-      |> print_header(pads)
+      |> print_header(pads_tup)
     
     content =
       content_info
-      |> print_content(pads)
+      |> print_content(pads_tup)
 
     bcap =
       bar_pads
-      |> print_base(pads)
+      |> print_base(pads_tup)
 
-    table_header
-    |> Helper.cap(@header, content <> bcap)
-    |> IO.puts
+    content
+    |> Helper.cap(table_header, bcap)
   end
 
   def print_base(bar_pads, {lpad, rpad}) do
@@ -125,8 +137,8 @@ defmodule Jumble.BruteSolver.Printer do
     |> elem(0)
   end
 
-  def init(content_col_width, lengths_tup) do
-    [rows, cols] = get_dims
+  def init(content_col_width, letter_bank_length, unjumbleds_length) do
+    {:ok, cols} = :io.columns
 
     total_content_cols =
       cols
@@ -134,12 +146,21 @@ defmodule Jumble.BruteSolver.Printer do
 
     content_cols_with_pad_and_borders = total_content_cols * content_col_width + 1
 
-    pads =
+    pads_tup =
       cols
       |> - content_cols_with_pad_and_borders
       |> split_pad_rem
 
-    {rows - 5, total_content_cols, content_col_width, lengths_tup, pads}
+    min_col_width =
+      letter_bank_length
+      |> max(unjumbleds_length)
+
+    min_content_cols =
+      min_col_width / content_col_width
+      |> Float.ceil
+      |> trunc
+
+    {total_content_cols, content_col_width, min_content_cols, {letter_bank_length, unjumbleds_length}, pads_tup}
   end
 
 ####################################### helpers ########################################
@@ -180,16 +201,12 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  def retreive_info({letter_bank, unjumbleds = [head_unjumbled | tail_unjumbleds], sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
+  def retreive_info({letter_bank, [head_unjumbled | tail_unjumbleds], num_unjumbleds, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
     letter_bank_string =
       colspan
       |> - letter_bank_length
       |> split_pad_rem_cap(letter_bank)
       
-    num_unjumbleds =
-      unjumbleds
-      |> length
-
     header_cols = num_unjumbleds * (unjumbleds_length + 3) - 2
 
     total_header_pad_cols = colspan - header_cols
@@ -272,9 +289,9 @@ defmodule Jumble.BruteSolver.Printer do
 
   def allocate_dims(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
 
-  def allocate_dims(%{total: total, indivs: indivs}, leftover_cols, col_width) do
+  def allocate_dims(indiv_counts, total, leftover_cols, min_content_cols, col_width) do
     {indexed_indivs, {_last_index, next_leftover}} =
-      indivs
+      indiv_counts
       |> Enum.map_reduce({0, 0}, fn(count, {index, acc_trunc})->
         float = count * leftover_cols / total
         
@@ -282,7 +299,7 @@ defmodule Jumble.BruteSolver.Printer do
 
         trunc = float - leftover_cols_allocated
 
-        num_content_cols = leftover_cols_allocated + 1
+        num_content_cols = leftover_cols_allocated + min_content_cols
 
         colspan = num_content_cols * col_width - 1
 
@@ -310,7 +327,6 @@ defmodule Jumble.BruteSolver.Printer do
                 trailing_blank_string =
                   trailing_blanks * col_width - 1
                   |> Helper.pad
-                  # |> Helper.cap(ANSI.black_background, ANSI.white_background)
 
                 {rowspan, trailing_sols, trailing_blank_string}
 
@@ -322,7 +338,7 @@ defmodule Jumble.BruteSolver.Printer do
         |> Enum.sort_by(&(elem(&1, 2) |> elem(0)), &>=/2)
 
     allocations
-    |> Enum.map(fn({index, cols_tup, rows_tup})->
+    |> Enum.reduce([], fn({index, cols_tup, rows_tup}, acc)->
       num_empty_rows =
         max_rowspan_tup
         |> elem(0)
@@ -342,7 +358,7 @@ defmodule Jumble.BruteSolver.Printer do
         |> Tuple.delete_at(0)
         |> Tuple.append(empty_rows)
 
-      {index, cols_tup, next_rows_tup}
+      [{index, cols_tup, next_rows_tup} | acc]
     end)
   end
 
@@ -360,15 +376,6 @@ defmodule Jumble.BruteSolver.Printer do
     else
       {full_rows}
     end
-  end
-
-  defp get_dims do
-    [:rows, :columns]
-    |> Enum.map(fn(dim_fun)->
-      :io
-      |> apply(dim_fun, [])
-      |> elem(1)
-    end)
   end
 
   defp max_num_content_cols(all_cols, col_width) do
