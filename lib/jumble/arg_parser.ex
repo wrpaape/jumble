@@ -91,8 +91,7 @@ defmodule Jumble.ArgParser do
     counts_map =
       Map.new
       |> Map.put(:total, 0)
-      |> Map.put(:indivs, [])
-      |> Map.put(:sol_groups, 0)
+      |> Map.put(:max_group_size, 0)
 
     brute_map =
       Map.new

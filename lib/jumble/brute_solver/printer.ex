@@ -32,27 +32,31 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   # def print_solutions(sols, %{total: total, indivs: indivs, sol_groups: sol_groups}) do
-  def print_solutions(sols) do
+  def print_solutions(sols, max_group_size) do
     sols
     |> Enum.sort_by(&elem(&1, 3), &>=/2)
-    |> throttle_and_print(Agent.get(__MODULE__, & &1), @header)
+    |> throttle_and_print(max_group_size, Agent.get(__MODULE__, & &1), @header)
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
   
-  def throttle_and_print([], _format_state, final_results), do: IO.puts final_results
+  def throttle_and_print([], _max_group_size, _format_state, final_results), do: IO.puts final_results
 
-  def throttle_and_print(sols, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
+  def throttle_and_print(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
+    print_group_size =
+      total_content_cols
+      |> div(min_content_cols * max_group_size)
+
     {next_sols, rem_sols} =
       sols
-      |> Enum.split(div(total_content_cols, min_content_cols))
+      |> Enum.split(print_group_size)
 
     {sol_info, indiv_counts, total, leftover_cols} =
       next_sols
-      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds, num_unjumbleds, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
+      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds, group_size, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
 
-        {[{letter_bank, unjumbleds, num_unjumbleds, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
+        {[{letter_bank, unjumbleds, group_size, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
       end)
 
     next_results =
@@ -60,8 +64,15 @@ defmodule Jumble.BruteSolver.Printer do
       |> allocate_dims(total, leftover_cols, min_content_cols, col_width)
       |> print_sol_group(sol_info, lengths_tup, pads_tup)
 
+    next_max_group_size =
+      rem_sols
+      |> Enum.reduce(0, fn({_letter_bank, _unjumbleds, group_size, _num_uniqs, _results}, next_max_group_size)->
+        group_size
+        |> max(next_max_group_size)
+      end)
+
     rem_sols
-    |> throttle_and_print(format_state, acc_results <> next_results)
+    |> throttle_and_print(next_max_group_size, format_state, acc_results <> next_results)
   end
 
   defp print_sol_group(allocated_dims, sol_info, lengths_tup, pads_tup) do
@@ -201,19 +212,19 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  def retreive_info({letter_bank, [head_unjumbled | tail_unjumbleds], num_unjumbleds, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
+  def retreive_info({letter_bank, [head_unjumbled | tail_unjumbleds], group_size, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
     letter_bank_string =
       colspan
       |> - letter_bank_length
       |> split_pad_rem_cap(letter_bank)
       
-    header_cols = num_unjumbleds * (unjumbleds_length + 3) - 2
+    header_cols = group_size * (unjumbleds_length + 3) - 2
 
     total_header_pad_cols = colspan - header_cols
 
     {cols_per_unjumbled, next_cols_per_unjumbled} =
       total_header_pad_cols
-      |> split_pad_len_rem(num_unjumbleds)
+      |> split_pad_len_rem(group_size)
 
     head_seg =
       cols_per_unjumbled

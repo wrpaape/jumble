@@ -11,9 +11,10 @@ defmodule Jumble.BruteSolver do
   @report_indent "\n" <> Helper.pad(4)
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
-  # @counts_key_path ~w(sol_info brute counts)a
-  @total_key_path  ~w(sol_info brute counts total)a
-  @sols_key_path   ~w(sol_info brute sols)a
+  @sols_key_path            ~w(sol_info brute sols)a
+  @counts_key_path          ~w(sol_info brute counts)a
+  @total_key_path           ~w(sol_info brute counts total)a
+  @max_group_size_key_path  ~w(sol_info brute counts max_group_size)a
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
@@ -88,8 +89,7 @@ defmodule Jumble.BruteSolver do
 
     @sols_key_path
     |> get_in_agent
-    # |> Printer.print_solutions(get_in_agent(@counts_key_path))
-    |> Printer.print_solutions
+    |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
   end
 
   defp report_and_record(time_elapsed, letter_bank, unjumbled_sols, results) do
@@ -104,17 +104,19 @@ defmodule Jumble.BruteSolver do
 
     num_uniqs
     |> report(next_total, time_elapsed)
-    
-    if num_uniqs > 0 do
-      @sols_key_path
-      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, length(unjumbled_sols), num_uniqs, results})
 
-      # @counts_key_path
-      # |> update_in_agent(fn(%{total: _last_total, indivs: indivs, sol_groups: sol_groups})->
-      #   %{total: next_total, indivs: [num_uniqs | indivs], sol_groups: sol_groups + 1}
-      # end)
-      @total_key_path
-      |> update_in_agent(&(&1 + num_uniqs))
+    if num_uniqs > 0 do
+      group_size =
+        unjumbled_sols
+        |> length
+
+      @sols_key_path
+      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, group_size, num_uniqs, results})
+
+      @counts_key_path
+      |> update_in_agent(fn(%{total: _last_total, max_group_size: max_group_size})->
+        %{total: next_total, max_group_size: max(max_group_size, group_size)}
+      end)
     end
   end
 
