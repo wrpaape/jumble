@@ -1,7 +1,7 @@
 defmodule Jumble.Helper.Stats do
   alias Jumble.Helper
 
-  @factorial_cache 1..45
+  @factorial_cache 1..50
     |> Enum.scan(&(&1 * &2))
     |> Helper.with_index(1, :leading)
     |> Enum.into(Map.new)

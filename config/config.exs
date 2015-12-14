@@ -17,7 +17,7 @@ length_dict_dir =
   |> PathHelper.rel_lib_path
 
 scowl_dir =
-  ~w(jumble scowl)
+  ~w(jumble scowl_dict)
   |> PathHelper.rel_lib_path
 
 config :jumble,

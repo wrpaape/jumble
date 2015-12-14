@@ -8,12 +8,14 @@ defmodule Jumble.LengthDict.Builder do
   def build_from_file do
     @dict_path
     |> File.read!
+    |> String.split
     |> build
   end
 
-  def build(newline_delim_string) do
-    newline_delim_string
-    |> String.split
+  def build(word_list) do
+    clean
+
+    word_list
     |> Enum.group_by(&String.length/1)
     |> Enum.each(fn({length, words}) ->
       length_string =
