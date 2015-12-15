@@ -26,10 +26,11 @@ scowl_dir =
 
 config :jumble,
   [
-    dict_path:       Path.join(~w(/ usr share dict words)),
-    length_dict_dir: length_dict_dir,
-    scowl_dict_dir:  scowl_dict_dir,
-    scowl_dir:       scowl_dir
+    dict_path:        Path.join(~w(/ usr share dict words)),
+    length_dict_dir:  length_dict_dir,
+    scowl_dict_dir:   scowl_dict_dir,
+    scowl_dir:        scowl_dir,
+    scowl_dict_sizes: ~w(10 20 35 40 50 55 60 70 80 95)
   ]
 
 # This configuration is loaded before any dependency and is restricted

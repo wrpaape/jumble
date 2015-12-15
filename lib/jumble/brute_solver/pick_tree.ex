@@ -126,7 +126,7 @@ defmodule Jumble.BruteSolver.PickTree do
     |> Enum.reduce_while({sol_lengths, []}, fn(string_id, {[string_length | rem_string_lengths], acc_valids}) ->
       valid_words = 
         string_length
-        |> ScowlDict.get(string_id)
+        |> ScowlDict.limited_get(string_id)
 
       if valid_words do
         {:cont, {rem_string_lengths, [valid_words | acc_valids]}}
