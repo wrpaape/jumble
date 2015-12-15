@@ -3,18 +3,18 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Helper.Stats
   alias Jumble.Helper
   alias Jumble.BruteSolver.PickTree
+  alias Jumble.BruteSolver.Solver
   alias Jumble.BruteSolver.Printer
   alias Jumble.Countdown
   alias Jumble.ScowlDict
-  
-  @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
 
-  @prompt_spacer ANSI.blue  <> "solving for:\n\n "
   @sol_spacer    ANSI.white <> " or\n "
   @report_indent "\n" <> Helper.pad(4)
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
-  @continue_prompt  ANSI.black_background <> ANSI.white <> "\n\n  continue? (y/n)\n  " <> ANSI.blink_slow <> "> " <> ANSI.blink_off
+  @continue_prompt "\n\n  continue? (y/n)\n  "
+    |> Helper.cap(ANSI.white, ANSI.blink_slow)
+    |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
   @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
   @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
@@ -23,11 +23,24 @@ defmodule Jumble.BruteSolver do
   @total_key_path            ~w(sol_info brute counts total)a
   @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
   @rem_continues_key_path    ~w(sol_info rem_continues)a
+  
+  @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
   @show_num_results 10
-  @timer_opts [
-    task: {PickTree, :pick_valid_sols},
-    timeout: 1000,
-    ticker_int: 17
+  @process_timer_opts [
+    [
+      prompt: ANSI.blue <> "picking for:\n\n "
+      task: {PickTree, :pick_valid_ids},
+      timeout: 1000,
+      ticker_int: 17
+    ],
+    [
+      timer_opts: [
+        prompt: ANSI.blue <> "solving for:\n\n "
+        task: {Solver, :solve},
+        timeout: 1000,
+        ticker_int: 17
+      ]
+    ]
   ]
 
 ##################################### external API #####################################
@@ -87,7 +100,7 @@ defmodule Jumble.BruteSolver do
       |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
         timer_opts
         |> Countdown.time_async
-        |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_results)
+        |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_ids)
       end)
 
       @sols_key_path
@@ -121,23 +134,25 @@ defmodule Jumble.BruteSolver do
         |> Enum.join(" ")
         |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
 
-      timer_opts =
+      [pick_tree_timer_opts, solver_timer_opts] =
         unjumbled_sols
-        |> Enum.join(@sol_spacer)
-        |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
-        |> update_timer_opts(letter_bank)
-        
+        |> build_timer_opts(letter_bank_string ,letter_bank)
+
+      pick_tree_timer_opts
+      |> Countdown.time_async
+      |> report_and_record_picks(PickTree.dump_ids)
+
       group_size =
         unjumbled_sols
         |> length
 
-      {letter_bank_string, timer_opts, {unjumbled_sols, group_size}}
+      {letter_bank_string, solver_timer_opts, {unjumbled_sols, group_size}}
     end)
   end
 
-  defp report_and_record(time_elapsed, letter_bank, unjumbleds_tup = {_unjumbled_sols, group_size}, results) do
+  defp report_and_record_picks(time_elapsed, letter_bank, unjumbleds_tup = {_unjumbled_sols, group_size}, picks) do
     num_uniqs =
-      results
+      picks
       |> Set.size
 
     next_total =
@@ -150,7 +165,7 @@ defmodule Jumble.BruteSolver do
 
     if num_uniqs > 0 do
       @sols_key_path
-      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbleds_tup, num_uniqs, results})
+      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbleds_tup, num_uniqs, picks})
 
       @counts_key_path
       |> update_in_agent(fn(%{total: _last_total, max_group_size: max_group_size})->
@@ -213,10 +228,24 @@ defmodule Jumble.BruteSolver do
     |> Agent.get_and_update(Kernel, :get_and_update_in, [@rem_continues_key_path, &{&1, &1 - 1}])
   end
 
-  defp update_timer_opts(prompt, letter_bank) do
-    @timer_opts
-    |> Keyword.put(:prompt, prompt)
-    |> Keyword.update!(:task, &Tuple.append(&1, [letter_bank]))
+  defp build_timer_opts(unjumbled_sols, letter_bank_string, letter_bank) do
+    complete_prompt = fn(inc_prompt)->
+      unjumbled_sols
+      |> Enum.join(@sol_spacer)
+      |> Helper.cap(inc_prompt, "\n  " <> letter_bank_string)
+    end
+
+    complete_task = fn(inc_task)->
+      inc_task
+      |> Tuple.append([letter_bank])
+    end
+
+    @process_timer_opts
+    |> Enum.map(fn(inc_timer_opts)->
+      inc_timer_opts
+      |> Keyword.update!(:prompt, complete_prompt)
+      |> Keyword.update!(:task, complete_task)
+    end)
   end
 end
 

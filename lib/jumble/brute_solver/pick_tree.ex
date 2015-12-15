@@ -4,9 +4,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.BruteSolver.PickTree.Branch
   alias Jumble.BruteSolver.PickTree.Picker
   alias Jumble.Countdown
-  alias Jumble.ScowlDict
   alias Jumble.Helper
-  alias Jumble.Helper.Stats
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -18,31 +16,29 @@ defmodule Jumble.BruteSolver.PickTree do
     args
   end
 
-  def pick_valid_sols(letter_bank), do: GenServer.cast(__MODULE__, {:pick_valid_sols, letter_bank})
+  def pick_valid_ids(letter_bank), do: GenServer.cast(__MODULE__, {:pick_valid_ids, letter_bank})
 
-  def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
+  def put_ids(string_ids),         do: GenServer.cast(__MODULE__, {:put_ids, string_ids})
 
-  def put_ids(string_ids),          do: GenServer.cast(__MODULE__, {:put_ids, string_ids})
+  def dump_ids,                    do: GenServer.call(__MODULE__, :dump_ids)
 
-  def dump_results,                 do: GenServer.call(__MODULE__, :dump_results)
-
-  def state,                        do: GenServer.call(__MODULE__, :state)
+  def state,                       do: GenServer.call(__MODULE__, :state)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
   def init(sol_info), do: {:ok, {HashSet.new, sol_info}}
 
-  def handle_cast({:put_ids, string_ids}, {acc_final_results, words_cache}) do
+  def handle_cast({:put_ids, string_ids}, {acc_final_results, sol_info}) do
     Countdown.reset_countdown
 
     acc_final_results
     |> Set.put(string_ids)
-    |> Helper.wrap_append(words_cache)
+    |> Helper.wrap_append(sol_info)
     |> Helper.wrap_prepend(:noreply)
   end
 
-  def handle_cast({:pick_valid_sols, letter_bank}, initial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
+  def handle_cast({:pick_valid_ids, letter_bank}, initial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
     pick_orders
     |> Enum.each(fn([first_id_tup = {_first_id_index, first_id_length} | rem_id_tups]) ->
       branch_pid =
@@ -56,94 +52,11 @@ defmodule Jumble.BruteSolver.PickTree do
     {:noreply, initial_state}
   end
 
-  def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
-    Countdown.reset_countdown
-
-    last_words_cache
-    |> pre_process(string_ids)
-    |> case do
-      :already_processed ->
-        last_state
-
-      {:includes_invalid_id, words_cache} ->
-        {acc_final_results, words_cache}
-
-      {:proceed, words_cache} ->
-        words_cache
-        |> extract_valid_words(string_ids)
-        |> case do
-          {:found_invalid_id, invalid_id} ->
-            words_cache
-            |> Map.update!(:invalid_ids, &Set.put(&1, invalid_id))
-            |> Helper.wrap_prepend(acc_final_results)
-
-          {[], all_valid_words} ->
-            all_valid_words
-            |> Stats.combinations
-            |> Enum.concat(acc_final_results)
-            |> Helper.wrap_append(words_cache)
-        end
-    end
-    |> Helper.wrap_prepend(:noreply)
-  end
-
-
-  def handle_call(:dump_results, _from, {final_results, words_cache}) do
-    {:reply, final_results, {[], words_cache}}
+  def handle_call(:dump_ids, _from, {final_results, sol_info}) do
+    {:reply, final_results, {HashSet.new, sol_info}}
   end
 
   def handle_call(:state, _from, state) do
     {:reply, state, state}
-  end
-
-####################################### helpers ########################################
-# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
-  defp not_processed?(processed_raw, string_ids) do
-    processed_raw
-    |> Set.member?(string_ids)
-  end
-
-  defp any_invalid?(invalid_ids, string_ids) do
-    string_ids
-    |> Enum.any?(fn(string_id) ->
-      invalid_ids
-      |> Set.member?(string_id)
-    end)
-  end
-
-  defp pre_process(last_words_cache = %{processed_raw: processed_raw, invalid_ids: invalid_ids}, string_ids) do
-    processed_raw
-    |> not_processed?(string_ids)
-    |> if do
-      :already_processed
-    else
-      words_cache =
-        last_words_cache
-        |> Map.update!(:processed_raw, &Set.put(&1, string_ids))
-
-      invalid_ids
-      |> any_invalid?(string_ids)
-      |> if do
-       :includes_invalid_id
-      else
-        :proceed
-      end |> Helper.wrap_append(words_cache)
-    end
-  end
-
-  defp extract_valid_words(%{sol_lengths: sol_lengths}, string_ids) do
-    string_ids
-    |> Enum.reduce_while({sol_lengths, []}, fn(string_id, {[string_length | rem_string_lengths], acc_valids}) ->
-      valid_words = 
-        string_length
-        |> ScowlDict.limited_get(string_id)
-
-      if valid_words do
-        {:cont, {rem_string_lengths, [valid_words | acc_valids]}}
-      else
-        {:halt, {:found_invalid_id, string_id}}
-      end
-    end)
   end
 end
