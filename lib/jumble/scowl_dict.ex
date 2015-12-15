@@ -16,6 +16,25 @@ defmodule Jumble.ScowlDict do
     |> get_in_dict(string_id)
   end
 
+  def update_limit do
+    __MODULE__
+    |> Agent.update(fn(scowl_dict)->
+      scowl_dict
+      |> Enum.reduce(Map.new, fn({length, sizes_map}, next_scowl_dict)->
+        {next_size_limit, trans_sizes_map} =
+          sizes_map
+          |> Map.get_and_update(:rem_limits, &Enum.split(&1, 1))
+
+        next_sizes_map =
+          trans_sizes_map
+          |> Map.put(:size_limit, next_size_limit)
+
+        next_scowl_dict
+        |> Map.put(length, next_sizes_map)
+      end)
+    end)
+  end
+
   def start_link(args = %{sol_info: %{uniq_lengths: uniq_sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
     lengths_domain =
       uniq_sol_lengths

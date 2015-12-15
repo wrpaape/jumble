@@ -41,7 +41,7 @@ defmodule Jumble.BruteSolver.Printer do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
   
-  def throttle_and_print([], _max_group_size, _format_state, final_results), do: IO.puts final_results
+  def throttle_and_print([], _max_group_size, _format_state, final_results), do: IO.write final_results
 
   def throttle_and_print(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
     print_group_size =

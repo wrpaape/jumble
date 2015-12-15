@@ -5,12 +5,15 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Printer
   alias Jumble.Countdown
+  alias Jumble.ScowlDict
 
   @prompt_spacer ANSI.blue  <> "solving for:\n\n "
   @sol_spacer    ANSI.white <> " or\n "
   @report_indent "\n" <> Helper.pad(4)
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
+  @continue_prompt  ANSI.black_background <> ANSI.white <> "\n\n  continue? (y/n)\n  " <> ANSI.blink_slow <> "> " <> ANSI.blink_off
+
 
   @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
   @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
@@ -52,6 +55,14 @@ defmodule Jumble.BruteSolver do
     |> brute_solve
   end
 
+  def request_continue do
+    @continue_prompt
+    |> IO.gets
+    |> String.match?(~r/y/i)
+    |> if do
+
+    end
+  end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
@@ -74,6 +85,8 @@ defmodule Jumble.BruteSolver do
     @sols_key_path
     |> get_in_agent
     |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
+
+    request_continue
   end
 
   defp retreive_letter_bank_info(jumble_maps) do
@@ -112,28 +125,6 @@ defmodule Jumble.BruteSolver do
       {letter_bank_string, timer_opts, {unjumbled_sols, group_size}}
     end)
   end
-
-  #   |> Enum.each(fn({letter_bank, sols})->
-  #     letter_bank_string =
-  #       letter_bank
-  #       |> Enum.join(" ")
-  #       |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
-
-  #     sols
-  #     |> Enum.join(@sol_spacer)
-  #     |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
-  #     |> IO.puts
-
-  #     letter_bank
-  #     |> update_timer_opts
-  #     |> Countdown.time_async
-  #     |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
-  #   end)
-
-  #   @sols_key_path
-  #   |> get_in_agent
-  #   |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
-  # end
 
   defp report_and_record(time_elapsed, letter_bank, unjumbleds_tup = {_unjumbled_sols, group_size}, results) do
     num_uniqs =
