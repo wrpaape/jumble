@@ -1,7 +1,7 @@
 defmodule Jumble.Unjumbler do
   alias Jumble.Helper
   alias Jumble.BruteSolver
-  alias Jumble.LengthDict
+  alias Jumble.ScowlDict
   alias IO.ANSI
 
   @jumble_spacer       "\n\n" <> ANSI.magenta
@@ -42,7 +42,7 @@ defmodule Jumble.Unjumbler do
 
       unjumbled_rows =
         length
-        |> LengthDict.get(string_id)
+        |> ScowlDict.safe_get(string_id)
         |> Helper.with_index(1)
         |> Enum.map_join(@unjumbled_spacer, fn({unjumbled, index}) ->
           jumble

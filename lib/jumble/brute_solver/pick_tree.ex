@@ -4,7 +4,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.BruteSolver.PickTree.Branch
   alias Jumble.BruteSolver.PickTree.Picker
   alias Jumble.Countdown
-  alias Jumble.LengthDict
+  alias Jumble.ScowlDict
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
@@ -126,7 +126,7 @@ defmodule Jumble.BruteSolver.PickTree do
     |> Enum.reduce_while({sol_lengths, []}, fn(string_id, {[string_length | rem_string_lengths], acc_valids}) ->
       valid_words = 
         string_length
-        |> LengthDict.get(string_id)
+        |> ScowlDict.get(string_id)
 
       if valid_words do
         {:cont, {rem_string_lengths, [valid_words | acc_valids]}}
