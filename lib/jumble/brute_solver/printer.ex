@@ -54,9 +54,9 @@ defmodule Jumble.BruteSolver.Printer do
 
     {sol_info, indiv_counts, total, leftover_cols} =
       next_sols
-      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds, group_size, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
+      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds_tup, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
 
-        {[{letter_bank, unjumbleds, group_size, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
+        {[{letter_bank, unjumbleds_tup, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
       end)
 
     next_results =
@@ -66,7 +66,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     next_max_group_size =
       rem_sols
-      |> Enum.reduce(0, fn({_letter_bank, _unjumbleds, group_size, _num_uniqs, _results}, next_max_group_size)->
+      |> Enum.reduce(0, fn({_letter_bank, {_unjumbleds, group_size}, _num_uniqs, _results}, next_max_group_size)->
         group_size
         |> max(next_max_group_size)
       end)
@@ -212,7 +212,7 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  def retreive_info({letter_bank, [head_unjumbled | tail_unjumbleds], group_size, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
+  def retreive_info({letter_bank, {[head_unjumbled | tail_unjumbleds], group_size}, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
     letter_bank_string =
       colspan
       |> - letter_bank_length

@@ -11,10 +11,13 @@ defmodule Jumble.BruteSolver do
   @report_indent "\n" <> Helper.pad(4)
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
-  @sols_key_path            ~w(sol_info brute sols)a
-  @counts_key_path          ~w(sol_info brute counts)a
-  @total_key_path           ~w(sol_info brute counts total)a
-  @max_group_size_key_path  ~w(sol_info brute counts max_group_size)a
+
+  @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
+  @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
+  @sols_key_path             ~w(sol_info brute sols)a
+  @counts_key_path           ~w(sol_info brute counts)a
+  @total_key_path            ~w(sol_info brute counts total)a
+  @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
@@ -43,17 +46,37 @@ defmodule Jumble.BruteSolver do
   end
 
   def process do
-    __MODULE__
-    |> Agent.get(fn(%{jumble_info: %{jumble_maps: jumble_maps}})->
-      jumble_maps
-    end)
+    @jumble_maps_key_path
+    |> get_in_agent
+    |> retreive_letter_bank_info
     |> brute_solve
   end
 
+
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+  defp brute_solve(letter_bank_info) do
+    @letter_bank_info_key_path
+    |> put_in_agent(letter_bank_info)
 
-  defp brute_solve(jumble_maps) do
+    solve_next
+  end
+
+  defp solve_next do
+    @letter_bank_info_key_path
+    |> get_in_agent
+    |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
+      timer_opts
+      |> Countdown.time_async
+      |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_results)
+    end)
+
+    @sols_key_path
+    |> get_in_agent
+    |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
+  end
+
+  defp retreive_letter_bank_info(jumble_maps) do
     jumble_maps
     |> Enum.sort_by(&(elem(&1, 1).jumble_index), &>=/2)
     |> Enum.map(fn({_jumble, %{unjumbleds: unjumbleds}}) ->
@@ -70,29 +93,49 @@ defmodule Jumble.BruteSolver do
       sols_by_letterbank
       |> Map.update(Enum.sort(letter_bank, &>=/2), [unjumbled_sols], &[unjumbled_sols | &1])
     end)
-    |> Enum.each(fn({letter_bank, sols})->
+    |> Enum.map(fn({letter_bank, unjumbled_sols})->
       letter_bank_string =
         letter_bank
         |> Enum.join(" ")
         |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
 
-      sols
-      |> Enum.join(@sol_spacer)
-      |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
-      |> IO.puts
+      timer_opts =
+        unjumbled_sols
+        |> Enum.join(@sol_spacer)
+        |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
+        |> update_timer_opts(letter_bank)
+        
+      group_size =
+        unjumbled_sols
+        |> length
 
-      letter_bank
-      |> update_timer_opts
-      |> Countdown.time_async
-      |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
+      {letter_bank_string, timer_opts, {unjumbled_sols, group_size}}
     end)
-
-    @sols_key_path
-    |> get_in_agent
-    |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
   end
 
-  defp report_and_record(time_elapsed, letter_bank, unjumbled_sols, results) do
+  #   |> Enum.each(fn({letter_bank, sols})->
+  #     letter_bank_string =
+  #       letter_bank
+  #       |> Enum.join(" ")
+  #       |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
+
+  #     sols
+  #     |> Enum.join(@sol_spacer)
+  #     |> Helper.cap(@prompt_spacer, "\n  " <> letter_bank_string)
+  #     |> IO.puts
+
+  #     letter_bank
+  #     |> update_timer_opts
+  #     |> Countdown.time_async
+  #     |> report_and_record(letter_bank_string, sols, PickTree.dump_results)
+  #   end)
+
+  #   @sols_key_path
+  #   |> get_in_agent
+  #   |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
+  # end
+
+  defp report_and_record(time_elapsed, letter_bank, unjumbleds_tup = {_unjumbled_sols, group_size}, results) do
     num_uniqs =
       results
       |> length
@@ -106,12 +149,8 @@ defmodule Jumble.BruteSolver do
     |> report(next_total, time_elapsed)
 
     if num_uniqs > 0 do
-      group_size =
-        unjumbled_sols
-        |> length
-
       @sols_key_path
-      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbled_sols, group_size, num_uniqs, results})
+      |> push_in_agent({ANSI.magenta <> letter_bank, unjumbleds_tup, num_uniqs, results})
 
       @counts_key_path
       |> update_in_agent(fn(%{total: _last_total, max_group_size: max_group_size})->
@@ -158,14 +197,20 @@ defmodule Jumble.BruteSolver do
     |> Agent.get(Kernel, :get_in, [key_path])
   end
 
+  defp put_in_agent(key_path, value) do
+    __MODULE__
+    |> Agent.update(Kernel, :put_in, [key_path, value])
+  end
+
   defp update_in_agent(key_path, fun) do
     __MODULE__
     |> Agent.cast(Kernel, :update_in, [key_path, fun])
   end
 
-  defp update_timer_opts(word_bank) do
+  defp update_timer_opts(prompt, letter_bank) do
     @timer_opts
-    |> Keyword.update!(:task, &Tuple.append(&1, [word_bank]))
+    |> Keyword.put(:prompt, prompt)
+    |> Keyword.update!(:task, &Tuple.append(&1, [letter_bank]))
   end
 end
 

@@ -4,9 +4,10 @@ defmodule Jumble.Countdown do
 
   @timeout 10000
   @def_opts [
+    prompt: "no prompt given!",
     ticker_int: 100,
     timeout: 1000,
-    task: {IO, :puts, ["no task given!"]},
+    task: {IO, :puts, ["no task given!"]}
   ]
 
 ##################################### external API #####################################
@@ -15,9 +16,12 @@ defmodule Jumble.Countdown do
   def reset_countdown, do: Agent.cast(:countdown, &reset_countdown/1)
 
   def time_async(opts) do
-    [ticker_int, timeout, {module, fun, args}] =
+    [prompt, ticker_int, timeout, {module, fun, args}] =
       opts
-      |> fetch_args 
+      |> fetch_args
+
+    prompt
+    |> IO.puts
 
     ticker =
       __MODULE__
