@@ -8,12 +8,14 @@ defmodule Jumble.ScowlDict.Builder do
   @mk_list_opts ~w(-v3 english american british canadian 50)
   @reg_filter   ~r/^.*[^a-z\n].*\n/m
   @indent       Helper.pad(4)
-  @filenames    Enum.map(~w(95 80 70 60 55 50 40 35 20 10), &("english-words." <> &1))
-  @size_dirs    ~w(small medium large)
-  @dict_sizes   @dict_dirs
-    |> Enum.reduce({Map.new, [1, 2, length(@filenames)]}, fn(dir, {size_map, [next_take_count | rem_take_counts]})->
+  # @filenames    Enum.map(~w(95 80 70 60 55 50 40 35 20 10), &("english-words." <> &1))
+  @filenames    Enum.map(~w(10 20 35 40 50 55 60 70 80 95), &("english-words." <> &1))
+  # @dict_sizes   [
+
+  @size_specs   [{"small", [10 20 35]}, "medium" large)
+    |> Enum.reduce({Map.new, [{3, 1, 2, length(@filenames)]}, fn(size, {size_map, [next_take_count | rem_take_counts]})->
       size_map
-      |> Map.put(Path.join(@dir, size_dir), {String.capitalize(size_dir), next_take_count})
+      |> Map.put(Path.join(@dir, size), {String.capitalize(size), next_take_count})
       |> Helper.wrap_append(rem_take_counts)
     end)
     |> elem(0)
@@ -32,6 +34,8 @@ defmodule Jumble.ScowlDict.Builder do
 
 
   def build do
+    clean
+
     @filenames
     |> Enum.reduce(Map.new, fn(filename, lengths_map)->
       @final_dir
@@ -61,37 +65,52 @@ defmodule Jumble.ScowlDict.Builder do
     |> Enum.each(&build_file/1)
   end
 
-  def build_file({length_string, string_ids_map})do
-    @dict_sizes
-    |> Enum.each(fn({dir, {size_module, take_count}})->
+  def build_dict_map(string_ids_map, take_count) do
+    string_ids_map
+    |> Enum.reduce(Map.new, fn({string_id, words_list}, next_map)->
+      next_words =
+        words_list
+        |> Enum.take(take_count)
+        |> List.flatten
 
-
+      next_map
+      |> Map.put(string_id, next_words)
     end)
-    printed_map =
-      string_ids_map
-      |> inspect(pretty: :true, limit: :infinity)
-      |> String.replace(~r/(?<=\n)/, @indent)
+  end
 
-    contents =
-      """
-      defmodule Jumble.ScowlDict.#{dict_size}.Length#{length_string} do
-        def get(string_id) do
-          #{printed_map}
-          |> Map.get(string_id)
+  def build_file({length_string, string_ids_map})do
+    @size_specs
+    |> Enum.each(fn({size_dir, {size_module, take_count}})->
+      printed_map =
+        string_ids_map
+        |> build_dict_map(take_count)
+        |> inspect(pretty: :true, limit: :infinity)
+        |> String.replace(~r/(?<=\n)/, @indent)
+
+      contents =
+        """
+        defmodule Jumble.ScowlDict.#{size_module}.Length#{length_string} do
+          def get(string_id) do
+            #{printed_map}
+            |> Map.get(string_id)
+          end
         end
-      end
-      """
+        """
 
-    length_string
-    |> Helper.cap("length_", ".ex")
-    |> Path.expand(@dir)
-    |> File.write(contents)
+      length_string
+      |> Helper.cap("length_", ".ex")
+      |> Path.expand(size_dir)
+      |> File.write(contents)
+    end)
   end
 
   def clean do
-    @
-    Path.join(@dir, "length_*.ex")
-    |> Path.wildcard
-    |> Enum.each(&File.rm_rf/1)
+    @size_specs
+    |> Enum.each(fn({dir, _})->
+      dir
+      |> Path.join("**")
+      |> Path.wildcard
+      |> File.rm_rf
+    end)
   end
 end
