@@ -14,7 +14,6 @@ defmodule Jumble.BruteSolver do
   @letter_bank_rcap ANSI.magenta <> " }"
   @continue_prompt  ANSI.black_background <> ANSI.white <> "\n\n  continue? (y/n)\n  " <> ANSI.blink_slow <> "> " <> ANSI.blink_off
 
-
   @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
   @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
   @sols_key_path             ~w(sol_info brute sols)a
@@ -60,7 +59,9 @@ defmodule Jumble.BruteSolver do
     |> IO.gets
     |> String.match?(~r/y/i)
     |> if do
+      ScowlDict.update_limit
 
+      solve_next
     end
   end
 
