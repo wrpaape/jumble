@@ -59,7 +59,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           [{last_id_index, last_finished_id} | last_acc_finished_ids]
           |> Enum.sort
           |> Keyword.values
-          |> PickTree.push_ids
+          |> PickTree.put_ids
         end
 
         branch_pid

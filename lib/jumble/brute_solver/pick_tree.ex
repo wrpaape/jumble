@@ -31,12 +31,14 @@ defmodule Jumble.BruteSolver.PickTree do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def init(sol_info), do: {:ok, {[], sol_info}}
+  def init(sol_info), do: {:ok, {HashSet.new, sol_info}}
 
-  def handle_cast({:push_ids, string_ids}, {acc_final_results, words_cache}) do
+  def handle_cast({:put_ids, string_ids}, {acc_final_results, words_cache}) do
     Countdown.reset_countdown
 
-    {[string_ids | acc_final_results], words_cache}
+    acc_final_results
+    |> Set.put(string_ids)
+    |> Helper.wrap_append(words_cache)
     |> Helper.wrap_prepend(:noreply)
   end
 
