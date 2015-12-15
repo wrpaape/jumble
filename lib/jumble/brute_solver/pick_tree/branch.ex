@@ -30,10 +30,9 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
         finished_id =
           finished_letters
           |> Enum.join
-          |> IO.inspect
 
 
-        if ScowlDict.valid_id?(id_length, finished_id) do
+        if ScowlDict.safe_valid_id?(id_length, finished_id) do
           acc_fininished_ids =
             [{id_index, finished_id} | last_acc_finished_ids]
 
@@ -55,7 +54,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           finished_letters
           |> Enum.join
 
-        if ScowlDict.valid_id?(last_id_length, last_finished_id) do
+        if ScowlDict.safe_valid_id?(last_id_length, last_finished_id) do
           [{last_id_index, last_finished_id} | last_acc_finished_ids]
           |> Enum.sort
           |> Keyword.values

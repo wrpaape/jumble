@@ -138,7 +138,7 @@ defmodule Jumble.BruteSolver do
   defp report_and_record(time_elapsed, letter_bank, unjumbleds_tup = {_unjumbled_sols, group_size}, results) do
     num_uniqs =
       results
-      |> length
+      |> Set.size
 
     next_total =
       @total_key_path

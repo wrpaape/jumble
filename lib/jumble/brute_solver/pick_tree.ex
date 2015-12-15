@@ -22,7 +22,7 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
-  def push_ids(string_ids),         do: GenServer.cast(__MODULE__, {:push_ids, string_ids})
+  def put_ids(string_ids),          do: GenServer.cast(__MODULE__, {:put_ids, string_ids})
 
   def dump_results,                 do: GenServer.call(__MODULE__, :dump_results)
 
