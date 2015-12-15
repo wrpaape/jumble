@@ -22,7 +22,7 @@ defmodule Jumble.LengthDict.Builder do
         length
         |> Integer.to_string
 
-      string_id_map = 
+      string_ids_map = 
         words
         |> Enum.group_by(&Helper.string_id/1)
         |> inspect(pretty: :true, limit: :infinity)
@@ -32,7 +32,7 @@ defmodule Jumble.LengthDict.Builder do
         """
         defmodule Jumble.LengthDict.Length#{length} do
           def get(string_id) do
-            #{string_id_map}
+            #{string_ids_map}
             |> Map.get(string_id)
           end
         end

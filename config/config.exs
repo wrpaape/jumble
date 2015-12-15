@@ -16,14 +16,19 @@ length_dict_dir =
   ~w(jumble length_dict)
   |> PathHelper.rel_lib_path
 
-scowl_dir =
+scowl_dict_dir =
   ~w(jumble scowl_dict)
+  |> PathHelper.rel_lib_path
+
+scowl_dir =
+  ~w(jumble scowl)
   |> PathHelper.rel_lib_path
 
 config :jumble,
   [
     dict_path:       Path.join(~w(/ usr share dict words)),
     length_dict_dir: length_dict_dir,
+    scowl_dict_dir:  scowl_dict_dir,
     scowl_dir:       scowl_dir
   ]
 
