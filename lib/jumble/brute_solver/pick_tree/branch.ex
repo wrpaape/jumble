@@ -1,7 +1,8 @@
 defmodule Jumble.BruteSolver.PickTree.Branch do
-  @branch_process_timeout 0
+  @branch_process_timeout 1000
 
   alias Jumble.BruteSolver.PickTree
+  alias Jumble.ScowlDict
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -15,33 +16,54 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
     branch_pid
   end
 
+  def stop_branch(branch_pid) do
+    @branch_process_timeout
+    |> :timer.apply_after(Agent, :stop, [branch_pid])
+
+    :done
+  end
+
   def next_branch_state(branch_pid, finished_letters) do
     branch_pid
     |> Agent.get(fn
-      ({last_rem_letters, word_index, [{next_word_index, next_word_length} | rem_word_lengths], last_acc_finished_words}) ->
-        acc_fininished_words =
-          [{word_index, Enum.join(finished_letters)} | last_acc_finished_words]
-
-        rem_letters =
-          last_rem_letters -- finished_letters
-
-        next_branch_pid =
-          {rem_letters, next_word_index, rem_word_lengths, acc_fininished_words}
-          |> new_branch
-
-        {rem_letters, next_word_length, next_branch_pid}
+      ({last_rem_letters, {id_index, id_length}, [next_id_tup = {_next_id_index, next_id_length} | rem_id_tups], last_acc_finished_ids}) ->
+        finished_id =
+          finished_letters
+          |> Enum.join
+          |> IO.inspect
 
 
-      ({_done, last_word_index, [], last_acc_finished_words}) ->
-          [{last_word_index, Enum.join(finished_letters)} | last_acc_finished_words]
+        if ScowlDict.valid_id?(id_length, finished_id) do
+          acc_fininished_ids =
+            [{id_index, finished_id} | last_acc_finished_ids]
+
+          rem_letters =
+            last_rem_letters -- finished_letters
+
+          next_branch_pid =
+            {rem_letters, next_id_tup, rem_id_tups, acc_fininished_ids}
+            |> new_branch
+
+          {rem_letters, next_id_length, next_branch_pid}
+        else
+          branch_pid
+          |> stop_branch
+        end
+
+      ({_done, {last_id_index, last_id_length}, [], last_acc_finished_ids}) ->
+        last_finished_id =
+          finished_letters
+          |> Enum.join
+
+        if ScowlDict.valid_id?(last_id_length, last_finished_id) do
+          [{last_id_index, last_finished_id} | last_acc_finished_ids]
           |> Enum.sort
           |> Keyword.values
-          |> PickTree.process_raw
+          |> PickTree.push_ids
+        end
 
-          @branch_process_timeout
-          |> :timer.apply_after(Agent, :stop, [branch_pid])
-
-        :done
+        branch_pid
+        |> stop_branch
     end)
   end
 

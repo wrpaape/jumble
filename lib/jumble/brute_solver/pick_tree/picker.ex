@@ -1,19 +1,21 @@
 defmodule Jumble.BruteSolver.PickTree.Picker do
+  @picker_process_timeout 100
+
   alias Jumble.BruteSolver.PickTree.Branch
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def start_next_word({rem_letters, word_length, branch_pid}) do
+  def start_next_id({rem_letters, id_length, branch_pid}) do
     {initial_valid_picks, initial_downstream_picks} =
       rem_letters
-      |> Enum.split(1 - word_length)
+      |> Enum.split(1 - id_length)
 
     {initial_valid_picks, initial_downstream_picks, []}
     |> pick_letters(branch_pid)
   end
 
-  def start_next_word(:done), do: :nothing
+  def start_next_id(:done), do: :timer.exit_after(@picker_process_timeout, :normal)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
@@ -23,7 +25,7 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
     |> Enum.each(fn(last_pick) ->
       branch_pid
       |> Branch.next_branch_state([last_pick | acc_letters])
-      |> start_next_word
+      |> start_next_id
     end)
   end
 

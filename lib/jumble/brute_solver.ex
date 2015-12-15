@@ -6,6 +6,8 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.Printer
   alias Jumble.Countdown
   alias Jumble.ScowlDict
+  
+  @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
 
   @prompt_spacer ANSI.blue  <> "solving for:\n\n "
   @sol_spacer    ANSI.white <> " or\n "
@@ -20,10 +22,11 @@ defmodule Jumble.BruteSolver do
   @counts_key_path           ~w(sol_info brute counts)a
   @total_key_path            ~w(sol_info brute counts total)a
   @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
+  @rem_continues_key_path    ~w(sol_info rem_continues)a
   @show_num_results 10
   @timer_opts [
     task: {PickTree, :pick_valid_sols},
-    timeout: 50,
+    timeout: 1000,
     ticker_int: 17
   ]
 
@@ -38,6 +41,9 @@ defmodule Jumble.BruteSolver do
 
     Kernel
     |> Agent.start_link(:update_in, [args, [:jumble_info, :jumble_maps], into_map], name: __MODULE__)
+
+    @rem_continues_key_path
+    |> put_in_agent(@num_scowl_dicts - 1)
 
     args
   end
@@ -75,19 +81,21 @@ defmodule Jumble.BruteSolver do
   end
 
   defp solve_next do
-    @letter_bank_info_key_path
-    |> get_in_agent
-    |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
-      timer_opts
-      |> Countdown.time_async
-      |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_results)
-    end)
+    if decrement_continues > 0 do
+      @letter_bank_info_key_path
+      |> get_in_agent
+      |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
+        timer_opts
+        |> Countdown.time_async
+        |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_results)
+      end)
 
-    @sols_key_path
-    |> get_in_agent
-    |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
+      @sols_key_path
+      |> get_in_agent
+      |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
 
-    request_continue
+      request_continue
+    end
   end
 
   defp retreive_letter_bank_info(jumble_maps) do
@@ -189,6 +197,7 @@ defmodule Jumble.BruteSolver do
     |> Agent.get(Kernel, :get_in, [key_path])
   end
 
+
   defp put_in_agent(key_path, value) do
     __MODULE__
     |> Agent.update(Kernel, :put_in, [key_path, value])
@@ -197,6 +206,11 @@ defmodule Jumble.BruteSolver do
   defp update_in_agent(key_path, fun) do
     __MODULE__
     |> Agent.cast(Kernel, :update_in, [key_path, fun])
+  end
+
+  defp decrement_continues do
+    __MODULE__
+    |> Agent.get_and_update(Kernel, :get_and_update_in, [@rem_continues_key_path, &{&1, &1 - 1}])
   end
 
   defp update_timer_opts(prompt, letter_bank) do

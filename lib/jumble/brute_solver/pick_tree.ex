@@ -18,28 +18,37 @@ defmodule Jumble.BruteSolver.PickTree do
     args
   end
 
-  def pick_valid_sols(word_bank), do: GenServer.cast(__MODULE__, {:pick_valid_sols, word_bank})
+  def pick_valid_sols(letter_bank), do: GenServer.cast(__MODULE__, {:pick_valid_sols, letter_bank})
 
-  def process_raw(string_ids),    do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
+  def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
-  def dump_results,               do: GenServer.call(__MODULE__, :dump_results)
+  def push_ids(string_ids),         do: GenServer.cast(__MODULE__, {:push_ids, string_ids})
 
-  def state,                      do: GenServer.call(__MODULE__, :state)
+  def dump_results,                 do: GenServer.call(__MODULE__, :dump_results)
+
+  def state,                        do: GenServer.call(__MODULE__, :state)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
   def init(sol_info), do: {:ok, {[], sol_info}}
 
-  def handle_cast({:pick_valid_sols, word_bank}, initial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
+  def handle_cast({:push_ids, string_ids}, {acc_final_results, words_cache}) do
+    Countdown.reset_countdown
+
+    {[string_ids | acc_final_results], words_cache}
+    |> Helper.wrap_prepend(:noreply)
+  end
+
+  def handle_cast({:pick_valid_sols, letter_bank}, initial_state = {acc_results, sol_info = %{pick_orders: pick_orders}}) do
     pick_orders
-    |> Enum.each(fn([{first_word_index, first_word_length} | rem_word_lengths]) ->
+    |> Enum.each(fn([first_id_tup = {_first_id_index, first_id_length} | rem_id_tups]) ->
       branch_pid =
-        {word_bank, first_word_index, rem_word_lengths, []}
+        {letter_bank, first_id_tup, rem_id_tups, []}
         |> Branch.new_branch
 
       Picker
-      |> spawn(:start_next_word, [{word_bank, first_word_length, branch_pid}])
+      |> spawn(:start_next_id, [{letter_bank, first_id_length, branch_pid}])
     end)
 
     {:noreply, initial_state}

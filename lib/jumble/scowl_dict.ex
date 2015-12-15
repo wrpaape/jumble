@@ -1,45 +1,32 @@
 defmodule Jumble.ScowlDict do
-  @dict_size_modules Application.get_env(:jumble, :scowl_dict_sizes)
-   |> Enum.map(&Module.concat(__MODULE__, "Size" <> &1))
+  @dict_sizes Application.get_env(:jumble, :scowl_dict_sizes)
+
+  alias Jumble.Helper
+   
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def safe_get(length_word, string_id) do
-    [length_word, :all]
+    [length_word, :all_modules]
     |> get_in_agent
     |> Enum.find_value(&get_in_dict(&1, string_id))
   end
 
   def limited_get(length_word, string_id) do
-    [length_word, :size_limit]
+    [length_word, :limit_module]
     |> get_in_agent
     |> get_in_dict(string_id)
   end
 
-  def valid_id(length_word, string_id) do
-    [length_word, :size_limit]
+  def valid_id?(length_word, string_id) do
+    [length_word, :valid_ids]
     |> get_in_agent
-    |> valid_ids
     |> Set.member?(string_id)
   end
 
   def update_limit do
     __MODULE__
-    |> Agent.update(fn(scowl_dict)->
-      scowl_dict
-      |> Enum.reduce(Map.new, fn({length, sizes_map}, next_scowl_dict)->
-        {next_size_limit, trans_sizes_map} =
-          sizes_map
-          |> Map.get_and_update(:rem_limits, &Enum.split(&1, 1))
-
-        next_sizes_map =
-          trans_sizes_map
-          |> Map.put(:size_limit, next_size_limit)
-
-        next_scowl_dict
-        |> Map.put(length, next_sizes_map)
-      end)
-    end)
+    |> Agent.update(__MODULE__, :update_limit, [])
   end
 
   def start_link(args = %{sol_info: %{uniq_lengths: uniq_sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
@@ -56,6 +43,23 @@ defmodule Jumble.ScowlDict do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
+  def update_limit(scowl_dict) do
+    scowl_dict
+    |> Enum.reduce(Map.new, fn({length, sizes_map}, next_scowl_dict)->
+      {[{next_limit_module, next_valid_ids}], trans_sizes_map} =
+        sizes_map
+        |> Map.get_and_update(:rem_limits, &Enum.split(&1, 1))
+
+      next_sizes_map =
+        trans_sizes_map
+        |> Map.put(:limit_module, next_limit_module)
+        |> Map.put(:valid_ids, next_valid_ids)
+
+      next_scowl_dict
+      |> Map.put(length, next_sizes_map)
+    end)
+  end
+
   def build_dicts(lengths) do
     lengths
     |> Enum.reduce(Map.new, fn(length, scowl_dict) ->
@@ -63,15 +67,25 @@ defmodule Jumble.ScowlDict do
         "Length"
         <> Integer.to_string(length)
 
-      all_size_modules =
-        [size_limit | rem_limits] =
-          @dict_size_modules
-          |> Enum.map(&Module.safe_concat(&1, length_module))
+        {all_modules, [{limit_module, valid_ids} | rem_limits]} =
+          @dict_sizes
+          |> List.foldr({[], []}, fn(dict_size, {modules, limits})->
+            module =
+              [__MODULE__, "Size" <> dict_size, length_module]
+              |> Module.safe_concat
+
+            valid_ids =
+              module
+              |> apply(:valid_ids, [])
+
+            {[module | modules], [{module, valid_ids} | limits]}
+          end)
 
       sizes_map =
         Map.new
-        |> Map.put(:all, all_size_modules)
-        |> Map.put(:size_limit, size_limit)
+        |> Map.put(:all_modules, all_modules)
+        |> Map.put(:limit_module, limit_module)
+        |> Map.put(:valid_ids, valid_ids)
         |> Map.put(:rem_limits, rem_limits)
 
       scowl_dict
@@ -87,10 +101,5 @@ defmodule Jumble.ScowlDict do
   def get_in_dict(dict_size_module, string_id) do
     dict_size_module
     |> apply(:get, [string_id])
-  end
-
-  def valid_ids(dict_size_module) do
-    dict_size_module
-    |> apply(:valid_ids, [])
   end
 end
