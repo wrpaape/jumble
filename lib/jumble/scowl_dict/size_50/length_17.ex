@@ -47,4 +47,23 @@ defmodule Jumble.ScowlDict.Size50.Length17 do
       "aciiilnnoosttttuy" => ["constitutionality"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["addegiimnnnrssstu", "abceiiiiilmnopstt", "accdiiinnnoorsttt",
+     "acceeiilmmnnoottu", "aeeeiinnoprrrsttt", "aeeiiimnnoprrsttt",
+     "aaeehiinorsstttuv", "aaccgiiimnnorstuv", "aeefiilmnooprssss",
+     "cceiinnnoopssssuu", "aabiiilnnnnostttu", "aacdeeilnnnrssttt",
+     "aacdfiiiilnoqsstu", "aaaefilnoopprrsss", "aaccdeegilmoorrrt",
+     "aadeeeilmnnprrttt", "aeeeiimnnoprrsstt", "aeehiiilnnoprrstt",
+     "aceelmnnoooprstuy", "aciiimnnnooprsstu", "acdeeeiinnnorssst",
+     "abdeghiiiilnnsstu", "acdeiiiilnnprrsty", "aaceiilnnoorssttv",
+     "aeiiiilllmmnorstu", "cceeiinnnoosssstu", "aaaceiiilllmrstty",
+     "aeeiilmnnnorssttv", "ccdeiinoprsttuuvy", "aeeimnnorrrsstttu",
+     "aadeiilmnnnnnooot", "aaaddegilnosstuvy", "aacdeeilmnnnrsstt",
+     "aceeiillnnnoqstuy", "aaeeeilrrrrsstttx", "bceehiiilmnoprsty",
+     "ceeeehimnnoprsssv", "aadfghilorrrsttwy", "ccdeeinooprrttuuv",
+     "aaceeilnorrsttuvv", "aaiiimnooppprrsst", "aeeeiiilnnopprstt",
+     "aachhiilllnopprty", "ceeilnnooorrttuuv", "aciiilnnoosttttuy"]
+    |> Enum.into(HashSet.new)
+  end
 end

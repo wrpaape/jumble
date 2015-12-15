@@ -55,4 +55,22 @@ defmodule Jumble.ScowlDict.Size20.Length14 do
       "acdgiiiimnnrst" => ["discriminating"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["adeeehhllortwy", "acfgiinnoorstu", "acghiiinopsstt", "accefiiinopsst",
+     "acdeiinnoorsst", "ccdeeennooprrs", "dgghiiiinnsstu", "aaacehiimmnstt",
+     "aabddeelnnrstu", "bceeehilmnoprs", "aacfinorssttuy", "aadeiiimnrsttv",
+     "aeeeeinprrsttv", "cceeeiinnnnosv", "addeimnnrssstu", "aeeiilmmnnoptt",
+     "acdeeimmnnoort", "acefinrrrsttuu", "aafimnnoorrstt", "aeillmnosstuuy",
+     "cceimoooprrrss", "aeeeinnoprrstt", "adeiimnnoppstt", "aeeiinnoprrttt",
+     "aeeeillmnprtxy", "ccdeeeiinnnnov", "adeeeimnrssttv", "aadefilmnnsttu",
+     "aegiiinnossttv", "aciiillmnopttu", "aaccfiiilnosst", "accefiiillnsty",
+     "acceeilllnorty", "acdiiiimnnorst", "aaccdeillmorty", "aacfiilorsstty",
+     "aacfiiilnoqstu", "aceeelmnoprtux", "adeimnnoorsstt", "aaacehillmmtty",
+     "abeehilmnssstt", "aadiiimnnorstt", "beiiilnoprssty", "acciimmnnoostu",
+     "aciilnnoostttu", "aacccehiirrstt", "adeeefimnnoort", "acdefiiiinnott",
+     "deeeeimnprrsst", "aaddeegnrrstuu", "deeeiimnprrstt", "cceimmooprrstu",
+     "acdgiiiimnnrst"]
+    |> Enum.into(HashSet.new)
+  end
 end

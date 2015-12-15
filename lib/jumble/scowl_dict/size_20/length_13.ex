@@ -76,4 +76,45 @@ defmodule Jumble.ScowlDict.Size20.Length13 do
       "acciilmnoopst" => ["complications"], "abcdeeilnprtu" => ["unpredictable"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aaccdimmnooot", "aceeinorsstvv", "aaagiilnorttv", "aehilmoostuxy",
+     "eegiinnnrsttu", "aaiimnoopprtx", "cceiinnnossty", "ccdegiinnnost",
+     "adeeeiimnnrtt", "aadefllmnntuy", "aadeinorrrtxy", "acfgiiiinnnst",
+     "ddeghiiinsstu", "acfgiiilnnsty", "aacceginnnott", "aiimnnorsssst",
+     "cdeennooprrst", "cgiiimmnnooss", "acfiiijnosttu", "accdgiinnortt",
+     "aceilnoorrstv", "accdiinnoortt", "achhiilloopps", "aaccegillorty",
+     "eeegiimnnprtx", "adeeeffiinrtt", "eegiilnnrstty", "aabcillnooort",
+     "deghiiinssstu", "aeilnoorrtuvy", "aaeilmopprtxy", "adeeeimnrsttv",
+     "aegiiinnosttv", "abbceeijlnoot", "acceinnooprtt", "accghiilmnops",
+     "ceeeeffinsstv", "aaccfiiilnort", "adeimnnoorstt", "acceinnnoortt",
+     "abciiilmoptty", "aaeiloppprrty", "cdeginnooprrs", "aaacehiimmntt",
+     "aabghiooprtuy", "aaiillnnosstt", "adeeeimnrsttu", "eeeimnprrssst",
+     "aceelmmnoprty", "aaacillmottuy", "accgiimmnnotu", "aadiillnortty",
+     "accdinoorrtty", "accefiiinopst", "aacefmnrrstuu", "acciimmnnootu",
+     "cdeeeeiinnprx", "aceeiilnrttvy", "aeeiilnoprsst", "aceehillortty",
+     "aabbeiinorstv", "aiillnorssttu", "ddeeeilnnnpty", "aceeegmnnortu",
+     "adeilmnnoprty", "aaefiimnnostt", "acdeggiklnnow", "adgiiinnoppst",
+     "addeimnnrsstu", "ceehimnnooprs", "aceinnoorsstv", "eeeghilmnnntt",
+     "acddeiiimnrst", "aacfgimnnrtuu", "adegimnnorstt", "acceghillnoot",
+     "aciinnnooprtu", "acdeiinnoorst", "aacgiiinpprtt", "beeiilnoprrss",
+     "ceeehimnoprsv", "acdeimnnoottu", "aaddeegnrrtuu", "acehiiopssstt",
+     "aeiillnnnotty", "aefiilnooprrt", "adeeilnnrttvy", "bciinnoorsttu",
+     "aeeeimnnnrttt", "aefilnooprsss", "aabeemmnrrsst", "cghiloopsssty",
+     "acfgiinnoortu", "aaceilmoprtvy", "cdgiiinnnostu", "aaeeillnrttvy",
+     "ddeimnoorsstu", "accghilloopsy", "aelnnoopsstuy", "aeeiinnoqrstu",
+     "acegilmnnoptt", "aeelmnpprstuy", "aaceehillstty", "adeeiimnnortt",
+     "aceeilnnrssuy", "aacilmnoopttu", "adegiiimnnrst", "acceginnnortt",
+     "acefiillprsuy", "ceeiinnorsstt", "acgiinnooprrt", "aaccillnsttyy",
+     "aeggiiinnsttv", "aciinnnoosttu", "abceflmnoortu", "ccinnoorssttu",
+     "eiinnoprrsttu", "eeiimnprrsstt", "aefghhoorrstu", "aaeiilnnnortt",
+     "aceeillnoptxy", "cceeeiinnnnov", "aaaddeginsstv", "acdehiiopsstt",
+     "aehiilnoprsst", "aceeillmnossu", "aaeiinoppprrt", "acdfiiimnoost",
+     "aacfiiilnoqtu", "accdiiinorsty", "aeeilmnnnortv", "beiiiilopssst",
+     "aceinnnoorttv", "aabillnssttuy", "abeehilmnsstt", "acfiilnnottuy",
+     "accceimnrsstu", "aceemnnnnostu", "aeflnnorttuuy", "cceinnoossssu",
+     "acdeiiimnrsst", "aciiillnnrsty", "addeginnnrstu", "eiinoopprsttu",
+     "abbeiiiloprst", "cceimmooprrtu", "acciilmnoopst", "abcdeeilnprtu"]
+    |> Enum.into(HashSet.new)
+  end
 end

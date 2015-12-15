@@ -5,4 +5,9 @@ defmodule Jumble.ScowlDict.Size55.Length20 do
       "aceeilnnooorrrttuuvy" => ["counterrevolutionary"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aaacccehiillnrrsttuy", "aacceeeeghllmnooprrt", "aceeilnnooorrrttuuvy"]
+    |> Enum.into(HashSet.new)
+  end
 end

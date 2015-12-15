@@ -7,4 +7,11 @@ defmodule Jumble.ScowlDict.Size95.Length27 do
       "ccddeeehinooooorrrssttxxyyy" => ["hydroxydesoxycorticosterone"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aaaacdeeeeeeehiilmnnrttttty", "aaaccceeeeghhillllnoopprrty",
+     "aabbcdfhiiiiiiilnnoorstttuu", "accceehiillmmoooopprrrsttty",
+     "ccddeeehinooooorrrssttxxyyy"]
+    |> Enum.into(HashSet.new)
+  end
 end

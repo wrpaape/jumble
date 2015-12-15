@@ -27,4 +27,16 @@ defmodule Jumble.ScowlDict.Size80.Length2 do
       "by" => ["by"], "or" => ["or"], "di" => ["id"], "bs" => ["bs"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["lo", "oy", "sy", "fo", "hu", "bk", "ah", "er", "bi", "gs", "ls", "su", "ss",
+     "ay", "ps", "ap", "tu", "oo", "gu", "ks", "ad", "my", "al", "cs", "ms", "nu",
+     "oz", "es", "jo", "ik", "ab", "ip", "ag", "en", "ux", "ou", "af", "am", "lx",
+     "js", "uy", "bm", "ew", "fm", "eh", "pu", "ds", "aj", "ox", "hs", "rs", "io",
+     "no", "ow", "ln", "ns", "qs", "hi", "as", "ai", "ky", "mo", "im", "lm", "ny",
+     "ey", "ko", "ho", "ix", "mu", "do", "ru", "sz", "at", "ot", "sx", "fy", "op",
+     "os", "go", "em", "an", "in", "de", "fi", "it", "ex", "be", "az", "fs", "st",
+     "sw", "iq", "ak", "is", "ef", "by", "or", "di", "bs"]
+    |> Enum.into(HashSet.new)
+  end
 end

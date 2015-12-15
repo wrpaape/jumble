@@ -113,4 +113,47 @@ defmodule Jumble.ScowlDict.Size40.Length3 do
       "agt" => ["tag"], "epw" => ["pew"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["abo", "hot", "oow", "ctu", "afr", "dgu", "abd", "hip", "bgi", "imx", "ikl",
+     "nru", "gmy", "bde", "lot", "muy", "ehu", "ajy", "aey", "eil", "deu", "bil",
+     "ooz", "hop", "nno", "ggi", "ivy", "aes", "mmo", "fnu", "ewy", "afn", "ott",
+     "cgo", "abl", "aft", "dop", "cox", "chi", "flu", "ops", "epy", "tux", "eit",
+     "ehr", "now", "app", "acm", "ovw", "bfi", "amy", "atx", "ept", "psy", "amt",
+     "aps", "itt", "aly", "bow", "ddo", "akr", "alx", "eny", "dim", "beg", "cno",
+     "ajw", "opp", "eeg", "aot", "est", "aet", "mru", "orw", "dos", "inn", "etw",
+     "aqu", "ill", "dei", "oty", "den", "cit", "aim", "itz", "ilo", "fgo", "emn",
+     "nsu", "ilp", "rty", "coo", "oru", "ipt", "enp", "alw", "bir", "cei", "ent",
+     "mmu", "eey", "add", "pry", "ady", "acp", "ems", "def", "blo", "ary", "mow",
+     "bet", "ads", "ego", "eht", "esu", "ahy", "ast", "abc", "eru", "guy", "efo",
+     "anr", "ipr", "adw", "iwz", "agr", "dir", "aor", "egm", "anv", "dis", "del",
+     "htu", "gju", "aer", "bjo", "ilt", "ffo", "aep", "dry", "ino", "oww", "efr",
+     "bmo", "egg", "bbi", "boy", "act", "dot", "deo", "bhu", "glu", "eno", "eip",
+     "lsy", "eev", "amp", "eow", "bey", "moo", "adt", "bdu", "cop", "ail", "ekn",
+     "psu", "dor", "msy", "ant", "ajr", "ikt", "gjo", "adl", "dmo", "hos", "bor",
+     "bgo", "epp", "ehm", "bcu", "enw", "aht", "ist", "dno", "eho", "ams", "hsy",
+     "anp", "ahs", "osw", "bru", "ehs", "acr", "adh", "etv", "cis", "dip", "ako",
+     "ado", "esy", "imr", "emw", "adf", "aby", "abg", "agw", "bit", "bnu", "hhu",
+     "apy", "abr", "bbe", "ikn", "dlo", "all", "eet", "coy", "giw", "eef", "gru",
+     "efz", "eky", "fix", "gin", "buy", "ipz", "bos", "iks", "hmu", "got", "aeg",
+     "imp", "eor", "ees", "adi", "his", "eir", "dmu", "bbo", "fir", "iln", "agg",
+     "ael", "fly", "goo", "int", "air", "elm", "cru", "lop", "kow", "afo", "not",
+     "any", "gij", "ely", "abj", "ehn", "opr", "fry", "ekl", "aks", "apt", "alp",
+     "dhi", "npu", "art", "asy", "ceu", "ghu", "bew", "ips", "cot", "eot", "egk",
+     "agl", "aab", "hty", "ptu", "rwy", "emt", "agh", "asx", "adn", "joy", "low",
+     "isx", "elt", "abt", "fin", "aew", "hwy", "ddi", "opt", "itw", "hit", "bdi",
+     "agn", "ins", "efw", "irs", "bpu", "agy", "jot", "afg", "rtu", "otu", "awx",
+     "egl", "fis", "acw", "asw", "acd", "aah", "dew", "nnu", "dil", "gho", "ouy",
+     "din", "lpy", "how", "ery", "ags", "hmo", "ikr", "egt", "amr", "inp", "dgo",
+     "nos", "adp", "der", "ehw", "bee", "oot", "fit", "apw", "gir", "gip", "ntu",
+     "abn", "ort", "ddu", "cdo", "amn", "cry", "gmu", "erv", "eew", "cow", "ciy",
+     "arw", "mop", "esx", "eep", "egp", "box", "aov", "agp", "cpu", "bmu", "ago",
+     "adm", "acn", "msu", "dey", "dgi", "esw", "epr", "awy", "btu", "aky", "gpy",
+     "acs", "ety", "gtu", "eel", "eiv", "evx", "ajm", "ksy", "bop", "ahm", "glo",
+     "ejt", "dik", "gnu", "ppu", "bgu", "atv", "nor", "dou", "apr", "fox", "otw",
+     "inw", "fgi", "for", "jtu", "eek", "ass", "bco", "ehy", "fru", "bin", "bsu",
+     "him", "apz", "aiv", "efl", "efn", "err", "ace", "boo", "anw", "afx", "agt",
+     "epw"]
+    |> Enum.into(HashSet.new)
+  end
 end

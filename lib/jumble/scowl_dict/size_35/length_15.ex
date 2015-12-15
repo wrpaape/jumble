@@ -106,4 +106,34 @@ defmodule Jumble.ScowlDict.Size35.Length15 do
       "aaaiiilmnorsttt" => ["totalitarianism"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["cceeehhnoopprss", "aadeiimoppprrst", "ccdeeennooprrss", "aacceilrrrrtuux",
+     "aacghillnoooprt", "aeehiimnnopprss", "aeeiilnoorrstuv", "aadiiimnnorsstt",
+     "aaehiilortttuvy", "acdefiiilnnotty", "aiilnooopprrtty", "aceilnnoorrstuv",
+     "aaeiilnnorrsttt", "eegiiimnnprrstt", "adeeeghinnrssst", "aaeiimoppprrsst",
+     "aaeilnnnossttuy", "aabdeinnsstttuu", "cceegiiinnnnnov", "abeeiiillnrstuv",
+     "acefiiinnooprst", "aeeiinnoprrsttt", "adghiinnnostttw", "aadeiilnopsssty",
+     "cegiilmnoprsstu", "aeiillnnnnottuy", "deiiinoopprssst", "acdiillnnnootuy",
+     "aaaccehilmprstu", "cddeeeeeinnnprt", "aeeehilorsttuxy", "acdeegimnorsstu",
+     "adeeemnnrsstttu", "adeeffiiinnortt", "aceehhiopprssty", "accehilmmnopsst",
+     "aacccehiirrsstt", "abdiiinnnoorstu", "cdegilnnooprrsy", "aacehillmpsttyy",
+     "accghilllnooory", "acceeegilmnortt", "acceiiilnnoorst", "aeeiilmmnnopstt",
+     "acceiimmnnootux", "aceeiilnnnoqstu", "ceeeflnorrsssuu", "aciiillmnopsttu",
+     "aghhillmooopstt", "bdehiiloorssttt", "aafimnnoorrsstt", "abbeiiiilmoprst",
+     "beiiiiilmopssst", "ceeehilmnoprsvy", "aeeeinnoprrsstt", "cceeinnoosssssu",
+     "aabeghiiooprstu", "aadeiilnorrrtxy", "cceeiiinnnossst", "eeehoopprstttty",
+     "aacdiiiilnnprss", "acceghilllnooty", "adeiimnnoppsstt", "aaciinnooprrstt",
+     "aabcceelnnorstu", "accegiimmnnotux", "cceinnoorrssttu", "aacgiinnoprrstt",
+     "aceehiinppprsst", "acdehiinopssttu", "aaccdeeknortttu", "deiiillmnnosstu",
+     "aabccdeelnnortu", "aabceeeghilnnrt", "abdeghiiilnsstu", "aacgilnnoorsttu",
+     "aeeillmnnnortvy", "eeeinnoprsssttu", "ddeeegiilnprruv", "aeeeeinprrssttv",
+     "aacdfiiinossstt", "aadfghiorrrsttw", "abciiiilmnoptty", "adeeffgiiinnrtt",
+     "accghillloopsyy", "aaabiiiilmnntty", "ceeeiloprrsttvy", "eeegiimnnprrsst",
+     "ceeprrrsssttuuu", "aacceeinnnorsss", "acdeeimmnnoorst", "adeiiiiilmrssst",
+     "aacegiijknrsttt", "aaccfiiilnossst", "adeegiimnnrsttu", "aaeiillnnnortty",
+     "aaaddeginosstuv", "ahhiilnopprsstt", "aghilnoooprsstt", "aadefilmnnssttu",
+     "aeeeiimnnoprttx", "deeeinnnprssttu", "aciilnnoosstttu", "aaaiiilmnorsttt"]
+    |> Enum.into(HashSet.new)
+  end
 end

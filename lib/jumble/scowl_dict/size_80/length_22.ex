@@ -38,4 +38,20 @@ defmodule Jumble.ScowlDict.Size80.Length22 do
       "cceeehimmoooopprrrsttt" => ["microspectrophotometer"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["acceeiiijknnoorsstttuv", "aacceeeeghhllnoopprrty", "cceehimmoooopprrrsttty",
+     "acceeeemnnoorrrssttuuu", "eeeeghiiilnnoopprssstv", "abcceeehllllmoorstuxyy",
+     "abdeghiiiiiiilnnsssttu", "acceeghiilllloooprstyy", "adeeeiinnooopprrsssstt",
+     "aaeiiiiilnnnoorsttttuz", "aaeeeiilmnnnnooprrsstt", "abcdfhiiiiiilnnoorttuy",
+     "aaacceghilllmnoooprruy", "aceeeiinnnooprrrsttttu", "aeeeeeeinnnprrssssttuv",
+     "aaeeeeeehhilmmnnrtttxy", "aaabdeehiiilmnnrsssstt", "acddeeeghhhlloopprssyy",
+     "bceeeeiilnnnoorrsssttv", "ceehhiiiimmmnoorsssttu", "aaabiiinnnorsssstttttu",
+     "acceehillmooopprrsttty", "aacceeiiilmmnooorrstvz", "aacceeeeghhllnoopprrst",
+     "agghiillnnooooorrsstty", "bceeeeehiilmnnnoprssss", "aceeeiilnnooorrrsttuuv",
+     "aacgghiilllnnooooorrty", "addeehhiimmoopprrssstu", "aadeiiiiilnnnoosttttuz",
+     "aaaabeehiiilmnnnrssttt", "aaabcdeghiiillooprrsst", "bceeehiiiilmnnoprrstty",
+     "aaabeehiiilmmnnrsssstt", "aaccdeeehiilmnooprssty", "cceeehimmoooopprrrsttt"]
+    |> Enum.into(HashSet.new)
+  end
 end

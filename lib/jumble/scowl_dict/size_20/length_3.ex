@@ -66,4 +66,31 @@ defmodule Jumble.ScowlDict.Size20.Length3 do
       "err" => ["err"], "ace" => ["ace"], "agt" => ["tag"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["hot", "ctu", "afr", "dgu", "abd", "hip", "bgi", "imx", "nru", "bde", "lot",
+     "eil", "deu", "ggi", "aes", "fnu", "afn", "abl", "aft", "eit", "ehr", "now",
+     "acm", "amy", "atx", "ept", "psy", "aly", "bow", "ddo", "dim", "beg", "cno",
+     "opp", "est", "aet", "orw", "dos", "etw", "ill", "dei", "oty", "den", "aim",
+     "ilo", "fgo", "emn", "nsu", "ilp", "rty", "oru", "ipt", "enp", "alw", "cei",
+     "ent", "mmu", "eey", "add", "ady", "acp", "def", "ary", "bet", "ads", "ego",
+     "eht", "esu", "ahy", "ast", "guy", "anr", "ipr", "agr", "dir", "aor", "anv",
+     "del", "htu", "aer", "bjo", "ilt", "ffo", "dry", "ino", "oww", "bmo", "egg",
+     "boy", "act", "dot", "deo", "eno", "eip", "amp", "eow", "bey", "ekn", "psu",
+     "dor", "ikt", "adl", "dmo", "bgo", "enw", "aht", "ist", "dno", "hsy", "anp",
+     "ahs", "bru", "ehs", "acr", "adh", "etv", "cis", "dip", "esy", "aby", "abg",
+     "bit", "hhu", "apy", "abr", "ikn", "dlo", "all", "eef", "eky", "fix", "gin",
+     "buy", "hmu", "got", "aeg", "ees", "adi", "his", "dmu", "bbo", "iln", "fly",
+     "int", "air", "not", "any", "opr", "fry", "aks", "apt", "dhi", "npu", "art",
+     "asy", "ceu", "ghu", "eot", "agl", "hty", "ptu", "emt", "adn", "joy", "low",
+     "isx", "elt", "abt", "hwy", "ddi", "opt", "itw", "hit", "bdi", "ins", "efw",
+     "irs", "bpu", "agy", "otu", "egl", "asw", "dew", "nnu", "dil", "gho", "ouy",
+     "how", "ags", "egt", "amr", "inp", "dgo", "nos", "adp", "der", "oot", "fit",
+     "gip", "ntu", "abn", "ort", "amn", "cry", "gmu", "eew", "cow", "arw", "esx",
+     "box", "agp", "cpu", "ago", "adm", "acn", "msu", "dgi", "epr", "awy", "btu",
+     "ety", "gtu", "ajm", "ksy", "ahm", "glo", "ejt", "dik", "gnu", "bgu", "atv",
+     "nor", "apr", "otw", "inw", "for", "ass", "ehy", "fru", "bin", "bsu", "him",
+     "aiv", "err", "ace", "agt"]
+    |> Enum.into(HashSet.new)
+  end
 end

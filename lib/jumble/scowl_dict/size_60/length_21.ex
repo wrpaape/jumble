@@ -4,4 +4,9 @@ defmodule Jumble.ScowlDict.Size60.Length21 do
       "aacceeeeghllmnooprrst" => ["electroencephalograms"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aacceeeeghhllnoopprrt", "aacceeeeghllmnooprrst"]
+    |> Enum.into(HashSet.new)
+  end
 end

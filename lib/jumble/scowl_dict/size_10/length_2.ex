@@ -9,4 +9,11 @@ defmodule Jumble.ScowlDict.Size10.Length2 do
       "ot" => ["to"], "pu" => ["up"], "su" => ["us"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["am", "an", "as", "at", "be", "by", "cs", "do", "eh", "em", "er", "ew", "fi",
+     "fo", "go", "ho", "in", "ip", "is", "it", "my", "no", "or", "os", "ot", "pu",
+     "su"]
+    |> Enum.into(HashSet.new)
+  end
 end

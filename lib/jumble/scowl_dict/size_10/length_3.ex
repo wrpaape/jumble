@@ -40,4 +40,22 @@ defmodule Jumble.ScowlDict.Size10.Length3 do
       "aiv" => ["via"], "err" => ["err"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["hot", "ctu", "afr", "abd", "bgi", "imx", "nru", "bde", "lot", "eil", "deu",
+     "fnu", "afn", "eit", "ehr", "now", "amy", "atx", "aly", "ddo", "opp", "est",
+     "aet", "orw", "ill", "dei", "den", "aim", "ilo", "emn", "nsu", "rty", "oru",
+     "enp", "alw", "cei", "ent", "eey", "add", "ady", "def", "bet", "ads", "eht",
+     "esu", "ast", "guy", "anr", "dir", "anv", "del", "aer", "bjo", "ffo", "dry",
+     "boy", "act", "deo", "eno", "amp", "eow", "dmo", "enw", "aht", "ist", "ahs",
+     "ehs", "acr", "adh", "esy", "bit", "apy", "abr", "dlo", "all", "eky", "fix",
+     "buy", "got", "aeg", "ees", "adi", "his", "fly", "int", "air", "not", "any",
+     "fry", "aks", "dhi", "art", "asy", "ptu", "emt", "adn", "joy", "low", "isx",
+     "elt", "hwy", "ddi", "opt", "hit", "bdi", "efw", "otu", "egl", "asw", "ouy",
+     "how", "ags", "egt", "amr", "dgo", "nos", "der", "oot", "fit", "abn", "amn",
+     "cry", "arw", "esx", "box", "agp", "cpu", "ago", "adm", "acn", "msu", "epr",
+     "awy", "btu", "ety", "glo", "dik", "gnu", "bgu", "nor", "otw", "inw", "for",
+     "bsu", "him", "aiv", "err"]
+    |> Enum.into(HashSet.new)
+  end
 end

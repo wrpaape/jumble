@@ -36,4 +36,22 @@ defmodule Jumble.ScowlDict.Size10.Length12 do
       "ceeeilprstvy" => ["respectively"], "aabcdginorst" => ["broadcasting"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["abciimnnoost", "cilnnoostuuy", "ceelnnoqstuy", "abcdeilnorsy", "accceimnrstu",
+     "cdeiinoprsst", "aceilnnnootv", "cceeennoqssu", "aceinnoorstv", "abcdeeilnors",
+     "aabegimnrrss", "aaeegmnnrrst", "aeilmnosstuu", "aabeelnnorsu", "cdeegimmnnor",
+     "cdiinnoorttu", "ceeegiinnprx", "aaeegginnrtu", "bdgiiinrsttu", "ceffiilnstuy",
+     "aacegiinpprt", "aefilnooprss", "aaccillnoosy", "aceemnnnnotu", "aaccillnostu",
+     "ceiinnnosstt", "cdeffiiilstu", "aaccdeillnty", "aeeeilmnprtx", "iiinnosstttu",
+     "aciiilmnopst", "aacillprrtuy", "bdiiinorsttu", "aadegiinpprs", "abceiilmnopt",
+     "eeeginnprrst", "aciinnnoottu", "eegiilmmnnpt", "abdeeeillrty", "acehiiopsstt",
+     "accgiilmnopt", "accefgiiinns", "aaciilnoppst", "ciinnorssttu", "ceeegiillnnt",
+     "aaacehilmmtt", "accefiillpsy", "aaiilmnnoptu", "aaeeilnrsttv", "eeeimnqrrstu",
+     "aehiilnoprst", "eeiiinrsstuv", "ceeginnnortu", "abeghiilnsst", "ccefllsssuuy",
+     "acdeiillnnty", "aaaddeginstv", "aabcceelnptu", "aefginnrrrst", "eeiinnnorttv",
+     "eegiinnprrtt", "bciinnoorttu", "acdggiinorsu", "eeeehlnrsstv", "eeimmnoprstv",
+     "addiiillnuvy", "ceeeilprstvy", "aabcdginorst"]
+    |> Enum.into(HashSet.new)
+  end
 end

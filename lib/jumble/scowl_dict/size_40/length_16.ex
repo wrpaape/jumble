@@ -40,4 +40,18 @@ defmodule Jumble.ScowlDict.Size40.Length16 do
       "aciiimnnnooprstu" => ["mispronunciation"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aeeghiilnnprttvy", "aceeiilnnnnorttt", "aaeeeilrrrrstttx", "aacccehiinrrsttu",
+     "acehhiopprssstty", "aaceilnnnnorsttt", "adeiinooopprrstt", "aaiiimnooppprrst",
+     "acefiiinnooprsst", "aaccegiknnortttu", "aciilnnnoostttuu", "aaceeghimnoprrst",
+     "aacehiillnssttuy", "aceeimnnoooprstv", "aaabcghiilooprtu", "aaacgiillnnostty",
+     "acceiimmnnoostux", "ccceeiklnoorstuw", "aceiinnoorsssttv", "acdeiiiilmnnrsty",
+     "addegiimnnnrsstu", "aghhillmooopsstt", "aabccegilnnnortu", "aaaacchhillmsttw",
+     "aeeiilmnnnorsttv", "acdiiinnnoossttu", "beiiiilnoprrssty", "aceegimnnooprstv",
+     "acdefghiiinnnrss", "aciillnnoostttuy", "aeeeeinnprrsttuv", "bceeehiilmnnoprs",
+     "aefiilnnnoooprrt", "aeiiiilllmmnortu", "aagiiimnoppprrst", "aacdfiiiilnoqstu",
+     "beeiiiilnoprssst", "aciiimnnnooprstu"]
+    |> Enum.into(HashSet.new)
+  end
 end

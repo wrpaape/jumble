@@ -16,6 +16,13 @@ defmodule Jumble.ScowlDict do
     |> get_in_dict(string_id)
   end
 
+  def valid_id(length_word, string_id) do
+    [length_word, :size_limit]
+    |> get_in_agent
+    |> valid_ids
+    |> Set.member?(string_id)
+  end
+
   def update_limit do
     __MODULE__
     |> Agent.update(fn(scowl_dict)->
@@ -80,5 +87,10 @@ defmodule Jumble.ScowlDict do
   def get_in_dict(dict_size_module, string_id) do
     dict_size_module
     |> apply(:get, [string_id])
+  end
+
+  def valid_ids(dict_size_module) do
+    dict_size_module
+    |> apply(:valid_ids, [])
   end
 end

@@ -51,4 +51,23 @@ defmodule Jumble.ScowlDict.Size95.Length2 do
       "hq" => ["qh"], "ar" => ["ra"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["fg", "lo", "oy", "sy", "el", "fo", "ii", "mw", "hu", "nz", "cx", "pv", "bk",
+     "il", "gi", "nr", "ah", "er", "rw", "rx", "cy", "bi", "cg", "gs", "au", "cq",
+     "ls", "su", "ss", "lu", "lr", "ay", "ps", "ap", "tu", "iv", "lp", "bt", "oo",
+     "ev", "hm", "uz", "gu", "ks", "aw", "lt", "ad", "my", "ly", "al", "vx", "br",
+     "cs", "tx", "ms", "nu", "oz", "bg", "es", "jo", "ik", "ab", "lw", "ip", "ag",
+     "en", "ux", "ou", "iy", "cv", "af", "uw", "ir", "mt", "iu", "am", "bw", "lx",
+     "rz", "js", "tt", "uy", "hw", "bm", "ew", "fm", "co", "eh", "dp", "pu", "ds",
+     "ct", "wy", "ci", "aj", "ox", "hy", "gr", "hs", "rs", "ht", "io", "no", "ow",
+     "bp", "ln", "ku", "ns", "bc", "qs", "hi", "as", "nv", "ai", "mn", "ky", "mo",
+     "im", "lm", "mv", "ny", "ey", "ko", "hv", "ho", "ix", "rv", "mu", "do", "pq",
+     "ru", "sz", "at", "fz", "mr", "nw", "kv", "dm", "ot", "bb", "mx", "sx", "fy",
+     "eu", "op", "fu", "os", "go", "em", "an", "in", "de", "fi", "it", "ex", "be",
+     "jn", "iw", "bh", "dx", "az", "fs", "st", "sw", "gn", "iq", "ak", "ty", "is",
+     "bv", "ef", "bn", "by", "or", "dy", "wx", "tv", "nt", "hz", "fw", "bf", "du",
+     "xx", "di", "bs", "hn", "hq", "ar"]
+    |> Enum.into(HashSet.new)
+  end
 end

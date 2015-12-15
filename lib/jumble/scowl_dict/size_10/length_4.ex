@@ -146,4 +146,51 @@ defmodule Jumble.ScowlDict.Size10.Length4 do
       "eehr" => ["here"], "adrw" => ["draw"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["hstu", "eilm", "adip", "aegv", "aees", "blow", "aept", "best", "aesy", "bill",
+     "afir", "aeht", "elos", "eert", "diks", "emos", "ceor", "cikp", "iqtu", "egst",
+     "aelt", "antw", "eils", "ehlp", "deln", "eekw", "adhr", "amss", "afhl", "adds",
+     "deeg", "ackp", "ahtw", "beit", "elru", "hosw", "deem", "eorw", "pttu", "akmr",
+     "dorw", "hntu", "pstu", "eipp", "noos", "cmsu", "aehr", "cdeo", "deis", "dilw",
+     "imot", "hist", "mstu", "cdlo", "entu", "bety", "aegs", "ilps", "know", "essu",
+     "elry", "emop", "aknt", "ehmt", "hmow", "eirs", "losw", "ejko", "ehmo", "ailn",
+     "eorz", "ainr", "assy", "adis", "acst", "agin", "aefl", "efls", "lnoy", "aehv",
+     "bkoo", "belu", "aerr", "acdr", "efiw", "astv", "bhot", "acer", "dfnu", "desu",
+     "ader", "foot", "lopt", "adlo", "egls", "bdis", "alpy", "hisw", "aims", "afmr",
+     "ainp", "jmpu", "estw", "abes", "asty", "bjos", "amny", "bclu", "ghhi", "adet",
+     "inot", "aert", "ehty", "cein", "eekp", "abot", "emrt", "aflt", "aesv", "been",
+     "dimn", "cell", "aeft", "loop", "eemr", "adsy", "bdoy", "glpu", "eilp", "ghnu",
+     "deos", "aels", "film", "bmnu", "enno", "alos", "alst", "llop", "eflw", "imss",
+     "efir", "ikll", "hips", "bgsu", "eekn", "deno", "acft", "ddei", "bklu", "ceop",
+     "ahpt", "llpu", "eghu", "afil", "dlot", "abel", "lpsu", "jstu", "bdmu", "abdn",
+     "aekm", "eeks", "eorv", "ahmr", "ehlo", "notw", "ertu", "adln", "abkn", "eflt",
+     "oruy", "eimt", "eels", "nrtu", "intu", "oort", "dnow", "afst", "aest", "emov",
+     "derw", "eenv", "aces", "ceiv", "chmu", "deef", "aipr", "eesy", "ahtt", "elor",
+     "aefr", "eirw", "aefs", "deks", "deep", "ehll", "acem", "nrsu", "dfoo", "eotv",
+     "afgl", "lost", "eens", "enot", "ijno", "door", "emor", "aklw", "illw", "inpt",
+     "eerw", "aemt", "fost", "aegp", "amrw", "boot", "alsw", "dikn", "aimn", "cstu",
+     "elss", "eisw", "copy", "noot", "eiln", "gilr", "aenr", "aegm", "efil", "kloo",
+     "deil", "adeh", "enos", "glos", "aelp", "chin", "eefr", "dtuy", "efiv", "moor",
+     "akpr", "esst", "oopr", "fist", "eerv", "horu", "aawy", "enop", "aems", "egiv",
+     "hpsu", "dfin", "korw", "fimr", "host", "orsu", "ahsw", "abrs", "aswy", "koot",
+     "entx", "cklo", "eist", "bsuy", "efin", "aery", "hill", "allw", "elov", "egrw",
+     "ackl", "cemo", "aitw", "adel", "aerw", "opst", "ensw", "llor", "deit", "eimn",
+     "dent", "dmpu", "apst", "deiw", "cdis", "gluy", "erst", "aadt", "aekt", "dehi",
+     "fllu", "eems", "ilst", "einw", "alyz", "bist", "acns", "amry", "aaer", "afll",
+     "beor", "dgoo", "eikl", "efll", "ceru", "celu", "anrw", "egos", "egno", "glno",
+     "insw", "norw", "achk", "nopu", "ahll", "city", "eksy", "acll", "epst", "bdin",
+     "deen", "chsu", "ahir", "aprt", "ervy", "cklu", "eosw", "akst", "abck", "eeft",
+     "istu", "akss", "aemn", "fill", "dinw", "eemt", "eefl", "ikrs", "epty", "aekp",
+     "adkr", "adde", "eisz", "achr", "ettx", "ehnw", "loss", "cent", "adly", "eilv",
+     "gorw", "adgl", "dhlo", "ikln", "ehop", "ekpt", "most", "adem", "alnp", "ahnt",
+     "deow", "isst", "fmor", "eopt", "aelr", "deir", "dens", "ansv", "enst", "ellt",
+     "emss", "fino", "ehnt", "hrsu", "alno", "cost", "dlos", "flow", "elst", "dopr",
+     "filt", "adhn", "iprt", "dirs", "beoy", "bruy", "ador", "oprt", "ginr", "eivw",
+     "ddos", "acef", "hitw", "abll", "illt", "estt", "foru", "ailm", "ells", "ellw",
+     "adei", "eess", "apsy", "aeks", "epru", "aghn", "einn", "gins", "apss", "jknu",
+     "eknw", "aceh", "orst", "demo", "ersu", "hint", "aber", "cekn", "gikn", "chip",
+     "aklt", "arvy", "fhis", "hops", "dehl", "fklo", "entw", "ceno", "eehr", "adrw"]
+    |> Enum.into(HashSet.new)
+  end
 end

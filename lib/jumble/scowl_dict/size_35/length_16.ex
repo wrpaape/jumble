@@ -24,4 +24,14 @@ defmodule Jumble.ScowlDict.Size35.Length16 do
       "ccceeiklnoorstuw" => ["counterclockwise"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["aaabcghiilooprtu", "aabccegilnnnortu", "aaccegiknnortttu", "aacehiillnssttuy",
+     "aaceilnnnnorsttt", "aaeeeilrrrrstttx", "aagiiimnoppprrst", "aaiiimnooppprrst",
+     "acceiimmnnoostux", "acdeiiiilmnnrsty", "aceeiilnnnnorttt", "acefiiinnooprsst",
+     "aciillnnoostttuy", "aciilnnnoostttuu", "addegiimnnnrsstu", "adeiinooopprrstt",
+     "aeeeeinnprrsttuv", "aghhillmooopsstt", "bceeehiilmnnoprs", "beeiiiilnoprssst",
+     "beiiiilnoprrssty", "ccceeiklnoorstuw"]
+    |> Enum.into(HashSet.new)
+  end
 end

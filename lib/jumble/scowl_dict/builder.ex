@@ -43,11 +43,9 @@ defmodule Jumble.ScowlDict.Builder do
         |> Enum.group_by(&Helper.string_id/1)
         |> Enum.reduce(scowl_dict, fn({string_id, words}, scowl_dict)->
           scowl_dict
-          |> Map.update(Integer.to_string(length), Map.put(Map.new, string_id, words), fn(string_ids_map)->
-            string_ids_map
-            |> Map.update(string_id, words, fn(acc_words)->
-              words ++ acc_words
-            end)
+          |> Map.update(Integer.to_string(length), Map.put(Map.new, string_id, words), fn(length_dict)->
+            length_dict
+            |> Map.update(string_id, words, &(words ++ &1))
           end)
         end)
       end)
@@ -56,6 +54,12 @@ defmodule Jumble.ScowlDict.Builder do
   end
 
   def dict_dir(dict_size), do: Path.join(@dir, "size_" <> dict_size)
+
+  defp format(data) do
+    data
+    |> inspect(pretty: :true, limit: :infinity)
+    |> String.replace(~r/(?<=\n)/, @indent)
+  end
 
   def build_files(scowl_dict, dict_size) do
     dict_dir =
@@ -66,8 +70,12 @@ defmodule Jumble.ScowlDict.Builder do
     |> Enum.each(fn({length_string, string_ids_map})->
       printed_map =
         string_ids_map
-        |> inspect(pretty: :true, limit: :infinity)
-        |> String.replace(~r/(?<=\n)/, @indent)
+        |> format
+
+      printed_keys =
+        string_ids_map
+        |> Map.keys
+        |> format
 
       contents =
         """
@@ -75,6 +83,11 @@ defmodule Jumble.ScowlDict.Builder do
           def get(string_id) do
             #{printed_map}
             |> Map.get(string_id)
+          end
+
+          def valid_ids do
+            #{printed_keys}
+            |> Enum.into(HashSet.new)
           end
         end
         """

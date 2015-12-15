@@ -49,4 +49,32 @@ defmodule Jumble.ScowlDict.Size95.Length23 do
       "aaceeeiiilllnnoortttuvz" => ["overintellectualization"]}
     |> Map.get(string_id)
   end
+
+  def valid_ids do
+    ["acceeghhilmoooopprrrtty", "aacdehhiilllnooppprstuy",
+     "aacddeiiiiilllnorstuvvy", "deeeeeffgiiinnnpprrrrrr",
+     "aeehhhhilllmnnooppsttuy", "aaacddeghillmmnnoortyyy",
+     "aaabcdeeehiilllmnoprstu", "aaaaccchhhiimnnorrrssty",
+     "aaaabiiilnnnorssstttttu", "aaabdeeiiiilmmnnrsssstt",
+     "acceghhhiiillloooooppst", "aeeehhhhilllnnnoopppstu",
+     "abcceeehllllmoorsstuxyy", "aaccddeeimnnooooprsttuy",
+     "aaeeeeeehhilmmnnrstttxy", "abdeeeghiiilnnnssssstuu",
+     "ceghiilmmnnooooprsstuuy", "aacddeeiiiiiimnoprrsstt",
+     "aaeeeiilmnnnnooprrssstt", "aaaeegimnnoooorrssssttt",
+     "abdeeeiilnnooopprrsssst", "aaceeegghilmnooprrsstty",
+     "acccddeefhhiilllooorrxy", "aacceeeeeghhllnoopprrrt",
+     "acddeefhhilllmooprsuxyy", "abbeeiiiiilnrssstttttuu",
+     "aacghhilllmnooooopprrty", "aaccgghhiiilllooooopstt",
+     "cdddeeeeefiimmnooprttyy", "aabeeehiiilmnoooppprtty",
+     "abccdfhhllnoooooorrrruy", "abcceeehhilmnoopprrstty",
+     "aceeeehhmmoooopprrstttt", "aadeiiiiilnnnoossttttuz",
+     "abdeeeghiiiilnnnssssstu", "aaccceefgghiiiilnooprst",
+     "ceeghiilmmnnooooprssuuy", "cceeehimmoooopprrrssttt",
+     "aaccceeeeghhillnoopprrt", "ccceehiimmoooopprrrsttt",
+     "ceeefhhilllnoooorrrttuy", "aaaabeehiiilmnnnrsssttt",
+     "aaeiiiiilnnnoorssttttuz", "acddeefhhiillmnoooorrtu",
+     "bcdeeeiilnnooooprrstuxy", "ccdeeeeinnooprrsssttuuv",
+     "aaceeeiiilllnnoortttuvz"]
+    |> Enum.into(HashSet.new)
+  end
 end
