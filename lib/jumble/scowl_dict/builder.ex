@@ -96,14 +96,25 @@ defmodule Jumble.ScowlDict.Builder do
       contents =
         """
         defmodule Jumble.ScowlDict.Size#{dict_size}.Length#{length_string} do
-          def get(string_id) do
+          @length_dict length_dict
+
+          def dict do
             #{printed_map}
+          end
+
+          @dict dict
+          @valid_ids @dict
+            |> Map.keys
+            |> Enum.into(HashSet.new)
+
+          def get(string_id) do
+            @dict
             |> Map.get(string_id)
           end
 
-          def valid_ids do
-            #{printed_keys}
-            |> Enum.into(HashSet.new)
+          def valid_id?(string_id) do
+            @valid_ids
+            |> Set.member?(string_id)
           end
         end
         """
