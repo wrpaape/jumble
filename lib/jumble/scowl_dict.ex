@@ -21,6 +21,7 @@ defmodule Jumble.ScowlDict do
   def safe_valid_id?(length_word, string_id) do
     [length_word, :safe_valid_ids]
     |> valid_id?(string_id)
+    |> IO.inspect
   end
 
   def limited_valid_id?(length_word, string_id) do

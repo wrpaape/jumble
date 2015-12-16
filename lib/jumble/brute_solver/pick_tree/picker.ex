@@ -1,6 +1,4 @@
 defmodule Jumble.BruteSolver.PickTree.Picker do
-  # @picker_process_timeout 100
-
   alias Jumble.BruteSolver.PickTree.Branch
 
 ##################################### external API #####################################
@@ -15,7 +13,6 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
     |> spawn(:pick_letters, [{initial_valid_picks, initial_downstream_picks, []}, branch_pid])
   end
 
-  # def start_next_id(:done), do: :timer.exit_after(@picker_process_timeout, :normal)
   def start_next_id(:done), do: exit(:normal)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
@@ -48,7 +45,6 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
  
     valid_picks
     |> Enum.scan({nil, intial_picks_acc}, fn(pick, {_last_pick, last_pick_acc}) ->
-
       {pick, tl(last_pick_acc)}
     end)
   end
