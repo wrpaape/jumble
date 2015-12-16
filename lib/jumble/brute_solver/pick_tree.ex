@@ -17,7 +17,7 @@ defmodule Jumble.BruteSolver.PickTree do
     __MODULE__
     |> GenServer.start_link(args, name: __MODULE__)
 
-    Agent.start_link(fn -> [] end, name: :branch_stash)
+    
 
     args
   end
@@ -31,7 +31,7 @@ defmodule Jumble.BruteSolver.PickTree do
   def state,                       do: GenServer.call(__MODULE__, :state)
 
   # def branch_done(branch_pid),     do: Agent.cast(:branch_stash, __MODULE__, :push_branch_pid, [branch_pid])
-  def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
+  # def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
@@ -44,15 +44,20 @@ defmodule Jumble.BruteSolver.PickTree do
   end
 
   def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
-    pick_orders
-    |> Enum.each(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->
-      branch_pid =
-        {letter_bank, id_index, valid_id?, rem_id_tups, []}
-        |> Branch.new_branch
+    root_pids =
+      pick_orders
+      |> Enum.map(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->
+        branch_pid =
+          {letter_bank, id_index, valid_id?, rem_id_tups, []}
+          |> Branch.new_branch
 
-      Picker
-      |> spawn(:start_next_id, [{letter_bank, id_length, branch_pid}])
-    end)
+        Picker
+        |> spawn(:start_next_id, [{letter_bank, id_length, branch_pid}])
+
+        branch_pid
+      end)
+
+    Agent.start_link(fn -> root_pids end, name: :branch_stash)
 
     {:noreply, HashSet.new}
   end
