@@ -1,5 +1,7 @@
 defmodule Jumble.ScowlDict.Builder do
+  alias IO.ANSI
   alias Jumble.Helper
+  alias Jumble.Ticker
   alias Jumble.LengthDict.Builder
 
   @scowl_dir    Application.get_env(:jumble, :scowl_dir)
@@ -9,6 +11,14 @@ defmodule Jumble.ScowlDict.Builder do
   @reg_filter   ~r/^.*[^a-z\n].*\n/m
   @indent       Helper.pad(4)
   @dict_sizes   Application.get_env(:jumble, :scowl_dict_sizes)
+  
+  @clear_prompt ANSI.red
+    |> Helper.cap(ANSI.bright, "< CLEARING scowl_dict/** >" <> ANSI.normal)
+
+  @build_prompt_rcap "/* >" <> ANSI.normal
+
+  @build_prompt_lcap ANSI.yellow
+    |> Helper.cap(ANSI.bright, "\n< BUILDING scowl_dict/size_")
 
   def build_length_dict do
     @scowl_dir
@@ -31,10 +41,16 @@ defmodule Jumble.ScowlDict.Builder do
   end
 
   def build do
-    clean
+    clear
 
     @dict_sizes
     |> Enum.reduce(Map.new, fn(dict_size, scowl_dict)->
+      dict_size
+      |> Helper.cap(@build_prompt_lcap, @build_prompt_rcap)
+      |> IO.puts
+
+      Ticker.start
+
       dict_size
       |> filtered_word_list
       |> Enum.group_by(&byte_size/1)
@@ -98,10 +114,17 @@ defmodule Jumble.ScowlDict.Builder do
       |> File.write(contents)
     end)
 
+    Ticker.stop
+
     scowl_dict
   end
 
-  def clean do
+  def clear do
+    @clear_prompt
+    |> IO.puts
+
+    Ticker.start
+
     @dict_sizes
     |> Enum.each(fn(dict_size)->
       dict_size
@@ -110,5 +133,7 @@ defmodule Jumble.ScowlDict.Builder do
       |> Path.wildcard
       |> File.rm_rf
     end)
+
+    Ticker.stop
   end
 end

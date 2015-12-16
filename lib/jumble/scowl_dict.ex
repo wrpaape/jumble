@@ -20,8 +20,8 @@ defmodule Jumble.ScowlDict do
 
   def safe_valid_id?(length_word, string_id) do
     [length_word, :safe_valid_ids]
+    # |> get_in_agent
     |> valid_id?(string_id)
-    |> IO.inspect
   end
 
   def limited_valid_id?(length_word, string_id) do
@@ -64,6 +64,8 @@ defmodule Jumble.ScowlDict do
       |> Map.put(length, next_sizes_map)
     end)
   end
+
+  def reset_limit
 
   def build_dicts(lengths) do
     lengths

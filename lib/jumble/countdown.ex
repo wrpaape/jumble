@@ -1,6 +1,6 @@
 defmodule Jumble.Countdown do
-  alias IO.ANSI
   alias Jumble.Helper
+  alias Jumble.Ticker
 
   @timeout 10000
   @def_opts [
@@ -13,7 +13,7 @@ defmodule Jumble.Countdown do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def reset_countdown, do: Agent.cast(:countdown, &reset_countdown/1)
+  def reset_countdown, do: Agent.cast(__MODULE__, &reset_countdown/1)
 
   def time_async(opts) do
     [prompt, ticker_int, timeout, {module, fun, args}] =
@@ -23,12 +23,11 @@ defmodule Jumble.Countdown do
     prompt
     |> IO.puts
 
-    ticker =
-      __MODULE__
-      |> Task.async(:ticker, [ticker_int])
+    ticker_int
+    |> Ticker.start
 
     __MODULE__
-    |> Agent.start_link(:start_countdown, [timeout, self], name: :countdown)
+    |> Agent.start_link(:start_countdown, [timeout, self], name: __MODULE__)
 
     t1 = :erlang.timestamp
 
@@ -41,14 +40,10 @@ defmodule Jumble.Countdown do
           :erlang.timestamp
           |> :timer.now_diff(t1)
 
-        :countdown
+        __MODULE__
         |> Agent.stop(@timeout)
 
-        ticker
-        |> Task.shutdown
-
-        ANSI.clear_line
-        |> IO.write
+        Ticker.stop
 
       time_elapsed
     end
@@ -73,41 +68,9 @@ defmodule Jumble.Countdown do
     {timer_ref, timeout, master_pid}
   end 
 
-  def ticker(ticker_int) do
-    tick_stream
-    |> Enum.each(fn({color, tick})->
-      color
-      <> tick
-      |> IO.write
-
-      ticker_int
-      |> :timer.sleep
-    end)
-  end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
-  defp tick_stream do
-    tick_colors
-    |> Stream.zip(ticks)
-  end
-
-  defp tick_colors do
-    ~w(red yellow green blue cyan magenta)a
-    |> Enum.map(&apply(ANSI, &1, []))
-    |> Stream.cycle
-  end
-
-  defp ticks do
-    3..5
-    |> Enum.concat([2])
-    |> Enum.flat_map(fn(level) ->
-      [level, level + 6]
-      |> Enum.map(&<<8590 + &1 :: utf8>>)
-    end)
-    |> Stream.cycle
-  end
 
   defp fetch_args(opts) do
     @def_opts
