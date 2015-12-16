@@ -7,7 +7,7 @@ defmodule Jumble.ScowlDict do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def id_validator(length_word) do
+  def safe_id_validator(length_word) do
     safe_dict_module =
       length_word
       |> Integer.to_string

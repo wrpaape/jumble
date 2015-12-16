@@ -22,7 +22,7 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
     last_valid_picks
     |> Enum.each(fn(last_pick) ->
       __MODULE__
-      |> spawn(:start_next_id, [Branch.next_branch_state(branch_pid, [last_pick | acc_letters])])
+      |> spawn(:start_next_id, [Branch.process(branch_pid, [last_pick | acc_letters])])
     end)
   end
 
