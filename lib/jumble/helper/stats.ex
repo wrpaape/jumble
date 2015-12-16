@@ -11,7 +11,7 @@ defmodule Jumble.Helper.Stats do
 
   def combinations(list), do: combine(list, [], [])
 
-  def uniq_pick_orders({uniqs, dups}) do
+  def uniq_pick_orders(uniqs, dups) do
     uniqs
     |> permute(dups, self)
 

@@ -29,7 +29,7 @@ defmodule Jumble.BruteSolver do
     [
       prompt: ANSI.blue <> "picking valid ids for:\n\n ",
       task: {PickTree, :pick_valid_ids},
-      timeout: 30,
+      timeout: 1000,
       ticker_int: 17
     ],
     [

@@ -26,63 +26,78 @@ defmodule Jumble.ScowlDict do
     args
   end
 
-  def safe_get(length_word, string_id), do: GenServer.call(__MODULE__, {:safe_get, length_word, string_id})
+  def safe_get(length_word, string_id),  do: GenServer.call(__MODULE__, {:safe_get, length_word, string_id})
 
-
-  # def safe_get(length_word, string_id) do
-  #   length_word
-  #   |> build_all_dicts
-  #   |> Enum.find_value(&apply(&1, :get, [string_id]))
-  # end
+  def valid_id?(length_word, string_id), do: GenServer.call(__MODULE__, {:valid_id?, length_word, string_id})
   
-  def build_safe_dict_module(length_word) do
-    length_str =
-      length_word
-      |> Integer.to_string
-
-    @max_size
-    |> build_dict_module(length_str)
-  end
+  def swap_dicts,                        do: GenServer.cast(__MODULE__, :swap_dicts)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def init(args) do
-    args
-    |> get_in(@uniq_jumble_lengths_key_path)
-    |> Enum.reduce(Map.new, fn(length_word, all_dict_modules)->
-      all_dict_modules
-      |> Map.put(length_word, build_all_dicts(length_word))
-    end)
+  def init(%{jumble_info: %{uniq_lengths: uniq_jumble_lengths}, sol_info: %{uniq_lengths: uniq_sol_lengths}}) do
+    uniq_jumble_lengths
+    |> build_length_dict(&all_sizes/1)
+    |> Helper.wrap_append(uniq_sol_lengths)
     |> Helper.wrap_prepend(:ok)
   end
 
-  def handle_call({:safe_get, length_word, string_id}, _from, all_dict_modules) do
+  def handle_call({:safe_get, length_word, string_id}, _from, state = {length_dict, _uniq_sol_lengths}) do
     valid_words =
-      all_dict_modules
+      length_dict
       |> Map.get(length_word)
       |> Enum.find_value(&apply(&1, :get, [string_id]))
 
-    {:reply, valid_words, all_dict_modules}
+    {:reply, valid_words, state}
+  end
+
+  def handle_call({:valid_id?, length_word, string_id}, _from, length_dict) do
+    id_valid? =
+      length_dict
+      |> Map.get(length_word)
+      |> apply(:valid_id?, [string_id])
+
+    {:reply, id_valid?, length_dict}
+  end
+
+  def handle_cast(:swap_dicts, {_drop_dict, uniq_sol_lengths}) do
+    uniq_sol_lengths
+    |> build_length_dict(&safe_size/1)
+    |> Helper.wrap_prepend(:noreply)
   end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-
-
-  defp build_dict_module(size_str, length_str) do
+  defp size_dict_module(size_str, length_str) do
     [__MODULE__, "Size" <> size_str, "Length" <> length_str]
     |> Module.safe_concat
   end
 
-  defp build_all_dicts(length_word) do
+  defp build_length_dict(lengths, builder_fun) do
+    lengths
+    |> Enum.reduce(Map.new, fn(length, size_dicts)->
+      size_dicts
+      |> Map.put(length, builder_fun.(length))
+    end)
+  end
+
+  defp all_sizes(length_word) do
     length_str =
       length_word
       |> Integer.to_string
 
     @dict_sizes
-    |> Enum.map(&build_dict_module(&1, length_str))
+    |> Enum.map(&size_dict_module(&1, length_str))
+  end
+
+  def safe_size(length_word) do
+    length_str =
+      length_word
+      |> Integer.to_string
+
+    @max_size
+    |> size_dict_module(length_str)
   end
 end
 

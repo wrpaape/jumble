@@ -3,7 +3,7 @@ defmodule Jumble.ArgParser do
                aliases:  [ h:    :help   ]]
 
   alias Jumble.Helper
-  # alias Jumble.Helper.Stats
+  alias Jumble.Helper.Stats
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -77,19 +77,19 @@ defmodule Jumble.ArgParser do
         {letter_bank_length + sol_length * 2, final_sol_length + sol_length + 1}
       end)
 
-    # {uniq_sol_lengths, dup_tail} =
-    #   sol_lengths
-    #   |> Helper.with_index(1, :leading)
-    #   |> partition_dups_by_val
+    {uniq_sol_lengths, dup_tail} =
+      sol_lengths
+      |> Helper.with_index(1, :leading)
+      |> partition_dups_by_val
 
-    # pick_orders =
-    #   uniq_sol_lengths
-    #   |> Stats.uniq_pick_orders(dup_tail)
+    pick_orders =
+      uniq_sol_lengths
+      |> Stats.uniq_pick_orders(dup_tail)
 
-    # uniq_lengths =
-    #   uniq_sol_lengths
-    #   |> Keyword.values
-    #   |> Enum.into(HashSet.new)
+    uniq_lengths =
+      uniq_sol_lengths
+      |> Keyword.values
+      |> Enum.into(HashSet.new)
 
     counts_map =
       Map.new
@@ -106,8 +106,8 @@ defmodule Jumble.ArgParser do
     |> Map.put(:letter_bank_length, letter_bank_length)
     |> Map.put(:final_length, final_sol_length + 3)
     |> Map.put(:sol_lengths, sol_lengths)
-    # |> Map.put(:uniq_lengths, Enum.into(sol_lengths, HashSet.new))
-    # |> Map.put(:pick_orders, pick_orders)
+    |> Map.put(:uniq_lengths, uniq_lengths)
+    |> Map.put(:pick_orders, pick_orders)
     # |> Map.put(:invalid_ids, HashSet.new)
     # |> Map.put(:processed_raw, HashSet.new)
     |> Map.put(:brute, brute_map)
@@ -130,7 +130,17 @@ defmodule Jumble.ArgParser do
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-
+  defp partition_dups_by_val(keyword) do
+    keyword
+    |> Enum.reduce({[], [], HashSet.new}, fn(el = {_key, val}, {uniqs, dups, uniq_vals})->
+      if Set.member?(uniq_vals, val) do
+        {uniqs, [el | dups], uniq_vals}
+      else
+        {[el | uniqs], dups, Set.put(uniq_vals, val)}
+      end
+    end)
+    |> Tuple.delete_at(2)
+  end
 
   defp split_on_slashes(string, opts \\ []) do
     string

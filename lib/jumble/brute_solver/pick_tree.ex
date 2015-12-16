@@ -8,7 +8,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
-  @sol_lengths_key_path ~w(sol_info sol_lengths)a
+  @pick_orders_key_path ~w(sol_info pick_orders)a
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -37,16 +37,15 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def init(args) do 
     args
-    |> get_in(@sol_lengths_key_path)
-    |> build_pick_orders
+    |> get_in(@pick_orders_key_path)
     |> Helper.wrap_prepend(:ok)
   end
 
   def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
     pick_orders
-    |> Enum.each(fn([{id_index, id_length, safe_dict} | rem_id_tups]) ->
+    |> Enum.each(fn([id_tup = {_id_index, id_length} | rem_id_tups]) ->
       branch_pid =
-        {letter_bank, id_index, safe_dict, rem_id_tups, []}
+        {letter_bank, id_tup, rem_id_tups, []}
         |> Branch.new_branch
 
       Picker
@@ -81,39 +80,5 @@ defmodule Jumble.BruteSolver.PickTree do
       branch_pid
       |> Process.exit(:normal)
     end)
-  end
-
-####################################### helpers ########################################
-# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
-  defp build_pick_orders(sol_lengths) do
-    sol_lengths
-    |> with_index_and_dict
-    |> partition_dups_by_length
-    |> Stats.uniq_pick_orders
-  end
-
-  defp with_index_and_dict(lengths) do
-    lengths
-    |> Enum.map_reduce(1, fn(length, index) ->
-      safe_dict =
-        length
-        |> ScowlDict.build_safe_dict_module
-
-      {{index, length, safe_dict}, index + 1}
-    end)
-    |> elem(0)
-  end
-
-  defp partition_dups_by_length(list) do
-    list
-    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length, _safe_dict}, {uniqs, dups, uniq_vals})->
-      if Set.member?(uniq_vals, length) do
-        {uniqs, [pick | dups], uniq_vals}
-      else
-        {[pick | uniqs], dups, Set.put(uniq_vals, length)}
-      end
-    end)
-    |> Tuple.delete_at(2)
   end
 end
