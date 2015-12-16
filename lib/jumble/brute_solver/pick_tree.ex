@@ -30,8 +30,7 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def state,                       do: GenServer.call(__MODULE__, :state)
 
-  def branch_done(branch_pid),     do: Agent.cast(:branch_stash, __MODULE__, :push_branch_pid, [branch_pid])
-  # def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
+  def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
@@ -45,9 +44,9 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
     pick_orders
-    |> Enum.each(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->
+    |> Enum.each(fn([{id_index, id_length, safe_dict} | rem_id_tups]) ->
       branch_pid =
-        {letter_bank, id_index, valid_id?, rem_id_tups, []}
+        {letter_bank, id_index, safe_dict, rem_id_tups, []}
         |> Branch.new_branch
 
       Picker
@@ -73,14 +72,6 @@ defmodule Jumble.BruteSolver.PickTree do
     {:reply, state, state}
   end
 
-  def push_branch_pid(branch_pids, branch_pid) do
-    # Countdown.reset_countdown
-
-    IO.inspect length(branch_pids)
-
-    [branch_pid | branch_pids]
-  end
-
   def terminate(:normal, branch_pids) do
     :branch_stash
     |> Agent.stop
@@ -97,26 +88,26 @@ defmodule Jumble.BruteSolver.PickTree do
 
   defp build_pick_orders(sol_lengths) do
     sol_lengths
-    |> with_index_and_validator
+    |> with_index_and_dict
     |> partition_dups_by_length
     |> Stats.uniq_pick_orders
   end
 
-  defp with_index_and_validator(lengths) do
+  defp with_index_and_dict(lengths) do
     lengths
     |> Enum.map_reduce(1, fn(length, index) ->
-      valid_id? =
+      safe_dict =
         length
-        |> ScowlDict.safe_id_validator
+        |> ScowlDict.build_safe_dict_module
 
-      {{index, length, valid_id?}, index + 1}
+      {{index, length, safe_dict}, index + 1}
     end)
     |> elem(0)
   end
 
   defp partition_dups_by_length(list) do
     list
-    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length, _valid_id?}, {uniqs, dups, uniq_vals})->
+    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length, _safe_dict}, {uniqs, dups, uniq_vals})->
       if Set.member?(uniq_vals, length) do
         {uniqs, [pick | dups], uniq_vals}
       else

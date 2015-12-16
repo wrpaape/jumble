@@ -45,7 +45,7 @@ defmodule Jumble.CLI do
   
   alias Jumble.ArgParser
   # alias Jumble.LengthDict
-  # alias Jumble.ScowlDict
+  alias Jumble.ScowlDict
   alias Jumble.NLP
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Printer
@@ -79,7 +79,7 @@ defmodule Jumble.CLI do
   def process(args) do
     args
     # |> LengthDict.start_link
-    # |> ScowlDict.start_link
+    |> ScowlDict.start_link
     |> NLP.start_link
     |> PickTree.start_link
     |> BruteSolver.start_link

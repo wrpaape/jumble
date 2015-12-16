@@ -3,7 +3,7 @@ defmodule Jumble.ArgParser do
                aliases:  [ h:    :help   ]]
 
   alias Jumble.Helper
-  alias Jumble.Helper.Stats
+  # alias Jumble.Helper.Stats
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -24,10 +24,10 @@ defmodule Jumble.ArgParser do
           |> split_on_slashes(parts: 2)
           |> parse_arg_strings
 
-        {jumble_maps, unjumbleds_length} =
+        {jumble_maps, {uniq_jumble_lengths, unjumbleds_length}} =
           jumble_strings
           |> Helper.with_index(1)
-          |> Enum.map_reduce(-1, fn({jumble_string, index}, unjumbleds_length)->
+          |> Enum.map_reduce({HashSet.new, -1}, fn({jumble_string, index}, {uniq_jumble_lengths, unjumbleds_length})->
             {jumble, keys_at} =
               jumble_string
               |> parse_arg_strings
@@ -44,12 +44,16 @@ defmodule Jumble.ArgParser do
               |> Map.put(:keys_at, keys_at)
               |> Map.put(:unjumbleds, [])
 
-            {{jumble, jumble_map}, unjumbleds_length + length_jumble + 1}
+            uniq_jumble_lengths
+            |> Set.put(length_jumble)
+            |> Helper.wrap_append(unjumbleds_length + length_jumble + 1)
+            |> Helper.wrap_prepend({jumble, jumble_map})
           end)
 
         jumble_info =
           Map.new
           |> Map.put(:jumble_maps, jumble_maps)
+          |> Map.put(:uniq_lengths, uniq_jumble_lengths)
           |> Map.put(:unjumbleds_length, unjumbleds_length)
 
         Map.new        
@@ -102,10 +106,10 @@ defmodule Jumble.ArgParser do
     |> Map.put(:letter_bank_length, letter_bank_length)
     |> Map.put(:final_length, final_sol_length + 3)
     |> Map.put(:sol_lengths, sol_lengths)
-    # |> Map.put(:uniq_lengths, uniq_lengths)
+    # |> Map.put(:uniq_lengths, Enum.into(sol_lengths, HashSet.new))
     # |> Map.put(:pick_orders, pick_orders)
-    |> Map.put(:invalid_ids, HashSet.new)
-    |> Map.put(:processed_raw, HashSet.new)
+    # |> Map.put(:invalid_ids, HashSet.new)
+    # |> Map.put(:processed_raw, HashSet.new)
     |> Map.put(:brute, brute_map)
   end
 

@@ -2,38 +2,78 @@ defmodule Jumble.ScowlDict do
   @dict_sizes Application.get_env(:jumble, :scowl_dict_sizes)
   @max_size   List.last(@dict_sizes)
 
+  @uniq_jumble_lengths_key_path ~w(jumble_info uniq_lengths)a
+
+  use GenServer
   alias Jumble.Helper
    
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def safe_id_validator(length_word) do
-    safe_dict_module =
+  # def safe_dict(length_word) do
+  #   safe_dict_module =
+  #     length_word
+  #     |> Integer.to_string
+  #     |> build_safe_dict_module
+    
+  #   &safe_dict_module.valid_id?/1
+  # end
+
+  def start_link(args) do
+    __MODULE__
+    |> GenServer.start_link(args, name: __MODULE__)
+
+    args
+  end
+
+  def safe_get(length_word, string_id), do: GenServer.call(__MODULE__, {:safe_get, length_word, string_id})
+
+
+  # def safe_get(length_word, string_id) do
+  #   length_word
+  #   |> build_all_dicts
+  #   |> Enum.find_value(&apply(&1, :get, [string_id]))
+  # end
+  
+  def build_safe_dict_module(length_word) do
+    length_str =
       length_word
       |> Integer.to_string
-      |> build_safe_dict_module
-    
-    &safe_dict_module.valid_id?/1
-  end
 
-  def safe_get(length_word, string_id) do
-    length_word
-    |> build_all_dicts
-    |> Enum.find_value(&apply(&1, :get, [string_id]))
+    @max_size
+    |> build_dict_module(length_str)
   end
-  
-
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+
+  def init(args) do
+    args
+    |> get_in(@uniq_jumble_lengths_key_path)
+    |> Enum.reduce(Map.new, fn(length_word, all_dict_modules)->
+      all_dict_modules
+      |> Map.put(length_word, build_all_dicts(length_word))
+    end)
+    |> Helper.wrap_prepend(:ok)
+  end
+
+  def handle_call({:safe_get, length_word, string_id}, _from, all_dict_modules) do
+    valid_words =
+      all_dict_modules
+      |> Map.get(length_word)
+      |> Enum.find_value(&apply(&1, :get, [string_id]))
+
+    {:reply, valid_words, all_dict_modules}
+  end
+
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+
+
   defp build_dict_module(size_str, length_str) do
     [__MODULE__, "Size" <> size_str, "Length" <> length_str]
     |> Module.safe_concat
-  end
-
-  defp build_safe_dict_module(length_str) do
-    @max_size
-    |> build_dict_module(length_str)
   end
 
   defp build_all_dicts(length_word) do
