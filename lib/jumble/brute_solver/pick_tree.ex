@@ -8,7 +8,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
-  @sol_lengths_key_path ~w(sol_info lengths)a
+  @sol_lengths_key_path ~w(sol_info sol_lengths)a
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#

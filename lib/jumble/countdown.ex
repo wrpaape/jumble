@@ -20,6 +20,8 @@ defmodule Jumble.Countdown do
       opts
       |> fetch_args
 
+    IO.puts timeout
+
     prompt
     |> IO.puts
 

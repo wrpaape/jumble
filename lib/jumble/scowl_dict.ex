@@ -13,18 +13,13 @@ defmodule Jumble.ScowlDict do
       |> Integer.to_string
       |> build_safe_dict_module
     
-    safe_dict_module.valid_id?/1
+    &safe_dict_module.valid_id?/1
   end
 
-  def safe_getter(length_word) do
-    all_dicts =
-      length_word
-      |> build_all_dicts
-
-    fn(string_id)->
-      all_dicts
-      |> Enum.find_value(&apply(&1, :get, [string_id]))
-    end
+  def safe_get(length_word, string_id) do
+    length_word
+    |> build_all_dicts
+    |> Enum.find_value(&apply(&1, :get, [string_id]))
   end
   
 
