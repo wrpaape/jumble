@@ -66,11 +66,12 @@ defmodule Jumble.BruteSolver.PickTree do
     {:reply, state, state}
   end
 
-  # def handle_cast(:shutdown, _branch_pids), do: {:stop, :shutdown}
+  def handle_cast(:shutdown, _branch_pids), do: {:stop, :shutdown}
 
-  # def terminate(:shutdown, branch_pids) do
-  #   IO.puts "killing self"
-  #   branch_pids
-  #   |> Enum.each(&Agent.stop(&1, :infinity))
-  # end
+  def terminate(:shutdown, branch_pids) do
+    IO.puts "killing self"
+    branch_pids
+    |> Enum.shuffle
+    |> Enum.each(&Agent.stop(&1, :infinity))
+  end
 end
