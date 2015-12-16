@@ -4,6 +4,8 @@ defmodule Jumble.Unjumbler do
   alias Jumble.ScowlDict
   alias IO.ANSI
 
+  @jumble_maps_key_path ~w(jumble_info jumble_maps)a
+
   @jumble_spacer       "\n\n" <> ANSI.magenta
   @unjumbled_spacer    "\n  " <> ANSI.blue
   @cc_spacer             ". " <> ANSI.red
@@ -16,8 +18,9 @@ defmodule Jumble.Unjumbler do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def start_link(args = %{jumble_info: %{jumble_maps: jumble_maps}}) do
-    Agent.start_link(fn -> jumble_maps end, name: __MODULE__)
+  def start_link(args) do
+    Kernel
+    |> Agent.start_link(:get_in, [args, @jumble_maps_key_path], name: __MODULE__)
 
     args
   end
