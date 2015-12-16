@@ -21,7 +21,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def handle_letters({rem_letters, {id_index, valid_id?}, [{next_id_index, next_id_length, next_valid_id?} | rem_id_tups], acc_ids}, letters) do
+  def handle_letters({rem_letters, id_index, valid_id?, [{next_id_index, next_id_length, next_valid_id?} | rem_id_tups], acc_ids}, letters) do
     finished_id =
       letters
       |> Enum.join
@@ -34,7 +34,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
         rem_letters -- letters
 
       next_branch_pid =
-        {next_rem_letters, {next_id_index, next_valid_id?}, rem_id_tups, next_acc_ids}
+        {next_rem_letters, next_id_index, next_valid_id?, rem_id_tups, next_acc_ids}
         |> new_branch
 
       {rem_letters, next_id_length, next_branch_pid}
@@ -44,7 +44,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
     end
   end
 
-  def handle_letters({_done, {id_index, valid_id?}, [], acc_ids}, letters) do
+  def handle_letters({_done, id_index, valid_id?, [], acc_ids}, letters) do
     last_finished_id =
       letters
       |> Enum.join

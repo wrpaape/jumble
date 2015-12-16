@@ -30,6 +30,7 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def state,                       do: GenServer.call(__MODULE__, :state)
 
+  # def branch_done(branch_pid),     do: Agent.cast(:branch_stash, __MODULE__, :push_branch_pid, [branch_pid])
   def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
@@ -46,7 +47,7 @@ defmodule Jumble.BruteSolver.PickTree do
     pick_orders
     |> Enum.each(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->
       branch_pid =
-        {letter_bank, {id_index, valid_id?}, rem_id_tups, []}
+        {letter_bank, id_index, valid_id?, rem_id_tups, []}
         |> Branch.new_branch
 
       Picker
@@ -58,6 +59,9 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def handle_cast({:put_ids, string_ids}, valid_ids) do
     Countdown.reset_countdown
+    
+    string_ids
+    |> IO.inspect
 
     valid_ids
     |> Set.put(string_ids)
@@ -70,6 +74,12 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def handle_call(:state, _from, state) do
     {:reply, state, state}
+  end
+
+  def push_branch_pid(branch_pids, branch_pid) do
+    # Countdown.reset_countdown
+
+    [branch_pid | branch_pids]
   end
 
   def terminate(:normal, branch_pids) do
