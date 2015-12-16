@@ -81,8 +81,8 @@ defmodule Jumble.CLI do
     # |> LengthDict.start_link
     # |> ScowlDict.start_link
     |> NLP.start_link
-    |> BruteSolver.start_link
     |> PickTree.start_link
+    |> BruteSolver.start_link
     |> Unjumbler.start_link
     |> Printer.start_link
 

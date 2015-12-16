@@ -6,7 +6,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 
   def new_branch(root_state) do
     {:ok, branch_pid} =
-      Agent.start_link(fn ->
+      Agent.start(fn ->
         root_state
       end)
 
@@ -38,9 +38,9 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
         |> new_branch
 
       {rem_letters, next_id_length, next_branch_pid}
-    # else
-      # self
-      # |> PickTree.branch_done
+    else
+      self
+      |> PickTree.branch_done
     end
   end
 
@@ -49,6 +49,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
       letters
       |> Enum.join
 
+
     if valid_id?.(last_finished_id) do
       [{id_index, last_finished_id} | acc_ids]
       |> Enum.sort
@@ -56,7 +57,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
       |> PickTree.put_ids
     end
 
-    # self
-    # |> PickTree.branch_done
+    self
+    |> PickTree.branch_done
   end
 end
