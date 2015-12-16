@@ -74,19 +74,22 @@ defmodule Jumble.ArgParser do
         {letter_bank_length + sol_length * 2, final_sol_length + sol_length + 1}
       end)
 
-    {uniq_sol_lengths, dup_tail} =
-      sol_lengths
-      |> Helper.with_index(1, :leading)
-      |> partition_dups_by_val
+    # {uniq_sol_lengths, dup_tail} =
+    #   sol_lengths
+    #   |> Helper.with_index(1, :leading)
+    #   |> partition_dups_by_val
 
-    pick_orders =
-      uniq_sol_lengths
-      |> Stats.uniq_pick_orders(dup_tail)
+    # pick_orders =
+    #   uniq_sol_lengths
+    #   |> Stats.uniq_pick_orders(dup_tail)
+
+    # uniq_lengths =
+    #   uniq_sol_lengths
+    #   |> Keyword.values
+    #   |> Enum.into(HashSet.new)
 
     uniq_lengths =
-      uniq_sol_lengths
-      |> Keyword.values
-      |> Enum.into(HashSet.new)
+      sol_lengths
 
     counts_map =
       Map.new
@@ -104,7 +107,7 @@ defmodule Jumble.ArgParser do
     |> Map.put(:final_length, final_sol_length + 3)
     |> Map.put(:sol_lengths, sol_lengths)
     |> Map.put(:uniq_lengths, uniq_lengths)
-    |> Map.put(:pick_orders, pick_orders)
+    # |> Map.put(:pick_orders, pick_orders)
     |> Map.put(:invalid_ids, HashSet.new)
     |> Map.put(:processed_raw, HashSet.new)
     |> Map.put(:brute, brute_map)

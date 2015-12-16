@@ -50,7 +50,7 @@ defmodule Jumble.BruteSolver do
     end
 
     Kernel
-    |> Agent.start_link(:update_in, [args, [:jumble_info, :jumble_maps], into_map], name: __MODULE__)
+    |> Agent.start_link(:update_in, [args, @jumble_maps_key_path, into_map], name: __MODULE__)
 
     @rem_continues_key_path
     |> put_in_agent(@num_scowl_dicts)

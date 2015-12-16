@@ -6,6 +6,15 @@ defmodule Jumble.ScowlDict do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
+  def id_validator(length_word) do
+    safe_module =
+      length_word
+      |> get_in_sizes_map(:all_modules)
+      |> List.last
+
+    &safe_module.valid_id?/1
+  end
+
   def safe_get(length_word, string_id) do
     length_word
     |> get_in_sizes_map(:all_modules)
