@@ -1,6 +1,4 @@
 defmodule Jumble.BruteSolver.PickTree.Branch do
-  @branch_process_timeout 1000
-
   alias Jumble.BruteSolver.PickTree
   alias Jumble.ScowlDict
 
@@ -9,18 +7,11 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 
   def new_branch(root_state) do
     {:ok, branch_pid} =
-      Agent.start_link(fn ->
+      Agent.start(fn ->
         root_state
       end)
 
     branch_pid
-  end
-
-  def stop_branch(branch_pid) do
-    @branch_process_timeout
-    |> :timer.apply_after(Agent, :stop, [branch_pid])
-
-    :done
   end
 
   def next_branch_state(branch_pid, finished_letters) do
@@ -31,8 +22,9 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           finished_letters
           |> Enum.join
 
-
-        if ScowlDict.safe_valid_id?(id_length, finished_id) do
+        id_length
+        |> ScowlDict.safe_valid_id?(finished_id)
+        |> if do
           acc_fininished_ids =
             [{id_index, finished_id} | last_acc_finished_ids]
 
@@ -45,8 +37,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 
           {rem_letters, next_id_length, next_branch_pid}
         else
-          branch_pid
-          |> stop_branch
+          PickTree.branch_done
         end
 
       ({_done, {last_id_index, last_id_length}, [], last_acc_finished_ids}) ->
@@ -54,15 +45,16 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           finished_letters
           |> Enum.join
 
-        if ScowlDict.safe_valid_id?(last_id_length, last_finished_id) do
+        last_id_length
+        |> ScowlDict.safe_valid_id?(last_finished_id)
+        |> if do
           [{last_id_index, last_finished_id} | last_acc_finished_ids]
           |> Enum.sort
           |> Keyword.values
           |> PickTree.put_ids
         end
 
-        branch_pid
-        |> stop_branch
+        PickTree.branch_done
     end)
   end
 
