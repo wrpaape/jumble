@@ -1,11 +1,3 @@
-defmodule Jumble.ScowlDict.Size70.Length30 do
-  def get(string_id) do
-    %{"aadeehiiilmnnoooooppppqrsssttu" => ["hippopotomonstrosesquipedalian"]}
-    |> Map.get(string_id)
-  end
+import Jumble.ScowlDict.Builder.ServerBuilder
 
-  def valid_ids do
-    ["aadeehiiilmnnoooooppppqrsssttu"]
-    |> Enum.into(HashSet.new)
-  end
-end
+build_server(70, 30)

@@ -30,8 +30,8 @@ config :jumble,
   [
     dict_path:        Path.join(~w(/ usr share dict words)),
     length_dict_dir:  length_dict_dir,
-    scowl_dict_dir:   scowl_dict_dir,
     scowl_dir:        scowl_dir,
+    scowl_dict_dir:   scowl_dict_dir,
     scowl_dict_sizes: scowl_dict_sizes,
     num_scowl_dicts:  length(scowl_dict_sizes)
   ]
