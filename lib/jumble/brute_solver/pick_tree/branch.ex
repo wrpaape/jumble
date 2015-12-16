@@ -37,7 +37,8 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 
           {rem_letters, next_id_length, next_branch_pid}
         else
-          PickTree.branch_done
+          branch_pid
+          |> PickTree.branch_done
         end
 
       ({_done, {last_id_index, last_id_length}, [], last_acc_finished_ids}) ->
@@ -54,7 +55,8 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           |> PickTree.put_ids
         end
 
-        PickTree.branch_done
+        branch_pid
+        |> PickTree.branch_done
     end)
   end
 

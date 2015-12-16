@@ -1,3 +1,19 @@
-import Jumble.ScowlDict.Builder.ServerBuilder
+defmodule Jumble.ScowlDict.Size95.Length14 do
+  @dict __MODULE__
+    |> Module.concat(Dict)
+    |> apply(:get, [])
 
-build_server(95, 14)
+  @valid_ids @dict
+    |> Map.keys
+    |> Enum.into(HashSet.new)
+
+  def get(string_id) do
+    @dict
+    |> Map.get(string_id)
+  end
+
+  def valid_id?(string_id) do
+    @valid_ids
+    |> Set.member?(string_id)
+  end
+end

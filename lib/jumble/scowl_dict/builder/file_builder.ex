@@ -55,10 +55,31 @@ defmodule Jumble.ScowlDict.Builder.FileBuilder do
         |> dict_module(length_string)
 
       server_contents =
-        """
-        import Jumble.ScowlDict.Builder.ServerBuilder
+        # """
+        # import Jumble.ScowlDict.Builder.ServerBuilder
 
-        build_server(#{dict_size}, #{length_string})
+        # build_server(#{dict_size}, #{length_string})
+        # """
+        """
+        defmodule #{String.replace(dict_module, ~r/\.Dict$/, "")} do
+          @dict __MODULE__
+            |> Module.concat(Dict)
+            |> apply(:get, [])
+
+          @valid_ids @dict
+            |> Map.keys
+            |> Enum.into(HashSet.new)
+
+          def get(string_id) do
+            @dict
+            |> Map.get(string_id)
+          end
+
+          def valid_id?(string_id) do
+            @valid_ids
+            |> Set.member?(string_id)
+          end
+        end
         """
 
       dict_contents =

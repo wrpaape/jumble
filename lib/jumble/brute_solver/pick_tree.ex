@@ -6,12 +6,16 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.Countdown
   alias Jumble.Helper
 
+  @pick_orders_key_path ~w(sol_info pick_orders)a
+
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def start_link(args = %{sol_info: sol_info}) do
+  def start_link(args) do
     __MODULE__
-    |> GenServer.start_link(sol_info, name: __MODULE__)
+    |> GenServer.start_link(args, name: __MODULE__)
+
+    Agent.start_link(fn -> [] end, name: :branch_stash)
 
     args
   end
@@ -20,19 +24,22 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def put_ids(string_ids),         do: GenServer.cast(__MODULE__, {:put_ids, string_ids})
 
-  def branch_done,                 do: GenServer.call(__MODULE__, :branch_done)
-
   def dump_ids,                    do: GenServer.call(__MODULE__, :dump_ids)
 
   def state,                       do: GenServer.call(__MODULE__, :state)
 
+  def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
+
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def init(sol_info), do: {:ok, {{HashSet.new, []}, sol_info}}
-  # def init(sol_info), do: {:ok, {{[], []}, sol_info}}
+  def init(args) do 
+    args
+    |> get_in(@pick_orders_key_path)
+    |> Helper.wrap_prepend(:ok)
+  end
 
-  def handle_cast({:pick_valid_ids, letter_bank}, initial_state = {_acc_tup, %{pick_orders: pick_orders}}) do
+  def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
     pick_orders
     |> Enum.each(fn([first_id_tup = {_first_id_index, first_id_length} | rem_id_tups]) ->
       branch_pid =
@@ -43,29 +50,19 @@ defmodule Jumble.BruteSolver.PickTree do
       |> spawn(:start_next_id, [{letter_bank, first_id_length, branch_pid}])
     end)
 
-    {:noreply, initial_state}
+    {:noreply, HashSet.new}
   end
 
-  def handle_cast({:put_ids, string_ids}, {{valid_ids, branch_pids}, sol_info}) do
+  def handle_cast({:put_ids, string_ids}, valid_ids) do
     Countdown.reset_countdown
 
-    {:noreply, {{Set.put(valid_ids, string_ids), branch_pids}, sol_info}}
+    valid_ids
+    |> Set.put(string_ids)
+    |> Helper.wrap_prepend(:noreply)
   end
 
-  # def handle_cast({:put_ids, string_ids}, {{valid_ids, branch_pids}, sol_info}) do
-  #   Countdown.reset_countdown
-
-  #   {:noreply, {{[string_ids | valid_ids], branch_pids}, sol_info}}
-  # end
-
-  def handle_call(:branch_done, {branch_pid, _ref}, {{valid_ids, branch_pids}, sol_info}) do
-    Countdown.reset_countdown
-
-    {:reply, :done, {{valid_ids, [branch_pid | branch_pids]}, sol_info}}
-  end
-
-  def handle_call(:dump_ids, _from, {{final_ids, branch_pids}, _sol_info}) do
-    {:stop, :normal, final_ids, branch_pids}
+  def handle_call(:dump_ids, _from, final_ids) do
+    {:stop, :normal, final_ids, Agent.get(:branch_stash, & &1)}
   end
 
   def handle_call(:state, _from, state) do
@@ -73,6 +70,9 @@ defmodule Jumble.BruteSolver.PickTree do
   end
 
   def terminate(:normal, branch_pids) do
+    :branch_stash
+    |> Agent.stop
+
     branch_pids
     |> Enum.each(fn(branch_pid)->
       branch_pid
