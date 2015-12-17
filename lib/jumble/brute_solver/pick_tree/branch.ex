@@ -101,14 +101,14 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
           acc_fininished_ids =
             [{id_index, finished_id} |  acc_ids]
 
-          rem_letters =
+          next_rem_letters =
               last_rem_letters -- finished_letters
 
           next_branch_pid =
             {rem_letters, next_id_tup, rem_id_tups, acc_fininished_ids}
             |> new_branch
 
-          {rem_letters, next_id_length, next_branch_pid}
+          {next_rem_letters, next_id_length, next_branch_pid}
         else
           branch_pid
           |> PickTree.branch_done
