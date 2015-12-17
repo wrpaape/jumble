@@ -16,10 +16,11 @@ defmodule Jumble.ScowlDict.Builder.FileBuilder do
     |> String.replace(~r/(?<=\n)/, @indent)
   end
 
-  defp dict_module(dict_size, length_string) do
-    ".Length"
-    |> Helper.cap(dict_size, length_string)
-    |> Helper.cap("Jumble.ScowlDict.Size", ".Dict")
+  defp build_server_module(dict_size, length_string) do
+    "Jumble.ScowlDict.Size"
+    <> dict_size
+    <> ".Length"
+    <> length_string
   end
 
   def clear_files do
@@ -50,41 +51,22 @@ defmodule Jumble.ScowlDict.Builder.FileBuilder do
         string_ids_map
         |> format
 
-      dict_module = 
+      server_module = 
         dict_size
-        |> dict_module(length_string)
+        |> build_server_module(length_string)
 
       server_contents =
-        # """
-        # import Jumble.ScowlDict.Builder.ServerBuilder
-
-        # build_server(#{dict_size}, #{length_string})
-        # """
         """
-        defmodule #{String.replace(dict_module, ~r/\.Dict$/, "")} do
-          @dict __MODULE__
-            |> Module.concat(Dict)
-            |> apply(:get, [])
+        defmodule #{server_module} do
+          import Jumble.ScowlDict.Builder.ServerBuilder
 
-          @valid_ids @dict
-            |> Map.keys
-            |> Enum.into(HashSet.new)
-
-          def get(string_id) do
-            @dict
-            |> Map.get(string_id)
-          end
-
-          def valid_id?(string_id) do
-            @valid_ids
-            |> Set.member?(string_id)
-          end
+          build_server
         end
         """
 
       dict_contents =
         """
-        defmodule #{dict_module} do
+        defmodule #{server_module}.Dict do
           def get do
             #{printed_map}
           end

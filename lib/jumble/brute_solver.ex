@@ -29,7 +29,7 @@ defmodule Jumble.BruteSolver do
     [
       prompt: ANSI.blue <> "picking valid ids for:\n\n ",
       task: {PickTree, :pick_valid_ids},
-      timeout: 30,
+      timeout: 100,
       ticker_int: 17
     ],
     [
@@ -68,7 +68,7 @@ defmodule Jumble.BruteSolver do
     |> get_in_agent
     |> retrieve_unjumbleds_info
     |> retrieve_picks_info
-    # |> brute_solve
+    |> brute_solve
   end
 
   def request_continue do
@@ -92,25 +92,25 @@ defmodule Jumble.BruteSolver do
   end
 
   defp solve_next do
-    # rem_continues =
-    #   @rem_continues_key_path
-    #   |> get_and_inc_in_agent(-1)
+    rem_continues =
+      @rem_continues_key_path
+      |> get_and_inc_in_agent(-1)
 
-    # if rem_continues > 0 do
-    #   @letter_bank_info_key_path
-    #   |> get_in_agent
-    #   |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
-    #     timer_opts
-    #     |> Countdown.time_async
-    #     |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_ids)
-    #   end)
+    if rem_continues > 0 do
+      @letter_bank_info_key_path
+      |> get_in_agent
+      |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
+        timer_opts
+        |> Countdown.time_async
+        |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_ids)
+      end)
 
-    #   @sols_key_path
-    #   |> get_in_agent
-    #   |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
+      @sols_key_path
+      |> get_in_agent
+      |> Printer.print_solutions(get_in_agent(@max_group_size_key_path))
 
-    #   request_continue
-    # end
+      request_continue
+    end
   end
 
   defp retrieve_unjumbleds_info(jumble_maps) do
