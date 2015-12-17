@@ -10,14 +10,13 @@ defmodule Jumble.ScowlDict do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  # def safe_dict(length_word) do
-  #   safe_dict_module =
-  #     length_word
-  #     |> Integer.to_string
-  #     |> build_safe_dict_module
+  def safe_id_validator(length_word) do
+    safe_size_dict_module =
+      length_word
+      |> safe_size
     
-  #   &safe_dict_module.valid_id?/1
-  # end
+    &safe_size_dict_module.valid_id?/1
+  end
 
   def start_link(args) do
     __MODULE__
@@ -28,43 +27,47 @@ defmodule Jumble.ScowlDict do
 
   def safe_get(length_word, string_id),  do: GenServer.call(__MODULE__, {:safe_get, length_word, string_id})
 
-  def valid_id?(length_word, string_id), do: GenServer.call(__MODULE__, {:valid_id?, length_word, string_id})
+  def shutdown,                          do: GenServer.cast(__MODULE__, :shutdown)
+
+  # def valid_id?(length_word, string_id), do: GenServer.call(__MODULE__, {:valid_id?, length_word, string_id})
   
-  def swap_dicts,                        do: GenServer.cast(__MODULE__, :swap_dicts)
+  # def swap_dicts,                        do: GenServer.cast(__MODULE__, :swap_dicts)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def init(%{jumble_info: %{uniq_lengths: uniq_jumble_lengths}, sol_info: %{uniq_lengths: uniq_sol_lengths}}) do
-    uniq_jumble_lengths
+  def init(args) do
+    args
+    |> get_in(@uniq_jumble_lengths_key_path)
     |> build_length_dict(&all_sizes/1)
-    |> Helper.wrap_append(uniq_sol_lengths)
     |> Helper.wrap_prepend(:ok)
   end
 
-  def handle_call({:safe_get, length_word, string_id}, _from, state = {length_dict, _uniq_sol_lengths}) do
+  def handle_call({:safe_get, length_word, string_id}, _from, length_dict) do
     valid_words =
       length_dict
       |> Map.get(length_word)
       |> Enum.find_value(&apply(&1, :get, [string_id]))
 
-    {:reply, valid_words, state}
+    {:reply, valid_words, length_dict}
   end
 
-  def handle_call({:valid_id?, length_word, string_id}, _from, length_dict) do
-    id_valid? =
-      length_dict
-      |> Map.get(length_word)
-      |> apply(:valid_id?, [string_id])
+  def handle_cast(:shutdown, _drop_dict), do: exit(:normal)
 
-    {:reply, id_valid?, length_dict}
-  end
+  # def handle_call({:valid_id?, length_word, string_id}, _from, length_dict) do
+  #   id_valid? =
+  #     length_dict
+  #     |> Map.get(length_word)
+  #     |> apply(:valid_id?, [string_id])
 
-  def handle_cast(:swap_dicts, {_drop_dict, uniq_sol_lengths}) do
-    uniq_sol_lengths
-    |> build_length_dict(&safe_size/1)
-    |> Helper.wrap_prepend(:noreply)
-  end
+  #   {:reply, id_valid?, length_dict}
+  # end
+
+  # def handle_cast(:swap_dicts, {_drop_dict, uniq_sol_lengths}) do
+  #   uniq_sol_lengths
+  #   |> build_length_dict(&safe_size/1)
+  #   |> Helper.wrap_prepend(:noreply)
+  # end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#

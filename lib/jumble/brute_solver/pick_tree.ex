@@ -8,7 +8,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
-  @pick_orders_key_path ~w(sol_info pick_orders)a
+   @sol_lengths_key_path ~w(sol_info sol_lengths)a
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -37,15 +37,30 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def init(args) do 
     args
-    |> get_in(@pick_orders_key_path)
+    |> get_in(@sol_lengths_key_path)
+    |> build_pick_orders
     |> Helper.wrap_prepend(:ok)
   end
 
+  # def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
+  #   pick_orders
+  #   |> Enum.each(fn([id_tup = {_id_index, id_length} | rem_id_tups]) ->
+  #     branch_pid =
+  #       {letter_bank, id_tup, rem_id_tups, []}
+  #       |> Branch.new_branch
+
+  #     Picker
+  #     |> spawn(:start_next_id, [{letter_bank, id_length, branch_pid}])
+  #   end)
+
+  #   {:noreply, HashSet.new}
+  # end
+
   def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
     pick_orders
-    |> Enum.each(fn([id_tup = {_id_index, id_length} | rem_id_tups]) ->
+    |> Enum.each(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->
       branch_pid =
-        {letter_bank, id_tup, rem_id_tups, []}
+        {letter_bank, {id_index, valid_id?}, rem_id_tups, []}
         |> Branch.new_branch
 
       Picker
@@ -80,5 +95,39 @@ defmodule Jumble.BruteSolver.PickTree do
       branch_pid
       |> Process.exit(:normal)
     end)
+  end
+
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  defp build_pick_orders(sol_lengths) do
+    sol_lengths
+    |> with_index_and_validator
+    |> partition_dups_by_length
+    |> Stats.uniq_pick_orders
+  end
+
+  defp with_index_and_validator(lengths) do
+    lengths
+    |> Enum.map_reduce(1, fn(length, index) ->
+      valid_id? =
+        length
+        |> ScowlDict.safe_id_validator
+
+      {{index, length, valid_id?}, index + 1}
+    end)
+    |> elem(0)
+  end
+
+  defp partition_dups_by_length(list) do
+    list
+    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length, _valid_id?}, {uniqs, dups, uniq_vals})->
+      if Set.member?(uniq_vals, length) do
+        {uniqs, [pick | dups], uniq_vals}
+      else
+        {[pick | uniqs], dups, Set.put(uniq_vals, length)}
+      end
+    end)
+    |> Tuple.delete_at(2)
   end
 end

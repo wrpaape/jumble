@@ -9,7 +9,9 @@ defmodule Jumble do
     
     Unjumbler.process
 
-    ScowlDict.swap_dicts
+    # ScowlDict.swap_dicts
+
+    ScowlDict.shutdown
 
     BruteSolver.process
   end
