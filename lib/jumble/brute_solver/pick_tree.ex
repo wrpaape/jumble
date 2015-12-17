@@ -42,20 +42,6 @@ defmodule Jumble.BruteSolver.PickTree do
     |> Helper.wrap_prepend(:ok)
   end
 
-  # def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
-  #   pick_orders
-  #   |> Enum.each(fn([id_tup = {_id_index, id_length} | rem_id_tups]) ->
-  #     branch_pid =
-  #       {letter_bank, id_tup, rem_id_tups, []}
-  #       |> Branch.new_branch
-
-  #     Picker
-  #     |> spawn(:start_next_id, [{letter_bank, id_length, branch_pid}])
-  #   end)
-
-  #   {:noreply, HashSet.new}
-  # end
-
   def handle_cast({:pick_valid_ids, letter_bank}, pick_orders) do
     pick_orders
     |> Enum.each(fn([{id_index, id_length, valid_id?} | rem_id_tups]) ->

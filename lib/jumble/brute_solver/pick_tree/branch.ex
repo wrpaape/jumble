@@ -22,10 +22,6 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  # def handle_letters({last_rem_letters, {id_index, valid_id?}, [next_id_tup = {_next_id_index, next_id_length} | rem_id_tups], acc_ids}, letters, finished_id) do
-    # id_length
-    # |> ScowlDict.valid_id?(finished_id)
-    # |> if do
   def handle_letters({last_rem_letters, {id_index, valid_id?}, [{next_id_index, next_id_length, next_valid_id?} | rem_id_tups], acc_ids}, letters, finished_id) do
     if valid_id?.(finished_id) do
       next_acc_ids =
@@ -45,22 +41,9 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
     end
   end
 
-  # def handle_letters({_done, {id_index, id_length}, [], acc_ids}, letters, finished_id) do
-  #   id_length
-  #   |> ScowlDict.valid_id?(finished_id)
-  #   |> if do
-  #     [{id_index, finished_id} | acc_ids]
-  #     |> Enum.sort
-  #     |> Keyword.values
-  #     |> PickTree.put_ids
-  #   end
-
-  #   self
-  #   |> PickTree.branch_done
-  # end
-  def handle_letters({_done, {id_index, valid_id?}, [], acc_ids}, letters, finished_id) do
-    if valid_id?.(finished_id) do
-      [{id_index, finished_id} | acc_ids]
+  def handle_letters({_done, {id_index, valid_id?}, [], acc_ids}, letters, last_finished_id) do
+    if valid_id?.(last_finished_id) do
+      [{id_index, last_finished_id} | acc_ids]
       |> Enum.sort
       |> Keyword.values
       |> PickTree.put_ids
