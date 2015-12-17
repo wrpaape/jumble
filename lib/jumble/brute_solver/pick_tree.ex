@@ -31,11 +31,6 @@ defmodule Jumble.BruteSolver.PickTree do
   def state,                       do: GenServer.call(__MODULE__, :state)
 
   def branch_done(branch_pid),     do: Agent.cast(:branch_stash, &[branch_pid | &1])
-  # def branch_done(branch_pid),     do: Agent.cast(:branch_stash, fn(stash)->
-  #   Countdown.reset_countdown
-    
-  #   [branch_pid | stash]
-  # end)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################

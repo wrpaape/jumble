@@ -44,11 +44,13 @@ defmodule Jumble.CLI do
   # rip CPU
   
   alias Jumble.ArgParser
+  alias Jumble.StateBuilder
   # alias Jumble.LengthDict
   alias Jumble.ScowlDict
   alias Jumble.NLP
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Printer
+  alias Jumble.BruteSolver.Reporter
   alias Jumble.BruteSolver
   alias Jumble.Unjumbler
 
@@ -86,6 +88,8 @@ defmodule Jumble.CLI do
     |> BruteSolver.start_link
     |> Unjumbler.start_link
     |> Printer.start_link
+
+    Reporter.start_link
 
     Jumble.process
   end

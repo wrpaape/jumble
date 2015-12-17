@@ -4,19 +4,18 @@ defmodule Jumble.StateBuilder do
   # alias Jumble.Helper.Stats
 
   def build_state([clue_string | jumble_strings]) do
-        sol_info =
-          clue_string
-          |> split_on_slashes(parts: 2)
-          |> parse_arg_strings
+    sol_info =
+      clue_string
+      |> split_on_slashes(parts: 2)
+      |> parse_arg_strings
 
-        jumble_info =
-          jumble_strings
-          |> build_jumble_info
+    jumble_info =
+      jumble_strings
+      |> build_jumble_info
 
-        Map.new        
-        |> Map.put(:sol_info, sol_info)
-        |> Map.put(:jumble_info, jumble_info)
-    end
+    Map.new        
+    |> Map.put(:sol_info, sol_info)
+    |> Map.put(:jumble_info, jumble_info)
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#

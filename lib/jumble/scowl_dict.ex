@@ -81,7 +81,7 @@ defmodule Jumble.ScowlDict do
     end)
   end
 
-  def handle_cast(:swap_dict, _from, {_drop_dict, sol_lengths}) do
+  def handle_cast(:swap_dict, {_drop_dict, sol_lengths}) do
     next_length_dict = 
       sol_lengths
       |> Enum.uniq

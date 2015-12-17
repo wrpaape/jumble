@@ -2,7 +2,7 @@ defmodule Jumble.ArgParser do
   @parse_opts [switches: [ help: :boolean],
                aliases:  [ h:    :help   ]]
 
-  alias Jumble.Helper
+  # alias Jumble.Helper
   # alias Jumble.Helper.Stats
 
 ##################################### external API #####################################
@@ -149,4 +149,4 @@ end
 #     string
 #     |> String.split(~r{/}, opts)
 #   end
-end
+# end
