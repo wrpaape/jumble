@@ -6,6 +6,14 @@ defmodule Jumble.BruteSolver.Solver do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
+  @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
+  @rem_continues_key_path    ~w(sol_info rem_continues)a
+
+  @continue_prompt "\n\n  continue? (y/n)\n  "
+    |> Helper.cap(ANSI.white, ANSI.blink_slow)
+    |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
+    
+
   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
   def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do

@@ -35,8 +35,11 @@ defmodule Jumble.Unjumbler do
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
-
+  
   defp unjumble(jumble_maps) do
+    __MODULE__
+    |> Agent.stop
+
     jumble_maps
     |> Enum.map_join(@jumble_spacer, fn({jumble, %{jumble_index: jumble_index, length: length, string_id: string_id, keys_at: keys_at}}) ->
       reg_match_keys =
@@ -86,12 +89,15 @@ defmodule Jumble.Unjumbler do
   end
 
   defp reg_key_letters(length, keys_at) do
-    raw = 
+    {raw, []} = 
       1..length
-      |> Enum.map_join(fn(index) ->
-        if index in keys_at, do: "(\\w)", else: "\\w"
+      |> Enum.reduce({"", Enum.sort(keys_at)}, fn
+        (match, {acc, [match | rem_keys]})-> 
+          {acc <> "(\\w)", rem_keys}
+        (_miss, {acc, keys_at})-> 
+          {acc <> "\\w", keys_at}
       end)
-    
+
     ~r/[^()]{4,}/
     |> Regex.replace(raw, fn(ws) ->
       ws

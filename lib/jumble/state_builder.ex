@@ -81,15 +81,15 @@ defmodule Jumble.StateBuilder do
     #   |> Keyword.values
     #   |> Enum.into(HashSet.new)
 
-    counts_map =
-      Map.new
-      |> Map.put(:total, 0)
-      |> Map.put(:max_group_size, 0)
+    # counts_map =
+    #   Map.new
+    #   |> Map.put(:total, 0)
+    #   |> Map.put(:max_group_size, 0)
 
-    brute_map =
-      Map.new
-      |> Map.put(:counts, counts_map)
-      |> Map.put(:sols, [])
+    # brute_map =
+    #   Map.new
+    #   |> Map.put(:counts, counts_map)
+    #   |> Map.put(:sols, [])
 
     Map.new
     |> Map.put(:clue, clue)
@@ -100,7 +100,8 @@ defmodule Jumble.StateBuilder do
     # |> Map.put(:pick_orders, pick_orders)
     # |> Map.put(:invalid_ids, HashSet.new)
     # |> Map.put(:processed_raw, HashSet.new)
-    |> Map.put(:brute, brute_map)
+    # |> Map.put(:counts, counts_map)
+    # |> Map.put(:sols, [])
   end
 
   defp parse_arg_strings(jumble_string) do

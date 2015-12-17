@@ -7,28 +7,14 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Solver
   alias Jumble.BruteSolver.Printer
-  # alias Jumble.BruteSolver.Reporter
   alias Jumble.BruteSolver.Recorder
   alias Jumble.Countdown
   alias Jumble.ScowlDict
 
-  @sol_spacer    ANSI.white <> " or\n "
-  @report_indent "\n" <> Helper.pad(4)
+  @sol_spacer         ANSI.white <> " or\n "
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
-  @continue_prompt "\n\n  continue? (y/n)\n  "
-    |> Helper.cap(ANSI.white, ANSI.blink_slow)
-    |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
-  @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
-  @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
-  @sols_key_path             ~w(sol_info brute sols)a
-  @total_key_path            ~w(sol_info brute counts total)a
-  @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
-  @rem_continues_key_path    ~w(sol_info rem_continues)a
-  
-  @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
-  @show_num_results 10
   @process_timer_opts [
     [
       prompt: ANSI.blue <> "picking valid ids for:\n\n ",
@@ -53,37 +39,45 @@ defmodule Jumble.BruteSolver do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def start_link(args), do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
-    Kernel
-    |> Gens.start_link(:update_in, [args, @jumble_maps_key_path, Enum.into(&1, Map.new)], name: __MODULE__)
-
-
-
-    # @rem_continues_key_path
-    # |> put_in_agent(@num_scowl_dicts)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
 
     args
   end
 
   def push_unjumbled(jumble, unjumbled, key_letters) do
-    [:jumble_info, :jumble_maps, jumble, :unjumbleds]
-    |> push_in_agent({unjumbled, key_letters})
+    __MODULE__
+    |> GenServer.cast({:push_unjumbled, jumble, unjumbled, key_letters})
   end
 
-  def process do
-    @jumble_maps_key_path
-    |> get_in_agent
-    |> process_unjumbleds
-    |> retrieve_picks_info
-    |> rank_picks
-  end
-
-
+  def process, do: GenServer.cast(__MODULE__, :process)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  defp rank_picks(picks_info) do
+  def init(args) do
+    args
+    |> get_in(@jumble_maps_key_path)
+    |> Enum.into(&1, Map.new)
+    |> Helper.wrap_prepend(:ok)
+  end
+
+  def handle_cast({:push_unjumbled, jumble, unjumbled, key_letters}, jumble_maps) do
+    jumble_maps
+    |> update_in([jumble, :unjumbleds], &[{unjumbled, key_letters} | &1])
+    |> Helper.wrap_prepend(:noreply)
+  end
+
+  def handle_cast(:process, jumble_maps) do
+    jumble_maps
+    |> process_unjumbleds
+    |> pick_valid_ids
+    |> rank_picks
+    |> Helper.wrap_prepend(:noreply)
+  end
+
+
+  defp rank_picks({total, max_group_size, picks_info}) do
     picks_info
     |> Enum.each(fn({letter_bank, [inc_rank_picks_timer_opts | rem_inc_timer_opts], unjumbleds_tup, num_uniqs, picks})->
       inc_rank_picks_timer_opts
@@ -112,9 +106,9 @@ defmodule Jumble.BruteSolver do
     end)
   end
 
-  defp retrieve_picks_info(unjumbleds_info) do
+  defp pick_valid_ids(unjumbleds_info) do
     unjumbleds_info
-    |> Enum.each(fn({letter_bank, unjumbleds})->
+    |> Enum.reduce({0, 0, []}, fn({letter_bank, unjumbleds}, picks_tup)->
       letter_bank_string =
         letter_bank
         |> Enum.join(" ")
@@ -127,16 +121,73 @@ defmodule Jumble.BruteSolver do
       inc_pick_tree_timer_opts
       |> append_task_args([letter_bank])
       |> Countdown.time_async
-      |> Recorder.handle_pick_info(letter_bank_string, rem_inc_timer_opts, unjumbleds, PickTree.dump_ids)
+      |> process_picks(letter_bank_string, rem_inc_timer_opts, unjumbleds, PickTree.dump_ids, picks_tup)
     end)
-    @sols_key_path
-    |> get_in_agent
   end
 
+  defp process_picks(time_elapsed, letter_bank_string, rem_inc_timer_opts, unjumbleds, picks, {total, max_group_size, picks_info}) do
+    num_uniqs =
+      picks
+      |> Set.size
 
+    total = total + num_uniqs
+
+    total
+    |> Reporter.report_picks(num_uniqs, time_elapsed)
+
+    if num_uniqs > 0 do
+      group_size =
+        unjumbleds
+        |> length
+
+      unjumbleds_tup =
+        unjumbleds
+        |> Helper.wrap_append(group_size)
+
+      pick_info = {ANSI.magenta <> letter_bank_string, rem_inc_timer_opts, unjumbleds_tup, num_uniqs, picks}
+      
+      max_group_size =
+        max_group_size
+        |> max(group_size)
+
+      picks_info = [pick_info | picks_info]
+    end
+
+    {total, max_group_size, picks_info}
+  end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  defp complete_timer_prompts(unjumbleds, letter_bank_string) do
+    unjumbleds_string = 
+      unjumbleds
+      |> Enum.join(@sol_spacer)
+
+    prompt_suffix =
+      "\n  " 
+      |> Helper.cap(unjumbleds_string, letter_bank_string)
+
+    @process_timer_opts
+    |> Enum.map(fn(inc_timer_opts)->
+      inc_timer_opts
+      |> Keyword.update!(:prompt, &(&1 <> prompt_suffix))
+    end)
+  end
+
+  defp append_task_args(inc_timer_opts, args) do
+    inc_timer_opts
+    |> Keyword.update!(:task, &Tuple.append(&1, args))
+  end
+end
+
+  # @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
+  # @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
+  # @sols_key_path             ~w(sol_info brute sols)a
+  # @total_key_path            ~w(sol_info brute counts total)a
+  # @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
+
+  # @show_num_results 10
 
   # defp push_in_agent(key_path, el) do
   #   update_in_agent(key_path, &[el | &1])
@@ -163,45 +214,4 @@ defmodule Jumble.BruteSolver do
   #   |> Agent.get_and_update(Kernel, :get_and_update_in, [key_path, &Tuple.duplicate(&1 + inc, 2)])
   # end
 
-  defp complete_timer_prompts(unjumbleds, letter_bank_string) do
-    unjumbleds_string = 
-      unjumbleds
-      |> Enum.join(@sol_spacer)
-
-    prompt_suffix =
-      "\n  " 
-      |> Helper.cap(unjumbleds_string, letter_bank_string)
-
-    @process_timer_opts
-    |> Enum.map(fn(inc_timer_opts)->
-      inc_timer_opts
-      |> Keyword.update!(:prompt, &(&1 <> prompt_suffix))
-    end)
-  end
-
-  defp append_task_args(inc_timer_opts, args) do
-    inc_timer_opts
-    |> Keyword.update!(:task, &Tuple.append(&1, args))
-  end
-
-  # defp build_timer_opts(unjumbleds, letter_bank_string, letter_bank) do
-  #   complete_prompt = fn(inc_prompt)->
-  #     unjumbleds
-  #     |> Enum.join(@sol_spacer)
-  #     |> Helper.cap(inc_prompt, "\n  " <> letter_bank_string)
-  #   end
-
-  #   complete_task = fn(inc_task)->
-  #     inc_task
-  #     |> Tuple.append([letter_bank])
-  #   end
-
-  #   @process_timer_opts
-  #   |> Enum.map(fn(inc_timer_opts)->
-  #     inc_timer_opts
-  #     |> Keyword.update!(:prompt, complete_prompt)
-  #     |> Keyword.update!(:task, complete_task)
-  #   end)
-  # end
-end
 
