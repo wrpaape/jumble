@@ -7,7 +7,7 @@ defmodule Jumble.BruteSolver.Reporter do
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def report_picks(next_total, num_uniqs, micro_sec) do
+  def report_picks(next_total, num_uniqs, time_elapsed) do
     sols_counts =
       [num_uniqs, next_total]
       |> Enum.reduce({"unique picks: ", ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
@@ -18,19 +18,17 @@ defmodule Jumble.BruteSolver.Reporter do
       end)
       |> elem(0)
     
-    time_elapsed =
-      micro_sec
-      |> div(1000)
-      |> Integer.to_string
-      |> Helper.cap("time elapsed: ", " ms")
-
-    [sols_counts, time_elapsed]
+    
     |> Enum.reduce(@report_indent, fn(line, report)->
       line
       |> Helper.cap(report, @report_indent)
     end)
     |> Helper.cap(ANSI.white, "\n")
     |> IO.puts
+  end
+
+  def report_rankings(ranked_picks, num_picks, time_elapsed) do
+
   end
   
   # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
@@ -40,4 +38,11 @@ defmodule Jumble.BruteSolver.Reporter do
 
   ####################################### helpers ########################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  defp build_time_elapsed(micro_sec) do
+    micro_sec
+    |> div(1000)
+    |> Integer.to_string
+    |> Helper.cap("time elapsed: ", " ms")
+  end
 end

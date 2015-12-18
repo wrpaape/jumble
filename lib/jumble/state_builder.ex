@@ -56,7 +56,7 @@ defmodule Jumble.StateBuilder do
   end
 
   defp parse_arg_strings([clue, sol_lengths_string]) do
-      {sol_lengths_tups, {[first_sol_length | rem_sol_lengths], sol_lengths_strs}} =
+      {sol_lengths_tups, {sol_lengths = [first_sol_length | rem_sol_lengths], sol_lengths_strs}} =
         sol_lengths_string
         |> parse_ints_w_string
 
@@ -120,20 +120,15 @@ defmodule Jumble.StateBuilder do
   end
 
   defp parse_ints_w_string(ints_string) do
-    ints_string
-    |> split_on_slashes
-    |> :lists.mapfoldr({[], []}, fn(string, {ints, strings})->
-
+    fn(string, {ints, strings})->
       int =
         string
         |> String.to_integer
 
-      
-
       {[int | ints], [string | strings]}
       |> Helper.wrap_prepend({int, string})
-    end)
-    # |> Enum.map(&{&String.to_integer(&1), &1})
+    end
+    |> :lists.mapfoldr({[], []}, split_on_slashes(ints_string))
   end
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#

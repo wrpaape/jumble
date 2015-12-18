@@ -80,14 +80,14 @@ defmodule Jumble.BruteSolver do
   end
 
 
-  defp rank_picks({total, max_group_size, picks_info}) do
+  defp rank_picks({max_group_size, picks_info}) do
     picks_info
-    |> Enum.each(fn({letter_bank, [inc_rank_picks_timer_opts | rem_inc_timer_opts], unjumbleds_tup, num_uniqs, picks})->
-      inc_rank_picks_timer_opts
-      |> append_task_args([picks])
+    |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_picks})->
+      rank_picks_timer_opts
       |> Timer.time_sync
-      |> IO.inspect
+      |> process_rankings(letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks)
     end)
+    |> Helper.wrap_prepend(max_group_size)
   end
 
   defp process_unjumbleds(jumble_maps) do
@@ -128,7 +128,7 @@ defmodule Jumble.BruteSolver do
     end)
   end
 
-  defp process_picks({time_elapsed, picks}, letter_bank_string, rem_inc_timer_opts, unjumbleds, {total, max_group_size, picks_info}) do
+  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {total, max_group_size, picks_info}) do
     num_uniqs =
       picks
       |> Set.size
@@ -147,7 +147,11 @@ defmodule Jumble.BruteSolver do
         unjumbleds
         |> Helper.wrap_append(group_size)
 
-      pick_info = {ANSI.magenta <> letter_bank_string, rem_inc_timer_opts, unjumbleds_tup, num_uniqs, picks}
+      rank_picks_timer_opts =
+        inc_rank_picks_timer_opts
+        |> append_task_args([picks])
+
+      pick_info = {ANSI.magenta <> letter_bank_string, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_uniqs}
       
       max_group_size =
         max_group_size
@@ -157,6 +161,21 @@ defmodule Jumble.BruteSolver do
     end
 
     {total, max_group_size, picks_info}
+  end
+
+  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks) do
+
+    # ranked_picks
+    # |> Reporter.report_rankings(num_picks, time_elapsed)
+    solve_timer_opts =
+      rank_picks
+      |> Enum.filter_map(&(elem(&1, 0) >= min_max_rank), fn({dict_size, {size_dict, picks, _count}})->
+
+        inc_solve_timer_opts
+        |> append_task_args([dict_size, size_dict, picks])
+      end)
+
+    {letter_bank, unjumbleds_tup, solve_timer_opts}
   end
 
 ####################################### helpers ########################################
