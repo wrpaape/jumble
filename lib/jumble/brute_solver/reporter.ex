@@ -10,7 +10,7 @@ defmodule Jumble.BruteSolver.Reporter do
   def report_picks(next_total, num_uniqs, micro_sec) do
     sols_counts =
       [num_uniqs, next_total]
-      |> Enum.reduce({"unique picks: ", ["/", " (solved/total)"]}, fn(int, {lcap, [rcap | rest]})->
+      |> Enum.reduce({"unique picks: ", ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
         int
         |> Integer.to_string
         |> Helper.cap(lcap, rcap)
