@@ -32,18 +32,12 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def branch_done(branch_pid),     do: Agent.cast(:dead_branches, &[branch_pid | &1])
 
-  def clear_branches,              do: Agent.cast(:dead_branches, &clear_branches/1)
-
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
   def init(args) do 
-    sol_lengths =
-      args
-      |> get_in(@sol_lengths_key_path)
-      
     __MODULE__
-    |> Agent.start_link(:build_pick_orders, [sol_lengths], name: :pick_orders)
+    |> Agent.start_link(:build_pick_orders, [args], name: :pick_orders)
 
     Agent.start_link(fn -> [] end, name: :dead_branches)
 
@@ -94,18 +88,12 @@ defmodule Jumble.BruteSolver.PickTree do
     |> clear_branches
   end
 
-  # def terminate(:normal, branch_pids) do
-  #   @stash_agents
-  #   |> Enum.each(&Agent.stop/1)
-
-    
-  # end
-
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  defp build_pick_orders(sol_lengths) do
-    sol_lengths
+  def build_pick_orders(args) do
+    args
+    |> get_in(@sol_lengths_key_path)
     |> with_index_and_validator
     |> partition_dups_by_length
     |> Stats.uniq_pick_orders
