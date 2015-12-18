@@ -33,7 +33,7 @@ defmodule Jumble.BruteSolver do
     ],
     [
       prompt: ANSI.blue <> "solving for:\n\n ",
-      task: {Solver, :solve},
+      task: {Solver, :solve_pick_batch},
       timeout: 100,
       ticker_int: 17
     ]
@@ -76,6 +76,7 @@ defmodule Jumble.BruteSolver do
     |> process_unjumbleds
     |> pick_valid_ids
     |> rank_picks
+    |> Solver.solve
     |> Helper.wrap_prepend(:noreply)
   end
 
@@ -164,9 +165,6 @@ defmodule Jumble.BruteSolver do
   end
 
   def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks) do
-
-    # ranked_picks
-    # |> Reporter.report_rankings(num_picks, time_elapsed)
     solve_timer_opts =
       rank_picks
       |> Enum.filter_map(&(elem(&1, 0) >= min_max_rank), fn({dict_size, {size_dict, picks, _count}})->
@@ -202,38 +200,4 @@ defmodule Jumble.BruteSolver do
     |> Keyword.update!(:task, &Tuple.append(&1, args))
   end
 end
-
-  # @jumble_maps_key_path      ~w(jumble_info jumble_maps)a
-  # @letter_bank_info_key_path ~w(sol_info letter_bank_info)a
-  # @sols_key_path             ~w(sol_info brute sols)a
-  # @total_key_path            ~w(sol_info brute counts total)a
-  # @max_group_size_key_path   ~w(sol_info brute counts max_group_size)a
-
-  # @show_num_results 10
-
-  # defp push_in_agent(key_path, el) do
-  #   update_in_agent(key_path, &[el | &1])
-  # end
-
-  # defp get_in_agent(key_path) do
-  #   __MODULE__
-  #   |> Agent.get(Kernel, :get_in, [key_path])
-  # end
-
-
-  # defp put_in_agent(key_path, value) do
-  #   __MODULE__
-  #   |> Agent.update(Kernel, :put_in, [key_path, value])
-  # end
-
-  # defp update_in_agent(key_path, fun) do
-  #   __MODULE__
-  #   |> Agent.cast(Kernel, :update_in, [key_path, fun])
-  # end
-
-  # defp get_and_inc_in_agent(key_path, inc) do
-  #   __MODULE__
-  #   |> Agent.get_and_update(Kernel, :get_and_update_in, [key_path, &Tuple.duplicate(&1 + inc, 2)])
-  # end
-
 
