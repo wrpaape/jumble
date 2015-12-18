@@ -46,13 +46,18 @@ defmodule Jumble.ScowlDict do
 ##################################### external API #####################################
 
   def init(%{sol_info: %{sol_lengths: sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
+    uniq_sol_length_strs =
+      sol_lengths
+      |> Enum.uniq
+      |> Enum.map(&{&1, Integer.to_string(&1)})
+
     uniq_jumble_lengths
     |> build_length_dict
-    |> Helper.wrap_append(sol_lengths)
+    |> Helper.wrap_append(uniq_sol_length_strs)
     |> Helper.wrap_prepend(:ok)
   end
 
-  def handle_call({:safe_get, length_word, string_id}, _from, state = {length_dict, _sol_lengths}) do
+  def handle_call({:safe_get, length_word, string_id}, _from, state = {length_dict, _sol_length_tups}) do
     valid_words =
       length_dict
       |> Map.get(length_word)
@@ -61,31 +66,52 @@ defmodule Jumble.ScowlDict do
     {:reply, valid_words, state}
   end
 
-  def handle_call({:rank_picks, picks}, [first_rank_fun | tail_rank_funs]) do
+  def handle_call({:rank_picks, picks}, from, {[head_rank_fun | tail_rank_funs], dict_builder}) do
     picks
-    |> Enum.reduce(Map.new, fn(pick = [first_id | rem_ids], ranked_picks)->
-      first_rank =
-        first_rank_fun.(first_id)
+    |> Enum.reduce({HashSet.new, Map.new}, fn(pick = [head_id | tail_ids], {ranks_set, ranked_picks})->
+      head_rank =
+        head_rank_fun.(head_id)
 
       pick_rank =
-        rem_ids
-        |> Enum.reduce({first_rank, tail_rank_funs}, fn(id, {max_rank, [next_rank_fun | rem_rank_funs]})->
+        tail_ids
+        |> Enum.reduce({head_rank, tail_rank_funs}, fn(id, {max_rank, [next_rank_fun | rem_rank_funs]})->
           next_rank_fun.(id)
           |> max(max_rank)
           |> Helper.wrap_append(rem_rank_funs)
         end)
         |> elem(0)
 
-      ranked_picks
-      |> Map.update(pick_rank, [pick], &[pick | &1])
+      ranks_set
+      |> Set.member?(pick_rank)
+      |> if do
+        ranked_picks
+        |> Map.update!(pick_rank, &{limited_dict, [pick | &1]})
+        |> Helper.wrap_prepend(ranks_set)
+      else
+        ranked_picks
+        |> Map.put(pick_rank, {dict_builder(pick_rank), [pick]})
+        |> Helper.wrap_prepend(Set.put(ranks_set, pick_rank))
+      end
     end)
   end
 
-  def handle_cast(:swap_dict, {_drop_dict, sol_lengths}) do
-    next_length_dict = 
-      sol_lengths
-      |> Enum.uniq
-      |> build_length_dict
+  def handle_cast(:swap_dict, {_drop_dict, sol_length_tups}) do
+    limited_dict_builder = 
+      fn(min_size)->
+        size_domain =
+          @dict_sizes
+          |> Enum.drop_while(&1 < min_size)
+
+        sol_length_tups
+        |> Enum.reduce(Map.new, fn({length_int, length_str}, length_dict)->
+          size_dict =
+            size_domain
+            |> Enum.map(&size_dict_module(&1, length_str))
+
+          length_dict
+          |> Map.put(length_int, size_dict)
+        end)
+      end
 
     rank_funs =
       sol_lengths
@@ -96,7 +122,7 @@ defmodule Jumble.ScowlDict do
       end)
 
     
-    {:noreply, rank_funs, :hibernate}
+    {:noreply, {rank_funs, limited_dict_builder}, :hibernate}
   end
 
 ####################################### helpers ########################################
@@ -112,11 +138,11 @@ defmodule Jumble.ScowlDict do
 
     fn(string_id)->
       validators
-      |> Enum.reduce_while(1, fn(valid_id?, index)->
+      |> Enum.reduce_while(@dict_sizes, fn(valid_id?, [next_dict_size | rem_dict_sizes])->
         if valid_id?.(string_id) do
-          {:halt, index}
+          {:halt, next_dict_size}
         else
-          {:cont, index + 1}
+          {:cont, rem_dict_sizes}
         end
       end)
     end

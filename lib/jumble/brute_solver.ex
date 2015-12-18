@@ -7,13 +7,15 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Solver
   alias Jumble.BruteSolver.Printer
-  alias Jumble.BruteSolver.Recorder
+  alias Jumble.BruteSolver.Reporter
   alias Jumble.Countdown
   alias Jumble.ScowlDict
 
   @sol_spacer         ANSI.white <> " or\n "
   @letter_bank_lcap         "{ " <> ANSI.green
   @letter_bank_rcap ANSI.magenta <> " }"
+
+  @jumble_maps_key_path ~w(jumble_info jumble_maps)a
 
   @process_timer_opts [
     [
@@ -58,7 +60,7 @@ defmodule Jumble.BruteSolver do
   def init(args) do
     args
     |> get_in(@jumble_maps_key_path)
-    |> Enum.into(&1, Map.new)
+    |> Enum.into(Map.new)
     |> Helper.wrap_prepend(:ok)
   end
 
@@ -84,7 +86,7 @@ defmodule Jumble.BruteSolver do
       |> append_task_args([picks])
       |> Countdown.time_async
       |> IO.inspect
-    end
+    end)
   end
 
   defp process_unjumbleds(jumble_maps) do

@@ -1,10 +1,13 @@
 defmodule Jumble.BruteSolver.Reporter do
+  alias IO.ANSI
+  alias Jumble.Helper
+
   @report_indent "\n" <> Helper.pad(4)
-  
+
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  defp report_picks(next_total, num_uniqs, micro_sec) do
+  def report_picks(next_total, num_uniqs, micro_sec) do
     sols_counts =
       [num_uniqs, next_total]
       |> Enum.reduce({"unique picks: ", ["/", " (solved/total)"]}, fn(int, {lcap, [rcap | rest]})->

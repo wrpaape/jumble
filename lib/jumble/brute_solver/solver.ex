@@ -1,6 +1,7 @@
 defmodule Jumble.BruteSolver.Solver do
   use GenServer
 
+  alias IO.ANSI
   alias Jumble.Countdown
   alias Jumble.ScowlDict
   alias Jumble.Helper
@@ -12,7 +13,7 @@ defmodule Jumble.BruteSolver.Solver do
   @continue_prompt "\n\n  continue? (y/n)\n  "
     |> Helper.cap(ANSI.white, ANSI.blink_slow)
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
-    
+
 
   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
