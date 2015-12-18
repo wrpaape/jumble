@@ -1,6 +1,6 @@
 defmodule Jumble.ScowlDict do
   @dict_sizes Application.get_env(:jumble, :scowl_dict_sizes)
-  @min_size   List.first(@dict_sizes)
+  # @min_size   List.first(@dict_sizes)
   @max_size   List.last(@dict_sizes)
 
   # @uniq_jumble_lengths_key_path ~w(jumble_info uniq_lengths)a
@@ -53,7 +53,7 @@ defmodule Jumble.ScowlDict do
 
   def handle_call({:rank_picks, picks}, _from, {[head_rank_fun | tail_rank_funs], all_size_dicts}) do
     picks
-    |> Enum.reduce({all_size_dicts, @min_size}, fn(pick = [head_id | tail_ids], {ranked_picks, min_max_rank})->
+    |> Enum.reduce({all_size_dicts, @max_size}, fn(pick = [head_id | tail_ids], {ranked_picks, min_max_rank})->
       head_rank = head_rank_fun.(head_id)
 
       pick_rank =
@@ -69,8 +69,8 @@ defmodule Jumble.ScowlDict do
       |> Enum.drop_while(&(&1 < pick_rank))
       |> Enum.reduce(ranked_picks, fn(dict_size, next_ranked_picks)->
         next_ranked_picks
-        |> Map.update!(dict_size, fn({size_dict, picks, count})->
-          {size_dict, [pick | picks], count + 1}
+        |> Map.update!(dict_size, fn({getters, picks, count})->
+          {getters, [pick | picks], count + 1}
         end)
       end)
       |> Helper.wrap_append(min(min_max_rank, pick_rank))
@@ -90,12 +90,18 @@ defmodule Jumble.ScowlDict do
     all_size_dicts =
       @dict_sizes
       |> Enum.reduce(Map.new, fn(dict_size, size_dicts)->
-        next_size_dict =
+        limited_getters =
           sol_lengths_strs
-          |> Enum.map(&size_dict_module(dict_size, &1))
+          |> Enum.map(fn(length_str)->
+            limited_size_dict_module =
+              dict_size
+              |> size_dict_module(length_str)
+
+            &limited_size_dict_module.get/1
+          end)
 
         size_dicts
-        |> Map.put(dict_size, {next_size_dict, [], 0})
+        |> Map.put(dict_size, {limited_getters, [], 0})
       end)
 
     {:noreply, {rank_funs, all_size_dicts}, :hibernate}

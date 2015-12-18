@@ -18,7 +18,7 @@ defmodule Jumble.BruteSolver.Reporter do
       end)
       |> elem(0)
     
-    
+    [sols_counts, build_time_elapsed(time_elapsed)]
     |> Enum.reduce(@report_indent, fn(line, report)->
       line
       |> Helper.cap(report, @report_indent)

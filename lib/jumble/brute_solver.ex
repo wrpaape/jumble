@@ -111,7 +111,7 @@ defmodule Jumble.BruteSolver do
 
   defp pick_valid_ids(unjumbleds_info) do
     unjumbleds_info
-    |> Enum.reduce({0, []}, fn({letter_bank, unjumbleds}, picks_tup)->
+    |> Enum.reduce({[], 0}, fn({letter_bank, unjumbleds}, picks_tup)->
       letter_bank_string =
         letter_bank
         |> Enum.join(" ")
@@ -126,9 +126,10 @@ defmodule Jumble.BruteSolver do
       |> Timer.time_async
       |> process_picks(letter_bank_string, rem_inc_timer_opts, unjumbleds, picks_tup)
     end)
+    |> elem(0)
   end
 
-  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {total, picks_info}) do
+  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {picks_info, total}) do
     num_uniqs =
       picks
       |> Set.size
@@ -152,12 +153,12 @@ defmodule Jumble.BruteSolver do
       picks_info = [pick_info | picks_info]
     end
 
-    {total, picks_info}
+    {picks_info, total}
   end
 
   def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks) do
     solve_timer_opts =
-      rank_picks
+      ranked_picks
       |> Enum.filter_map(&(elem(&1, 0) >= min_max_rank), fn({dict_size, {size_dict, picks, _count}})->
 
         inc_solve_timer_opts

@@ -15,29 +15,52 @@ defmodule Jumble.BruteSolver.Solver do
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
 
+##################################### external API #####################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-
-    def solve(sol_groups) do
-    {batch_sols, {max_group_size, next_sol_groups}} =
+  def solve(sol_groups) do
+    {batch_sols, max_group_size, next_sol_groups} =
       sol_groups
-      |> Enum.flat_map_reduce({0, []}, fn
-        ({letter_bank, unjumbleds_tup = {_unjumbleds, group_size}, [next_opts | rem_opts]}, {max_group_size, next_sol_groups})->
-          next_sol_group = {letter_bank, unjumbleds_tup, rem_opts}
-        
+      |> Enum.reduce({[], 0, []}, fn
+        ({letter_bank, unjumbleds_tup = {_unjumbleds, group_size}, [next_opts | rem_opts]}, {batch_sols, max_group_size, next_sol_groups})->
           next_batch_sol = {letter_bank, unjumbleds_tup, Timer.time_sync(next_opts)}
 
-          max_group_size
-          |> max(group_size)
-          |> Helper.wrap_append([next_sol_group | next_sol_groups])
-          |> Helper.wrap_prepend(next_batch_sol)
+          next_max_group_size =
+            max_group_size
+            |> max(group_size)
+          
+          next_sol_group = {letter_bank, unjumbleds_tup, rem_opts}
 
-        ({_letter_bank, _unjumbleds_tup, []}, {max_group_size, next_sol_groups})->
-          {[], {max_group_size, next_sol_groups}}
+          {[next_batch_sol | batch_sols], next_max_group_size, [next_sol_group | next_sol_groups]}
+
+        ({_letter_bank, _unjumbleds_tup, []}, results_tup)->
+          results_tup
       end)
-      |> IO.inspect
 
-    end
+    :timer.sleep :infinity
 
+  end
+
+  def solve_pick_batch(dict_size, getters, picks) do
+    picks
+    |> Enum.flat_map(fn(pick)->
+      getters
+      |> Enum.reduce({[], pick}, fn(get_fun, {valid_words, [id | rem_ids]})->
+        [get_fun.(id) | valid_words]
+        |> Helper.wrap_append(rem_ids)
+      end)
+      |> elem(0)
+      |> Stats.combinations
+    end)
+  end
+
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
+
+####################################### helpers ########################################
+# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+end
 
 #   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
