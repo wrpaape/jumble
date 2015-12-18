@@ -17,13 +17,24 @@ defmodule Jumble.BruteSolver.Solver do
 
 
 
-    def solve({max_group_size, sol_groups}) do
-
+    def solve(sol_groups) do
+    {batch_sols, {max_group_size, next_sol_groups}} =
       sol_groups
-      |> Enum.map(fn({letter_bank, unjumbleds_tup, [next_opts | rem_opts]})->
+      |> Enum.flat_map_reduce({0, []}, fn
+        ({letter_bank, unjumbleds_tup = {_unjumbleds, group_size}, [next_opts | rem_opts]}, {max_group_size, next_sol_groups})->
+          next_sol_group = {letter_bank, unjumbleds_tup, rem_opts}
+        
+          next_batch_sol = {letter_bank, unjumbleds_tup, Timer.time_sync(next_opts)}
 
-        {letter_bank, unjumbleds_tup, [next_opts | rem_opts]}
+          max_group_size
+          |> max(group_size)
+          |> Helper.wrap_append([next_sol_group | next_sol_groups])
+          |> Helper.wrap_prepend(next_batch_sol)
+
+        ({_letter_bank, _unjumbleds_tup, []}, {max_group_size, next_sol_groups})->
+          {[], {max_group_size, next_sol_groups}}
       end)
+      |> IO.inspect
 
     end
 

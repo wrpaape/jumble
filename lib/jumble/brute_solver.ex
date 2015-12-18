@@ -81,14 +81,13 @@ defmodule Jumble.BruteSolver do
   end
 
 
-  defp rank_picks({max_group_size, picks_info}) do
+  defp rank_picks(picks_info) do
     picks_info
     |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_picks})->
       rank_picks_timer_opts
       |> Timer.time_sync
       |> process_rankings(letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks)
     end)
-    |> Helper.wrap_prepend(max_group_size)
   end
 
   defp process_unjumbleds(jumble_maps) do
@@ -112,7 +111,7 @@ defmodule Jumble.BruteSolver do
 
   defp pick_valid_ids(unjumbleds_info) do
     unjumbleds_info
-    |> Enum.reduce({0, 0, []}, fn({letter_bank, unjumbleds}, picks_tup)->
+    |> Enum.reduce({0, []}, fn({letter_bank, unjumbleds}, picks_tup)->
       letter_bank_string =
         letter_bank
         |> Enum.join(" ")
@@ -129,7 +128,7 @@ defmodule Jumble.BruteSolver do
     end)
   end
 
-  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {total, max_group_size, picks_info}) do
+  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {total, picks_info}) do
     num_uniqs =
       picks
       |> Set.size
@@ -140,13 +139,9 @@ defmodule Jumble.BruteSolver do
     |> Reporter.report_picks(num_uniqs, time_elapsed)
 
     if num_uniqs > 0 do
-      group_size =
-        unjumbleds
-        |> length
-
       unjumbleds_tup =
         unjumbleds
-        |> Helper.wrap_append(group_size)
+        |> Helper.wrap_append(length(unjumbleds))
 
       rank_picks_timer_opts =
         inc_rank_picks_timer_opts
@@ -154,14 +149,10 @@ defmodule Jumble.BruteSolver do
 
       pick_info = {ANSI.magenta <> letter_bank_string, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_uniqs}
       
-      max_group_size =
-        max_group_size
-        |> max(group_size)
-
       picks_info = [pick_info | picks_info]
     end
 
-    {total, max_group_size, picks_info}
+    {total, picks_info}
   end
 
   def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks) do
