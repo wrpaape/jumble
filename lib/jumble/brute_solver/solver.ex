@@ -37,7 +37,11 @@ defmodule Jumble.BruteSolver.Solver do
           results_tup
       end)
 
-    :timer.sleep :infinity
+      IO.inspect batch_sols
+
+    :timer.sleep 3000
+
+    solve(next_sol_groups)
 
   end
 
