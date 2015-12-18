@@ -30,14 +30,10 @@ defmodule Jumble.BruteSolver do
       task: {ScowlDict, :rank_picks},
       timeout: 100,
       ticker_int: 17
-    ],
-    [
-      prompt: ANSI.blue <> "solving for:\n\n ",
-      task: {Solver, :solve_pick_batch},
-      timeout: 100,
-      ticker_int: 17
     ]
   ]
+
+
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -83,10 +79,10 @@ defmodule Jumble.BruteSolver do
 
   defp rank_picks(picks_info) do
     picks_info
-    |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_picks})->
+    |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, num_picks})->
       rank_picks_timer_opts
       |> Timer.time_sync
-      |> process_rankings(letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks)
+      |> process_rankings(letter_bank, unjumbleds_tup, num_picks)
     end)
   end
 
@@ -117,19 +113,19 @@ defmodule Jumble.BruteSolver do
         |> Enum.join(" ")
         |> Helper.cap(@letter_bank_lcap, @letter_bank_rcap)
 
-      [inc_pick_tree_timer_opts | rem_inc_timer_opts] =
+      [inc_pick_tree_timer_opts , inc_rank_picks_timer_opts] =
         unjumbleds
         |> complete_timer_prompts(letter_bank_string)
 
       inc_pick_tree_timer_opts
       |> append_task_args([letter_bank])
       |> Timer.time_async
-      |> process_picks(letter_bank_string, rem_inc_timer_opts, unjumbleds, picks_tup)
+      |> process_picks(letter_bank_string, inc_rank_picks_timer_opts, unjumbleds, picks_tup)
     end)
     |> elem(0)
   end
 
-  defp process_picks({time_elapsed, picks}, letter_bank_string, [inc_rank_picks_timer_opts, inc_solve_timer_opts], unjumbleds, {picks_info, total}) do
+  defp process_picks({time_elapsed, picks}, letter_bank_string, inc_rank_picks_timer_opts, unjumbleds, {picks_info, total}) do
     num_uniqs =
       picks
       |> Set.size
@@ -148,7 +144,7 @@ defmodule Jumble.BruteSolver do
         inc_rank_picks_timer_opts
         |> append_task_args([picks])
 
-      pick_info = {ANSI.magenta <> letter_bank_string, unjumbleds_tup, rank_picks_timer_opts, inc_solve_timer_opts, num_uniqs}
+      pick_info = {ANSI.magenta <> letter_bank_string, unjumbleds_tup, rank_picks_timer_opts, num_uniqs}
       
       picks_info = [pick_info | picks_info]
     end
@@ -156,16 +152,28 @@ defmodule Jumble.BruteSolver do
     {picks_info, total}
   end
 
-  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, inc_solve_timer_opts, num_picks) do
-    solve_timer_opts =
+  def collapse_picks(ranked_picks, min_max_rank) do
+    ranked_picks
+    |> Enum.drop_while(&(elem(&1, 0) < min_max_rank))
+    |> List.foldr({[], 0}, fn
+      ({_dict_size, {_size_dict, _picks, dup_count}}, last_batch_tup = {_sol_batches, dup_count})->
+        last_batch_tup
+      ({_dict_size, {size_dict, picks, count}}, {sol_batches, _last_count})->
+        {[{size_dict, picks} | count], count}
+    end)
+
+  end
+
+  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, num_picks) do
+    # num_picks
+    # Reporter.report_picks(ranked_picks, time_elapsed)
+
+    {sol_batches, _last_count} =
       ranked_picks
-      |> Enum.filter_map(&(elem(&1, 0) >= min_max_rank), fn({dict_size, {size_dict, picks, _count}})->
+      |> collapse_picks(min_max_rank)
 
-        inc_solve_timer_opts
-        |> append_task_args([dict_size, size_dict, picks])
-      end)
 
-    {letter_bank, unjumbleds_tup, solve_timer_opts}
+    {letter_bank, unjumbleds_tup, sol_batches}
   end
 
 ####################################### helpers ########################################

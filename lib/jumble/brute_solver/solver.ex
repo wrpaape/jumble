@@ -14,13 +14,22 @@ defmodule Jumble.BruteSolver.Solver do
     |> Helper.cap(ANSI.white, ANSI.blink_slow)
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
+  @process_timer_opts [
+      prompt: ANSI.blue <> "solving next batch:\n\n ",
+      task: {__MODULE__, :solve_next_batch},
+      timeout: 100,
+      ticker_int: 17
+    ]
+
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def solve(sol_groups) do
-    {batch_sols, max_group_size, next_sol_groups} =
-      sol_groups
+  def solve(sol_groups)
+
+  def solve_next_batch(sol_batch) do
+    {batch_sols, max_group_size, next_sol_batch} =
+      sol_batch
       |> Enum.reduce({[], 0, []}, fn
         ({letter_bank, unjumbleds_tup = {_unjumbleds, group_size}, [next_opts | rem_opts]}, {batch_sols, max_group_size, next_sol_groups})->
           next_batch_sol = {letter_bank, unjumbleds_tup, Timer.time_sync(next_opts)}
@@ -38,14 +47,15 @@ defmodule Jumble.BruteSolver.Solver do
       end)
 
       IO.inspect batch_sols
+      # IO.inspect length(batch_sols)
+      # IO.inspect length(Enum.uniq(batch_sols))
 
     :timer.sleep 3000
 
-    solve(next_sol_groups)
-
+    solve_next_batch(next_sol_groups)
   end
 
-  def solve_pick_batch(dict_size, getters, picks) do
+  def solve_picks(dict_size, getters, picks) do
     picks
     |> Enum.flat_map(fn(pick)->
       getters

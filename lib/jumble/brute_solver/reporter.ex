@@ -40,9 +40,16 @@ defmodule Jumble.BruteSolver.Reporter do
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   defp build_time_elapsed(micro_sec) do
-    micro_sec
-    |> div(1000)
+    {time, units} =
+      micro_sec
+      |> time_with_units
+
+    time
     |> Integer.to_string
-    |> Helper.cap("time elapsed: ", " ms")
+    |> Helper.cap("time elapsed: ", units)
   end
+
+  defp time_with_units(micro_sec), when micro_sec < 1_000,     do: {micro_sec,                    " μs"}
+  defp time_with_units(micro_sec), when micro_sec < 1_000_000, do: {round(micro_sec / 1_000),     " ms"}
+  defp time_with_units(micro_sec),                             do: {round(micro_sec / 1_000_000), " s" }
 end
