@@ -56,10 +56,9 @@ defmodule Jumble.StateBuilder do
   end
 
   defp parse_arg_strings([clue, sol_lengths_string]) do
-    sol_lengths =
-      [first_sol_length | rem_sol_lengths] =
+      {sol_lengths_tups, {[first_sol_length | rem_sol_lengths], sol_lengths_strs}} =
         sol_lengths_string
-        |> parse_ints
+        |> parse_ints_w_string
 
     {letter_bank_length, final_sol_length} =
       rem_sol_lengths
@@ -96,6 +95,8 @@ defmodule Jumble.StateBuilder do
     |> Map.put(:letter_bank_length, letter_bank_length)
     |> Map.put(:final_length, final_sol_length + 3)
     |> Map.put(:sol_lengths, sol_lengths)
+    |> Map.put(:sol_lengths_strs, sol_lengths_strs)
+    |> Map.put(:sol_lengths_tups, sol_lengths_tups)
     # |> Map.put(:uniq_lengths, Enum.into(uniq_lengths, HashSet.new))
     # |> Map.put(:pick_orders, pick_orders)
     # |> Map.put(:invalid_ids, HashSet.new)
@@ -118,20 +119,24 @@ defmodule Jumble.StateBuilder do
     |> Enum.map(&String.to_integer/1)
   end
 
+  defp parse_ints_w_string(ints_string) do
+    ints_string
+    |> split_on_slashes
+    |> :lists.mapfoldr({[], []}, fn(string, {ints, strings})->
+
+      int =
+        string
+        |> String.to_integer
+
+      
+
+      {[int | ints], [string | strings]}
+      |> Helper.wrap_prepend({int, string})
+    end)
+    # |> Enum.map(&{&String.to_integer(&1), &1})
+  end
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
-  # defp partition_dups_by_val(keyword) do
-  #   keyword
-  #   |> Enum.reduce({[], [], HashSet.new}, fn(el = {_key, val}, {uniqs, dups, uniq_vals})->
-  #     if Set.member?(uniq_vals, val) do
-  #       {uniqs, [el | dups], uniq_vals}
-  #     else
-  #       {[el | uniqs], dups, Set.put(uniq_vals, val)}
-  #     end
-  #   end)
-  #   |> Tuple.delete_at(2)
-  # end
 
   defp split_on_slashes(string, opts \\ []) do
     string

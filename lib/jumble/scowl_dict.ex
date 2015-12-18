@@ -1,5 +1,6 @@
 defmodule Jumble.ScowlDict do
   @dict_sizes Application.get_env(:jumble, :scowl_dict_sizes)
+  @min_size   List.fist(@dict_sizes)
   @max_size   List.last(@dict_sizes)
 
   # @uniq_jumble_lengths_key_path ~w(jumble_info uniq_lengths)a
@@ -10,24 +11,13 @@ defmodule Jumble.ScowlDict do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def safe_id_validator(length_word) do
+  def safe_id_validator(length_str) do
     safe_size_dict_module =
-      length_word
+      length_str
       |> safe_size
     
     &safe_size_dict_module.valid_id?/1
   end
-
-  # def safe_getter(length_word) do
-  #   all_size_dict_modules =
-  #     length_word
-  #     |> all_sizes
-
-    # fn(string_id)->
-    #   all_size_dict_modules
-    #   |> Enum.find_value(&apply(&1, :get, [string_id]))
-    # end
-  # end
 
   def start_link(args) do
     __MODULE__
@@ -36,36 +26,35 @@ defmodule Jumble.ScowlDict do
     args
   end
 
-  def safe_get(length_word, string_id),  do: GenServer.call(__MODULE__, {:safe_get, length_word, string_id})
+  def safe_get(length_str, string_id), do: GenServer.call(__MODULE__, {:safe_get, length_str, string_id})
 
-  def rank_picks(picks),                 do: GenServer.call(__MODULE__, {:rank_picks, picks})
+  def rank_picks(picks),               do: GenServer.call(__MODULE__, {:rank_picks, picks})
 
-  def swap_dict,                         do: GenServer.cast(__MODULE__, :swap_dict)
+  def swap_dict,                       do: GenServer.cast(__MODULE__, :swap_dict)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
 
-  def init(%{sol_info: %{sol_lengths: sol_lengths}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
+  def init(%{sol_info: %{sol_lengths_strs: sol_lengths_strs}, jumble_info: %{uniq_lengths: uniq_jumble_lengths}}) do
     uniq_jumble_lengths
     |> build_length_dict
-    |> Helper.wrap_append(sol_lengths)
+    |> Helper.wrap_append(sol_lengths_strs)
     |> Helper.wrap_prepend(:ok)
   end
 
-  def handle_call({:safe_get, length_word, string_id}, _from, state = {length_dict, _sol_lengths}) do
+  def handle_call({:safe_get, length_int, string_id}, _from, state = {length_dict, _sol_lengths_strs}) do
     valid_words =
       length_dict
-      |> Map.get(length_word)
+      |> Map.get(length_int)
       |> Enum.find_value(&apply(&1, :get, [string_id]))
 
     {:reply, valid_words, state}
   end
 
-  def handle_call({:rank_picks, picks}, _from, {[head_rank_fun | tail_rank_funs], dict_builder}) do
+  def handle_call({:rank_picks, picks}, _from, {[head_rank_fun | tail_rank_funs], all_size_dicts}) do
     picks
-    |> Enum.reduce({Map.new, HashSet.new}, fn(pick = [head_id | tail_ids], {ranked_picks, ranks_set})->
-      head_rank =
-        head_rank_fun.(head_id)
+    |> Enum.reduce({all_size_dicts, @min_size}, fn(pick = [head_id | tail_ids], {ranked_picks, min_rank_overall})->
+      head_rank = head_rank_fun.(head_id)
 
       pick_rank =
         tail_ids
@@ -76,74 +65,43 @@ defmodule Jumble.ScowlDict do
         end)
         |> elem(0)
 
-      ranks_set
-      |> Set.member?(pick_rank)
-      |> if do
-        ranked_picks
-        |> Map.update!(pick_rank, fn({limited_dict, picks})->
-          {limited_dict, [pick | picks]}
+      @dict_sizes
+      |> Enum.drop_while(&(&1 < pick_rank))
+      |> Enum.reduce(ranked_picks, fn(dict_size, next_ranked_picks)->
+        next_ranked_picks
+        |> Map.update!(pick_rank, fn({size_dict, picks, count})->
+          {size_dict, [pick | picks], count + 1}
         end)
-        |> Helper.wrap_append(ranks_set)
-      else
-        ranked_picks
-        |> Map.put(pick_rank, {dict_builder.(pick_rank), [pick]})
-        |> Helper.wrap_append(Set.put(ranks_set, pick_rank))
-      end
+      end)
+      |> Helper.wrap_append(min(min_rank_overall, pick_rank))
     end)
-    |> elem(0)
     |> Enum.sort
     |> reply_and_shutdown
   end
 
-  def handle_cast(:swap_dict, {_drop_dict, sol_lengths}) do
-    {rank_funs, {_dup_set, uniq_lengths_tups}} =
-      sol_lengths
-      |> Enum.map_reduce({HashSet.new, []}, fn(length_int, {dup_set, uniq_lengths_tups})->
-        dup_set
-        |> Set.member?(length_int)
-        |> if do
-          next_size_dicts = 
-            length_int
-            |> all_sizes
-        else
-          dup_set =
-            dup_set
-            |> Set.put(length_int)
-
-          length_str =
-            Integer.to_string(length_int)
-
-          uniq_lengths_tups =
-            [{length_int, length_str} | uniq_lengths_tups]
-
-          next_size_dicts = 
-            @dict_sizes
-            |> build_size_dicts(length_str)
-        end
-
-        next_size_dicts
+  def handle_cast(:swap_dict, {_drop_dict, sol_lengths_strs}) do
+    rank_funs =
+      sol_lengths_strs
+      |> Enum.map(fn(length_str)->
+        length_str
+        |> all_sizes
         |> build_rank_fun
-        |> Helper.wrap_append({dup_set, uniq_lengths_tups})
       end)
 
-    limited_dict_builder = 
-      fn(min_size)->
-        size_domain =
-          @dict_sizes
-          |> Enum.drop_while(&(&1 < min_size))
+    all_size_dicts =
+      @dict_sizes
+      |> Enum.reduce(Map.new, fn(dict_size, size_dicts)->
+        next_size_dict =
+          sol_lengths_strs
+          |> Enum.map(&size_dict_module(dict_size, &1))
 
-        uniq_lengths_tups
-        |> Enum.reduce(Map.new, fn({length_int, length_str}, length_dict)->
-          size_dicts =
-            size_domain
-            |> build_size_dicts(length_str)
+        size_dicts
+        |> Map.put(dict_size, {next_size_dict, [], 0})
+      end)
 
-          length_dict
-          |> Map.put(length_int, size_dicts)
-        end)
-      end
 
-    {:noreply, {rank_funs, limited_dict_builder}, :hibernate}
+
+    {:noreply, {rank_funs, all_size_dicts}, :hibernate}
   end
 
   def reply_and_shutdown(ranked_picks), do: {:stop, :normal, ranked_picks, ranked_picks}
@@ -177,27 +135,23 @@ defmodule Jumble.ScowlDict do
 
   defp build_length_dict(lengths) do
     lengths
-    |> Enum.reduce(Map.new, fn(length, size_dicts)->
+    |> Enum.reduce(Map.new, fn(length_int, size_dicts)->
+      next_size_dict = 
+        length_int
+        |> Integer.to_string
+        |> all_sizes
+
       size_dicts
-      |> Map.put(length, all_sizes(length))
+      |> Map.put(length_int, next_dict_size)
     end)
   end
 
-  defp build_size_dicts(size_domain, length_str) do
-    size_domain
+  defp all_sizes(length_str) do
+    @dict_sizes
     |> Enum.map(&size_dict_module(&1, length_str))
   end
 
-  defp all_sizes(length_int) do
-    @dict_sizes
-    |> build_size_dicts(Integer.to_string(length_int))
-  end
-
-  def safe_size(length_int) do
-    length_str =
-      length_int
-      |> Integer.to_string
-
+  defp safe_size(length_str) do
     @max_size
     |> size_dict_module(length_str)
   end

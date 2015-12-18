@@ -8,7 +8,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
-  @sol_lengths_key_path ~w(sol_info sol_lengths)a
+  @sol_lengths_tups_key_path ~w(sol_info sol_lengths_tups)a
 
   # @stash_agents ~w(pick_orders dead_branches)a
 
@@ -93,17 +93,17 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def build_pick_orders(args) do
     args
-    |> get_in(@sol_lengths_key_path)
+    |> get_in(@sol_lengths_tups_key_path)
     |> with_index_and_validator
     |> partition_dups_by_length
     |> Stats.uniq_pick_orders
   end
 
-  defp with_index_and_validator(lengths) do
-    lengths
-    |> Enum.map_reduce(1, fn(length, index) ->
+  defp with_index_and_validator(lengths_tup) do
+    lengths_tup
+    |> Enum.map_reduce(1, fn({length, length_str}, index) ->
       valid_id? =
-        length
+        length_str
         |> ScowlDict.safe_id_validator
 
       {{index, length, valid_id?}, index + 1}
