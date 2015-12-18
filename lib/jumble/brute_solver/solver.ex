@@ -2,7 +2,7 @@ defmodule Jumble.BruteSolver.Solver do
   use GenServer
 
   alias IO.ANSI
-  alias Jumble.Countdown
+  alias Jumble.Timer
   alias Jumble.ScowlDict
   alias Jumble.Helper
   alias Jumble.Helper.Stats
@@ -18,7 +18,7 @@ defmodule Jumble.BruteSolver.Solver do
   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})
 
   def handle_cast({:process_raw, string_ids}, last_state = {acc_final_results, last_words_cache}) do
-    Countdown.reset_countdown
+    Timer.reset_countdown
 
     last_words_cache
     |> pre_process(string_ids)
@@ -128,7 +128,7 @@ end
   #     |> get_in_agent
   #     |> Enum.each(fn({letter_bank_string, timer_opts, unjumbleds_tup})->
   #       timer_opts
-  #       |> Countdown.time_async
+  #       |> Timer.time_async
   #       |> report_and_record(letter_bank_string, unjumbleds_tup, PickTree.dump_ids)
   #     end)
 

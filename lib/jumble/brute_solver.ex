@@ -7,8 +7,8 @@ defmodule Jumble.BruteSolver do
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Solver
   alias Jumble.BruteSolver.Printer
-  alias Jumble.BruteSolver.Reporter
-  alias Jumble.Countdown
+  alias Jumble.BruteSolver.Reporter 
+  alias Jumble.Timer
   alias Jumble.ScowlDict
 
   @sol_spacer         ANSI.white <> " or\n "
@@ -21,6 +21,7 @@ defmodule Jumble.BruteSolver do
     [
       prompt: ANSI.blue <> "picking valid ids for:\n\n ",
       task: {PickTree, :pick_valid_ids},
+      callback: {PickTree, :dump_ids, []},
       timeout: 100,
       ticker_int: 17
     ],
@@ -84,7 +85,7 @@ defmodule Jumble.BruteSolver do
     |> Enum.each(fn({letter_bank, [inc_rank_picks_timer_opts | rem_inc_timer_opts], unjumbleds_tup, num_uniqs, picks})->
       inc_rank_picks_timer_opts
       |> append_task_args([picks])
-      |> Countdown.time_async
+      |> Timer.time_sync
       |> IO.inspect
     end)
   end
@@ -122,12 +123,12 @@ defmodule Jumble.BruteSolver do
 
       inc_pick_tree_timer_opts
       |> append_task_args([letter_bank])
-      |> Countdown.time_async
-      |> process_picks(letter_bank_string, rem_inc_timer_opts, unjumbleds, PickTree.dump_ids, picks_tup)
+      |> Timer.time_async
+      |> process_picks(letter_bank_string, rem_inc_timer_opts, unjumbleds, picks_tup)
     end)
   end
 
-  defp process_picks(time_elapsed, letter_bank_string, rem_inc_timer_opts, unjumbleds, picks, {total, max_group_size, picks_info}) do
+  defp process_picks({time_elapsed, picks}, letter_bank_string, rem_inc_timer_opts, unjumbleds, {total, max_group_size, picks_info}) do
     num_uniqs =
       picks
       |> Set.size

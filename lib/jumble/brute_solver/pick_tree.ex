@@ -4,7 +4,7 @@ defmodule Jumble.BruteSolver.PickTree do
   alias Jumble.ScowlDict
   alias Jumble.BruteSolver.PickTree.Branch
   alias Jumble.BruteSolver.PickTree.Picker
-  alias Jumble.Countdown
+  alias Jumble.Timer
   alias Jumble.Helper
   alias Jumble.Helper.Stats
 
@@ -60,7 +60,7 @@ defmodule Jumble.BruteSolver.PickTree do
   end
 
   def handle_cast({:put_ids, string_ids}, valid_ids) do
-    Countdown.reset_countdown
+    Timer.reset_countdown
 
     valid_ids
     |> Set.put(string_ids)

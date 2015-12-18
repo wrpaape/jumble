@@ -61,7 +61,7 @@ defmodule Jumble.ScowlDict do
     {:reply, valid_words, state}
   end
 
-  def handle_call({:rank_picks, picks}, from, {[head_rank_fun | tail_rank_funs], dict_builder}) do
+  def handle_call({:rank_picks, picks}, _from, {[head_rank_fun | tail_rank_funs], dict_builder}) do
     picks
     |> Enum.reduce({Map.new, HashSet.new}, fn(pick = [head_id | tail_ids], {ranked_picks, ranks_set})->
       head_rank =
@@ -96,9 +96,9 @@ defmodule Jumble.ScowlDict do
   end
 
   def handle_cast(:swap_dict, {_drop_dict, sol_lengths}) do
-    {uniq_lengths_tups, rank_funs} =
+    {rank_funs, {_dup_set, uniq_lengths_tups}} =
       sol_lengths
-      |> Enum.reduce({HashSet.new, [], []}, fn(length_int, {dup_set, uniq_lengths_tups, rank_funs})->
+      |> Enum.map_reduce({HashSet.new, []}, fn(length_int, {dup_set, uniq_lengths_tups})->
         dup_set
         |> Set.member?(length_int)
         |> if do
@@ -121,13 +121,10 @@ defmodule Jumble.ScowlDict do
             |> build_size_dicts(length_str)
         end
 
-        next_rank_fun =
-          next_size_dicts
-          |> build_rank_fun
-
-        {dup_set, uniq_lengths_tups, [next_rank_fun | rank_funs]}
+        next_size_dicts
+        |> build_rank_fun
+        |> Helper.wrap_append({dup_set, uniq_lengths_tups})
       end)
-      |> Tuple.delete_at(0)
 
     limited_dict_builder = 
       fn(min_size)->

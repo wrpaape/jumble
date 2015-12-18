@@ -1,52 +1,73 @@
-defmodule Jumble.Countdown do
+defmodule Jumble.Timer do
   alias Jumble.Helper
   alias Jumble.Ticker
 
-  @timeout 10000
-  @def_opts [
+  @master_timeout 10_000
+  @async_opts [
     prompt: "no prompt given!",
     ticker_int: 100,
     timeout: 1000,
+    task: {IO, :puts, ["no task given!"]},
+    callback: {IO, :puts, ["no callback given!"]}
+  ]
+  @sync_opts [
+    prompt: "no prompt given!",
+    ticker_int: 100,
     task: {IO, :puts, ["no task given!"]}
   ]
+
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def reset_countdown, do: Agent.cast(__MODULE__, &reset_countdown/1)
+  def reset_countdown, do: Agent.cast(:countdown, &reset_countdown/1)
 
   def time_async(opts) do
-    [prompt, ticker_int, timeout, {module, fun, args}] =
+    [prompt, ticker_int, timeout, task_tup, callback_tup] =
       opts
-      |> fetch_args
+      |> fetch_args(@async_opts)
 
     prompt
-    |> IO.puts
-
-    ticker_int
-    |> Ticker.start
+    |> print_start(ticker_int)
 
     __MODULE__
-    |> Agent.start_link(:start_countdown, [timeout, self], name: __MODULE__)
+    |> Agent.start_link(:start_countdown, [timeout, self], name: :countdown)
 
-    t1 = :erlang.timestamp
+    start_time = :erlang.timestamp
 
-    module
-    |> apply(fun, args)
+    task_tup
+    |> apply_fun_tup
 
     receive do
       :done ->
         time_elapsed =
           :erlang.timestamp
-          |> :timer.now_diff(t1)
+          |> :timer.now_diff(start_time)
 
-        __MODULE__
-        |> Agent.stop(@timeout)
+        :countdown
+        |> Agent.stop(@master_timeout)
 
         Ticker.stop
 
-      time_elapsed
+      {time_elapsed, apply_fun_tup(callback_tup)}
     end
+  end
+
+  def time_sync(opts) do
+    [prompt, ticker_int, {module, fun, args}] =
+      opts
+      |> fetch_args(@sync_opts)
+
+    prompt
+    |> print_start(ticker_int)
+    
+    results =
+      module
+      |> :timer.tc(fun, args)
+
+    Ticker.stop
+
+    results
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
@@ -71,12 +92,23 @@ defmodule Jumble.Countdown do
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+  
+  defp print_start(prompt, ticker_int)do
+    prompt
+    |> IO.puts
 
-  defp fetch_args(opts) do
-    @def_opts
-    |> Enum.map(fn({key, default})->
+    ticker_int
+    |> Ticker.start
+  end
+
+  defp apply_fun_tup({module, fun, args}), do: apply(module, fun, args)
+
+  defp fetch_args(opts, def_opts) do
+    def_opts
+    |> Enum.map_reduce(opts, fn({key, default}, opts)->
       opts
-      |> Keyword.get(key, default)
+      |> Keyword.pop_first(key, default)
     end)
+    |> elem(0)
   end
 end
