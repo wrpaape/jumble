@@ -180,6 +180,11 @@ defmodule Jumble.BruteSolver do
     |> Keyword.update!(:task, &Tuple.append(&1, args))
   end
 
+  def append_prompt_suffix(inc_timer_opts, prompt_suffix) do
+    inc_timer_opts
+    |> Keyword.update!(:prompt, &(&1 <> prompt_suffix))
+  end
+
   defp complete_timer_prompts(unjumbleds, letter_bank_string) do
     unjumbleds_string = 
       unjumbleds
@@ -190,10 +195,7 @@ defmodule Jumble.BruteSolver do
       |> Helper.cap(unjumbleds_string, letter_bank_string)
 
     @process_timer_opts
-    |> Enum.map(fn(inc_timer_opts)->
-      inc_timer_opts
-      |> Keyword.update!(:prompt, &(&1 <> prompt_suffix))
-    end)
+    |> Enum.map(&append_prompt_suffix(&1, prompt_suffix))
   end
 end
 

@@ -16,7 +16,7 @@ defmodule Jumble.BruteSolver.Solver do
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
   @process_timer_opts [
-      prompt: ANSI.blue <> "solving next batch:\n\n ",
+      prompt: ANSI.blue <> "solving batch ",
       task: {__MODULE__, :solve_next_batch},
       ticker_int: 17
     ]
@@ -25,7 +25,7 @@ defmodule Jumble.BruteSolver.Solver do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def solve(sol_groups, batch_index \\ 1) do
+  def solve(sol_groups, dup_word_lists \\ HashSet.new, batch_index \\ 1) do
     sol_groups
     |> prepare_next_batch
     |> case do
@@ -33,23 +33,23 @@ defmodule Jumble.BruteSolver.Solver do
         IO.puts "done"
 
       {next_batch, rem_sol_groups} ->
-        @process_timer_opts
-        |> BruteSolver.append_task_args([next_batch])
-        |> Timer.time_sync
-        |> IO.inspect
+        {time_elapsed, {uniq_word_lists, next_dup_word_lists}} =
+          @process_timer_opts
+          |> BruteSolver.append_prompt_suffix(Integer.to_string(batch_index) <> ":\n\n ")
+          |> BruteSolver.append_task_args([next_batch, dup_word_lists])
+          |> Timer.time_sync
+          |> IO.inspect(pretty: :true, limit: :infinity)
         
         :timer.sleep 3000
 
-        solve(rem_sol_groups, batch_index + 1)
+        solve(rem_sol_groups, next_dup_word_lists, batch_index + 1)
     end
   end
 
 
-
-
-
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+  
   def prepare_next_batch(sol_groups) do
     sol_groups
     |> Enum.reduce({[], []}, fn
@@ -63,11 +63,11 @@ defmodule Jumble.BruteSolver.Solver do
     end)
   end
 
-  def solve_next_batch(sol_batch) do
+  def solve_next_batch(sol_batch, dup_word_lists) do
     sol_batch
-    |> Enum.map(fn({printer_tup, {getters, picks}})->
+    |> Enum.flat_map_reduce(dup_word_lists, fn({printer_tup, {getters, picks}}, dup_word_lists)->
       picks
-      |> Enum.flat_map(fn(pick)->
+      |> Enum.flat_map_reduce(dup_word_lists, fn(pick, dup_word_lists)->
         getters
         |> Enum.reduce({[], pick}, fn(get_fun, {valid_words, [id | rem_ids]})->
           [get_fun.(id) | valid_words]
@@ -75,14 +75,27 @@ defmodule Jumble.BruteSolver.Solver do
         end)
         |> elem(0)
         |> Stats.combinations
+        |> filter_dups(dup_word_lists)
       end)
-      |> Helper.wrap_prepend(printer_tup)
     end)
   end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
+  
+  defp filter_dups(word_lists, dup_word_lists) do
+    word_lists
+    |> Enum.reduce({[], dup_word_lists}, fn(word_list, last_results_tup = {uniqs, dups})->
+      dups
+      |> Set.member?(word_list)
+      |> if do
+        last_results_tup
+      else
+        [Enum.join(word_list, " ") | uniqs]
+        |> Helper.wrap_append(Set.put(dups, word_list))
+      end
+    end)
+  end
 end
 
 #   def process_raw(string_ids),      do: GenServer.cast(__MODULE__, {:process_raw, string_ids})

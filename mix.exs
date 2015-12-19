@@ -11,7 +11,8 @@ defmodule Jumble.Mixfile do
       escript: escript_config,
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps
+      deps: deps,
+      erl: "+P 1_000_000"
     ]
   end
 
@@ -19,7 +20,9 @@ defmodule Jumble.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [
+      applications: [:logger]
+    ]
   end
 
   # Dependencies can be Hex packages:
