@@ -3,7 +3,7 @@ defmodule Jumble.Helper.Stats do
 
   @factorial_cache 1..50
     |> Enum.scan(&(&1 * &2))
-    |> Helper.with_index(1, :leading)
+    |> Helper.with_index(1)
     |> Enum.into(Map.new)
 
 ##################################### external API #####################################

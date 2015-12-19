@@ -68,7 +68,7 @@ defmodule Jumble.StateBuilder do
 
     # {uniq_sol_lengths, dup_tail} =
     #   sol_lengths
-    #   |> Helper.with_index(1, :leading)
+    #   |> Helper.with_index(1)
     #   |> partition_dups_by_val
 
     # pick_orders =

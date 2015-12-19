@@ -50,7 +50,7 @@ defmodule Jumble.Unjumbler do
         length
         |> ScowlDict.safe_get(string_id)
         |> Helper.with_index(1)
-        |> Enum.map_join(@unjumbled_spacer, fn({unjumbled, index}) ->
+        |> Enum.map_join(@unjumbled_spacer, fn({index, unjumbled}) ->
           jumble
           |> unjumbled_row(unjumbled, index, reg_match_keys)
         end)

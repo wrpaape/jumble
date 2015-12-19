@@ -2,12 +2,14 @@ defmodule Jumble.BruteSolver.Reporter do
   alias IO.ANSI
   alias Jumble.Helper
 
-  @report_indent "\n" <> Helper.pad(4)
+
+  @report_indent   "\n" <> Helper.pad(4)
+  @colorized_sizes Helper.colorized_sizes
 
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def report_picks(next_total, num_uniqs, time_elapsed) do
+  def report_picks(num_uniqs, next_total, time_elapsed) do
     sols_counts =
       [num_uniqs, next_total]
       |> Enum.reduce({"unique picks: ", ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
@@ -27,7 +29,7 @@ defmodule Jumble.BruteSolver.Reporter do
     |> IO.puts
   end
 
-  def report_rankings(ranked_picks, num_picks, time_elapsed) do
+  def report_rankings(ranked_picks, total_picks, time_elapsed) do
 
   end
   

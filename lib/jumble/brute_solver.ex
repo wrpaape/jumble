@@ -131,8 +131,8 @@ defmodule Jumble.BruteSolver do
 
     total = total + num_uniqs
 
-    total
-    |> Reporter.report_picks(num_uniqs, time_elapsed)
+    num_uniqs
+    |> Reporter.report_picks(total, time_elapsed)
 
     if num_uniqs > 0 do
       unjumbleds_tup =
@@ -163,9 +163,9 @@ defmodule Jumble.BruteSolver do
     |> elem(0)
   end
 
-  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, printer_tup, num_picks) do
-    # num_picks
-    # Reporter.report_picks(ranked_picks, time_elapsed)
+  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, printer_tup, total_picks) do
+    ranked_picks
+    |> Reporter.report_rankings(total_picks, time_elapsed)
 
     ranked_picks
     |> collapse_rankings(min_max_rank)
