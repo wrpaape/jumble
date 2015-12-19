@@ -9,6 +9,7 @@ defmodule Jumble.ScowlDict.Size35.Length16.Dict do
       "aagiiimnoppprrst" => ["misappropriating"],
       "aaiiimnooppprrst" => ["misappropriation"],
       "acceiimmnnoostux" => ["excommunications"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "acdeiiiilmnnrsty" => ["indiscriminately"],
       "aceeiilnnnnorttt" => ["intercontinental"],
       "acefiiinnooprsst" => ["personifications"],

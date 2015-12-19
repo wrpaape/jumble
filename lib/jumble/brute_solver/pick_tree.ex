@@ -82,7 +82,9 @@ defmodule Jumble.BruteSolver.PickTree do
 
   def clear_branches([next_branch_pid | rem_branch_pids]) do
     next_branch_pid
-    |> Process.exit(:normal)
+    |> Process.exit(:kill)
+
+    # IO.inspect :erlang.system_info(:process_count)
 
     rem_branch_pids
     |> clear_branches

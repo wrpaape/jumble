@@ -24,7 +24,10 @@ scowl_dir =
   ~w(jumble scowl)
   |> PathHelper.rel_lib_path
 
+scowl_categories = ~w(english-words variant_1-words)
+
 scowl_dict_sizes = ~w(10 20 35 40 50 55 60 70 80 95)
+
 
 config :jumble,
   [
@@ -32,6 +35,7 @@ config :jumble,
     length_dict_dir:  length_dict_dir,
     scowl_dir:        scowl_dir,
     scowl_dict_dir:   scowl_dict_dir,
+    scowl_categories: scowl_categories,
     scowl_dict_sizes: scowl_dict_sizes,
     num_scowl_dicts:  length(scowl_dict_sizes)
   ]

@@ -203,6 +203,7 @@ defmodule Jumble.ScowlDict.Size35.Length14.Dict do
       "aabcegiknqrrtu" => ["quarterbacking"],
       "aaaccgiiinnptt" => ["incapacitating"],
       "ceehimnnooprss" => ["comprehensions"],
+      "acdeegklmnnotw" => ["acknowledgment"],
       "addiiiilnsstuv" => ["individualists"],
       "accdiinnoorstt" => ["contradictions"],
       "ceeiilnnnnotvy" => ["inconveniently"],

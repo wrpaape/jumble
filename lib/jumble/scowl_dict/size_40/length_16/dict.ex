@@ -4,6 +4,7 @@ defmodule Jumble.ScowlDict.Size40.Length16.Dict do
       "aceeiilnnnnorttt" => ["intercontinental"],
       "aaeeeilrrrrstttx" => ["extraterrestrial"],
       "aacccehiinrrsttu" => ["uncharacteristic"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "acehhiopprssstty" => ["psychotherapists"],
       "aaceilnnnnorsttt" => ["transcontinental"],
       "adeiinooopprrstt" => ["disproportionate"],

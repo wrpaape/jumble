@@ -1215,6 +1215,7 @@ defmodule Jumble.ScowlDict.Size95.Length16.Dict do
       "cdeegilmnnorssuu" => ["curmudgeonliness"],
       "aacehilmnnooprst" => ["nonatmospherical"],
       "adehhhilmooprstu" => ["hedriophthalmous"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "aaahiinnnoorrttu" => ["nonauthoritarian"],
       "aaaiilmnnoopttuu" => ["automanipulation"],
       "aacciiiinoossstt" => ["associationistic"],

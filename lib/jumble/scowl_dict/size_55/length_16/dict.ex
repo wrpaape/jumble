@@ -37,6 +37,7 @@ defmodule Jumble.ScowlDict.Size55.Length16.Dict do
       "aefillnnooprssuy" => ["unprofessionally"],
       "aeeegiinnnprrttt" => ["interpenetrating"],
       "aacciillmnrsttuy" => ["circumstantially"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "aeeiillnnqssttuy" => ["quintessentially"],
       "aaacdeilllmmorty" => ["melodramatically"],
       "abbcdgiilmnoostu" => ["discombobulating"],

@@ -33,7 +33,7 @@ defmodule Jumble.BruteSolver.Solver do
         IO.puts "done"
 
       {next_batch, rem_sol_groups} ->
-        {time_elapsed, {uniq_word_lists, next_dup_word_lists}} =
+        {time_elapsed, {uniq_word_lists, max_group_size, next_dup_word_lists}} =
           @process_timer_opts
           |> BruteSolver.append_prompt_suffix(Integer.to_string(batch_index) <> ":\n\n ")
           |> BruteSolver.append_task_args([next_batch, dup_word_lists])
@@ -65,7 +65,7 @@ defmodule Jumble.BruteSolver.Solver do
 
   def solve_next_batch(sol_batch, dup_word_lists) do
     sol_batch
-    |> Enum.flat_map_reduce(dup_word_lists, fn({printer_tup, {getters, picks}}, dup_word_lists)->
+    |> Enum.reduce({[], 0, dup_word_lists}, fn({printer_tup = {_, {_, group_size}}, {getters, picks}}, {uniq_sols, max_group_size, dup_word_lists})->
       picks
       |> Enum.flat_map_reduce(dup_word_lists, fn(pick, dup_word_lists)->
         getters
@@ -77,6 +77,12 @@ defmodule Jumble.BruteSolver.Solver do
         |> Stats.combinations
         |> filter_dups(dup_word_lists)
       end)
+      |> case do
+        {[], next_dup_word_lists} ->
+          {uniq_sols, max_group_size, next_dup_word_lists}
+        {next_uniq_sols, next_dup_word_lists} ->
+          {[{printer_tup, next_uniq_sols} | uniq_sols], max(max_group_size, group_size), next_dup_word_lists}
+      end
     end)
   end
 

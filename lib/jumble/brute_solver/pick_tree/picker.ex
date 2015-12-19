@@ -13,7 +13,7 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
     |> spawn(:pick_letters, [{initial_valid_picks, initial_downstream_picks, []}, branch_pid])
   end
 
-  def start_next_id(:ok), do: exit(:normal)
+  def start_next_id(:ok), do: exit(:kill)
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################

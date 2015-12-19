@@ -1,10 +1,14 @@
 defmodule Jumble.CLI do
-  # @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
+  @argv_test ["when the acupuncture worked the patient said it was/3/4/4", "nagld/2/4/5", "ramoj/3/4", "camble/1/2/4", "wraley/1/3/5"]
   # @argv_test ["what they had when they went the distance to shop in Chicago. I wish we could have shopped even longer. we shopped the perfect length./11/4/8/5"] ++ ~w(alnca/1/2/3/5 mgsea/1/2/3/4 tlhgif/1/2/3/6 vnaeue/2/3/4/6 naievt/1/2/4/6 trsotiu/4/5/7 sdeimwt/1/2/3/5/7)
   # @argv_test ~w(clue/6/7 hnuck/1/2/3 turet/1/2/3 birsec/1/2/5/6 pajloy/1/4/6)
-  @argv_test ~w(clue/4/5 ylsyh/1/4 setgu/1/4 lasivu/1/3/5 nofdef/1/4)
+  # @argv_test ~w(clue/4/5 ylsyh/1/4 setgu/1/4 lasivu/1/3/5 nofdef/1/4)
   # @argv_test ~w(clue/9 tonji/2/5 zierp/1/3 babfly/1/2 rooman/3/4/5)
   # @argv_test ["how they described their work on the instruction book I'm starting the assembly chapter/6/5", "sobas/1/5", "galuh/1/2/3", "larmin/2/4/6", "ramaad/1/2/3"]
+  # @argv_test ["would you like to hear our specials the only reason fido is allowed in a restaurant is because he is a/7/3", "sogeo/1/3/5", "farcs/1/2/4", "dulhed/4/6", "vitace/4/5"]
+  # @argv_test ["how they described their work on the instruction book I'm starting the assembly chapter/6/5", "sobas/1/5", "galuh/1/2/3", "larmin/2/4/6", "ramaad/1/2/3"]
+  # @argv_test ["don't worry, Stephan.  you're gonna win some and lose some. how could you forget my alibi?! A bad way for a lawyer to learn the criminal justice system./5/5", "laisa/2/3/4", "laurr/1/3", "bureek/1/2", "prouot/3/5/6"]
+  # @argv_test ["what the starter said to my wife right before the couples piggyback race/2/4/4", "ragdu/2/3/4", "osmeo/1/2/3", "rulsye/3/6", "nerlke/1/4"]
   # "how they described their work on the instruction book I'm starting the assembly chapter"/6/5 sobas/1/5 galuh/1/2/3 larmin/2/4/6 ramaad/1/2/3
 
 

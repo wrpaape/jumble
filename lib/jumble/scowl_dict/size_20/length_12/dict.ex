@@ -135,14 +135,15 @@ defmodule Jumble.ScowlDict.Size20.Length12.Dict do
       "aceiinnorstt" => ["interactions"], "egiinnprrttu" => ["interrupting"],
       "eeiimnprrstt" => ["misinterpret"], "biinosstttuu" => ["substitution"],
       "aailnnorsstt" => ["translations"], "cceeillnoort" => ["recollection"],
-      "acdeiillopry" => ["periodically"], "ddegnnorrsuu" => ["undergrounds"],
-      "ceeeilprstvy" => ["respectively"], "aceeinopsttx" => ["expectations"],
-      "accdeimmnotu" => ["communicated"], "acdiinnooort" => ["coordination"],
-      "ccginnorsttu" => ["constructing"], "cceeeimnnopt" => ["incompetence"],
-      "acdeimnnnoot" => ["condemnation"], "cdeiinnosstu" => ["discontinues"],
-      "aabbeiinortv" => ["abbreviation"], "ehhiilooppss" => ["philosophies"],
-      "aacdefmnrtuu" => ["manufactured"], "ceeinorrrstu" => ["resurrection"],
-      "aaciiinnoptt" => ["anticipation"], "aiknoorssttw" => ["workstations"],
-      "aaelnprrstuu" => ["supernatural"], "aabcdginorst" => ["broadcasting"]}
+      "bdeghhinooor" => ["neighborhood"], "acdeiillopry" => ["periodically"],
+      "ddegnnorrsuu" => ["undergrounds"], "ceeeilprstvy" => ["respectively"],
+      "aceeinopsttx" => ["expectations"], "accdeimmnotu" => ["communicated"],
+      "acdiinnooort" => ["coordination"], "ccginnorsttu" => ["constructing"],
+      "cceeeimnnopt" => ["incompetence"], "acdeimnnnoot" => ["condemnation"],
+      "cdeiinnosstu" => ["discontinues"], "aabbeiinortv" => ["abbreviation"],
+      "ehhiilooppss" => ["philosophies"], "aacdefmnrtuu" => ["manufactured"],
+      "ceeinorrrstu" => ["resurrection"], "aaciiinnoptt" => ["anticipation"],
+      "aiknoorssttw" => ["workstations"], "aaelnprrstuu" => ["supernatural"],
+      "aabcdginorst" => ["broadcasting"]}
   end
 end

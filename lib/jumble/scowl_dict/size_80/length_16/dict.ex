@@ -496,6 +496,7 @@ defmodule Jumble.ScowlDict.Size80.Length16.Dict do
       "cceghilnooosttty" => ["cytotechnologist"],
       "abdeeeiilmnsssss" => ["admissiblenesses"],
       "cdeegilmnnorssuu" => ["curmudgeonliness"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "aaahiinnnoorrttu" => ["nonauthoritarian"],
       "aacciiiinoossstt" => ["associationistic"],
       "aaccdeeeilnnssst" => ["accidentalnesses"],

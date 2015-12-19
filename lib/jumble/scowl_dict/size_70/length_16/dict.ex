@@ -120,6 +120,7 @@ defmodule Jumble.ScowlDict.Size70.Length16.Dict do
       "aacciillmnrsttuy" => ["circumstantially"],
       "cghhiloooppssyyy" => ["psychophysiology"],
       "cdeegilmnnorssuu" => ["curmudgeonliness"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "accceeiloorssttu" => ["electroacoustics"],
       "accefiiillnnstuy" => ["unscientifically"],
       "abciilorrrssttuu" => ["arboriculturists"],

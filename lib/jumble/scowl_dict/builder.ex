@@ -5,6 +5,7 @@ defmodule Jumble.ScowlDict.Builder do
   alias Jumble.LengthDict.Builder
   alias Jumble.ScowlDict.Builder.FileBuilder
 
+  @categories   Application.get_env(:jumble, :scowl_categories)
   @dict_sizes   Application.get_env(:jumble, :scowl_dict_sizes)
   @scowl_dir    Application.get_env(:jumble, :scowl_dir)
   @final_dir    Path.join(@scowl_dir, "final")
@@ -29,9 +30,12 @@ defmodule Jumble.ScowlDict.Builder do
   end
 
   def filtered_word_list(size) do
-    @final_dir
-    |> Path.join("english-words." <> size)
-    |> File.read!
+    @categories
+    |> Enum.map_join("\n", fn(category)->
+      @final_dir
+      |> Path.join(category <> "." <> size)
+      |> File.read!
+    end)
     |> String.replace(@reg_filter, "")
     |> String.split
   end

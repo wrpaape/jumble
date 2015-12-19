@@ -24,6 +24,7 @@ defmodule Jumble.ScowlDict.Size50.Length16.Dict do
       "aaaaeiilmnnprrst" => ["parliamentarians"],
       "acdgiiiimnnnrstu" => ["undiscriminating"],
       "aacciillmnrsttuy" => ["circumstantially"],
+      "acdeeegklmnnostw" => ["acknowledgements"],
       "aaacdeilllmmorty" => ["melodramatically"],
       "abbcdgiilmnoostu" => ["discombobulating"],
       "acehhiopprssstty" => ["psychotherapists"],
