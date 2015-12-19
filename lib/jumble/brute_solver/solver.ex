@@ -18,7 +18,6 @@ defmodule Jumble.BruteSolver.Solver do
   @process_timer_opts [
       prompt: ANSI.blue <> "solving next batch:\n\n ",
       task: {__MODULE__, :solve_next_batch},
-      timeout: 100,
       ticker_int: 17
     ]
 
@@ -35,14 +34,14 @@ defmodule Jumble.BruteSolver.Solver do
 
       {next_batch, rem_sol_groups} ->
         @process_timer_opts
-        |> BruteSolver.append_task_args(next_batch)
+        |> BruteSolver.append_task_args([next_batch])
         |> Timer.time_sync
         |> IO.inspect
+        
+        :timer.sleep 3000
+
+        solve(rem_sol_groups, batch_index + 1)
     end
-
-    :timer.sleep 2000
-
-    solve(rem_sol_groups, batch_index + 1)
   end
 
 
@@ -54,51 +53,30 @@ defmodule Jumble.BruteSolver.Solver do
   def prepare_next_batch(sol_groups) do
     sol_groups
     |> Enum.reduce({[], []}, fn
-      ([batch_group | rem_sol_group], {next_batch, rem_sol_groups})->
-        {[batch_group | next_batch], [rem_sol_group | rem_sol_groups]}
-      ([], results_tup)->
-        results_tup
+      ({printer_tup, [batch_group | rem_batch_groups]}, {next_batch, rem_sol_groups})->
+
+        [{printer_tup, batch_group} | next_batch]
+        |> Helper.wrap_append([{printer_tup, rem_batch_groups} | rem_sol_groups])
+
+      ({_printer_tup, []}, last_results_tup)->
+        last_results_tup
     end)
   end
 
   def solve_next_batch(sol_batch) do
-    {batch_sols, max_group_size, next_sol_batch} =
-      sol_batch
-      |> Enum.reduce({[], 0, []}, fn
-        ({letter_bank, unjumbleds_tup = {_unjumbleds, group_size}, [next_opts | rem_opts]}, {batch_sols, max_group_size, next_sol_groups})->
-          next_batch_sol = {letter_bank, unjumbleds_tup, Timer.time_sync(next_opts)}
-
-          next_max_group_size =
-            max_group_size
-            |> max(group_size)
-          
-          next_sol_group = {letter_bank, unjumbleds_tup, rem_opts}
-
-          {[next_batch_sol | batch_sols], next_max_group_size, [next_sol_group | next_sol_groups]}
-
-        ({_letter_bank, _unjumbleds_tup, []}, results_tup)->
-          results_tup
+    sol_batch
+    |> Enum.map(fn({printer_tup, {getters, picks}})->
+      picks
+      |> Enum.flat_map(fn(pick)->
+        getters
+        |> Enum.reduce({[], pick}, fn(get_fun, {valid_words, [id | rem_ids]})->
+          [get_fun.(id) | valid_words]
+          |> Helper.wrap_append(rem_ids)
+        end)
+        |> elem(0)
+        |> Stats.combinations
       end)
-
-      IO.inspect batch_sols
-      # IO.inspect length(batch_sols)
-      # IO.inspect length(Enum.uniq(batch_sols))
-
-    :timer.sleep 3000
-
-    solve_next_batch(next_sol_groups)
-  end
-
-  def solve_picks(dict_size, getters, picks) do
-    picks
-    |> Enum.flat_map(fn(pick)->
-      getters
-      |> Enum.reduce({[], pick}, fn(get_fun, {valid_words, [id | rem_ids]})->
-        [get_fun.(id) | valid_words]
-        |> Helper.wrap_append(rem_ids)
-      end)
-      |> elem(0)
-      |> Stats.combinations
+      |> Helper.wrap_prepend(printer_tup)
     end)
   end
 

@@ -28,7 +28,6 @@ defmodule Jumble.BruteSolver do
     [
       prompt: ANSI.blue <> "ranking picks for:\n\n ",
       task: {ScowlDict, :rank_picks},
-      timeout: 100,
       ticker_int: 17
     ]
   ]
@@ -82,7 +81,7 @@ defmodule Jumble.BruteSolver do
     |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, num_picks})->
       rank_picks_timer_opts
       |> Timer.time_sync
-      |> process_rankings(letter_bank, unjumbleds_tup, num_picks)
+      |> process_rankings({letter_bank, unjumbleds_tup}, num_picks)
     end)
   end
 
@@ -156,32 +155,31 @@ defmodule Jumble.BruteSolver do
     ranked_picks
     |> Enum.drop_while(&(elem(&1, 0) < min_max_rank))
     |> List.foldr({[], 0}, fn
-      ({_dict_size, {_size_dict, _picks, dup_count}}, last_batch_tup = {_sol_batches, dup_count})->
+      ({_dict_size, {_getters, _picks, dup_count}}, last_batch_tup = {_sol_batches, dup_count})->
         last_batch_tup
-      ({_dict_size, {size_dict, picks, count}}, {sol_batches, _last_count})->
-        {[{size_dict, picks} | count], count}
+      ({_dict_size, {getters, picks, count}}, {sol_batches, _last_count})->
+        {[{getters, picks} | sol_batches], count}
     end)
+    |> elem(0)
   end
 
-  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, num_picks) do
+  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, printer_tup, num_picks) do
     # num_picks
     # Reporter.report_picks(ranked_picks, time_elapsed)
 
-    {sol_batches, _last_count} =
-      ranked_picks
-      |> collapse_rankings(min_max_rank)
-
-
-    {letter_bank, unjumbleds_tup, sol_batches}
+    ranked_picks
+    |> collapse_rankings(min_max_rank)
+    |> Helper.wrap_prepend(printer_tup)
   end
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
   def append_task_args(inc_timer_opts, args) do
     inc_timer_opts
     |> Keyword.update!(:task, &Tuple.append(&1, args))
   end
-  
+
   defp complete_timer_prompts(unjumbleds, letter_bank_string) do
     unjumbleds_string = 
       unjumbleds

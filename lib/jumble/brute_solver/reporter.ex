@@ -49,7 +49,7 @@ defmodule Jumble.BruteSolver.Reporter do
     |> Helper.cap("time elapsed: ", units)
   end
 
-  defp time_with_units(micro_sec), when micro_sec < 1_000,     do: {micro_sec,                    " μs"}
-  defp time_with_units(micro_sec), when micro_sec < 1_000_000, do: {round(micro_sec / 1_000),     " ms"}
-  defp time_with_units(micro_sec),                             do: {round(micro_sec / 1_000_000), " s" }
+  defp time_with_units(micro_sec) when micro_sec < 1_000,     do: {micro_sec,                    " μs"}
+  defp time_with_units(micro_sec) when micro_sec < 1_000_000, do: {round(micro_sec / 1_000),     " ms"}
+  defp time_with_units(micro_sec),                            do: {round(micro_sec / 1_000_000), " s" }
 end
