@@ -6,6 +6,7 @@ defmodule Jumble.BruteSolver.Solver do
   alias Jumble.ScowlDict
   alias Jumble.Helper
   alias Jumble.Helper.Stats
+  alias Jumble.BruteSolver
 
   @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
   @rem_continues_key_path    ~w(sol_info rem_continues)a
@@ -25,7 +26,40 @@ defmodule Jumble.BruteSolver.Solver do
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  def solve(sol_groups)
+  def solve(sol_groups, batch_index \\ 1) do
+    sol_groups
+    |> prepare_next_batch
+    |> case do
+      {[], []} -> 
+        IO.puts "done"
+
+      {next_batch, rem_sol_groups} ->
+        @process_timer_opts
+        |> BruteSolver.append_task_args(next_batch)
+        |> Timer.time_sync
+        |> IO.inspect
+    end
+
+    :timer.sleep 2000
+
+    solve(rem_sol_groups, batch_index + 1)
+  end
+
+
+
+
+
+# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+##################################### external API #####################################
+  def prepare_next_batch(sol_groups) do
+    sol_groups
+    |> Enum.reduce({[], []}, fn
+      ([batch_group | rem_sol_group], {next_batch, rem_sol_groups})->
+        {[batch_group | next_batch], [rem_sol_group | rem_sol_groups]}
+      ([], results_tup)->
+        results_tup
+    end)
+  end
 
   def solve_next_batch(sol_batch) do
     {batch_sols, max_group_size, next_sol_batch} =
@@ -67,9 +101,6 @@ defmodule Jumble.BruteSolver.Solver do
       |> Stats.combinations
     end)
   end
-
-# ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
-##################################### external API #####################################
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#

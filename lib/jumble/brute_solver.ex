@@ -152,7 +152,7 @@ defmodule Jumble.BruteSolver do
     {picks_info, total}
   end
 
-  def collapse_picks(ranked_picks, min_max_rank) do
+  def collapse_rankings(ranked_picks, min_max_rank) do
     ranked_picks
     |> Enum.drop_while(&(elem(&1, 0) < min_max_rank))
     |> List.foldr({[], 0}, fn
@@ -161,7 +161,6 @@ defmodule Jumble.BruteSolver do
       ({_dict_size, {size_dict, picks, count}}, {sol_batches, _last_count})->
         {[{size_dict, picks} | count], count}
     end)
-
   end
 
   def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, letter_bank, unjumbleds_tup, num_picks) do
@@ -170,7 +169,7 @@ defmodule Jumble.BruteSolver do
 
     {sol_batches, _last_count} =
       ranked_picks
-      |> collapse_picks(min_max_rank)
+      |> collapse_rankings(min_max_rank)
 
 
     {letter_bank, unjumbleds_tup, sol_batches}
@@ -178,7 +177,11 @@ defmodule Jumble.BruteSolver do
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
+  def append_task_args(inc_timer_opts, args) do
+    inc_timer_opts
+    |> Keyword.update!(:task, &Tuple.append(&1, args))
+  end
+  
   defp complete_timer_prompts(unjumbleds, letter_bank_string) do
     unjumbleds_string = 
       unjumbleds
@@ -193,11 +196,6 @@ defmodule Jumble.BruteSolver do
       inc_timer_opts
       |> Keyword.update!(:prompt, &(&1 <> prompt_suffix))
     end)
-  end
-
-  defp append_task_args(inc_timer_opts, args) do
-    inc_timer_opts
-    |> Keyword.update!(:task, &Tuple.append(&1, args))
   end
 end
 
