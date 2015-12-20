@@ -3,14 +3,17 @@ defmodule Jumble.BruteSolver.Reporter do
   alias Jumble.Helper
 
   @report_indent   "\n" <> Helper.pad(4)
-  @colorized_sizes Helper.colorized_sizes
+  @color_size_tups Helper.color_size_tups
   # @max_size_length Application.get_env(:jumble, :scowl_dict_sizes)
   #   |> Enum.map(&byte_size/1)
   #   |> Enum.max
 
-  @rankings_rcap ~w(┐ │ ┤ │ ┘)
+  @rankings_pads ~w(─   ─   ─)
+  @rankings_join ~w(┬ │ ┼ │ ┴)
   @rankings_lcap ~w(┌ │ ├ │ └)
     |> Enum.map(&(@report_indent <> &1))
+  @rankings_rcap ~w(┐ │ ┤ │ ┘)
+    |> Enum.map(&(&1 <> "\n"))
 
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -39,13 +42,44 @@ defmodule Jumble.BruteSolver.Reporter do
 
   def report_rankings(ranked_picks, total_picks, time_elapsed) do
     ranked_picks
-    |> Enum.reduce({@rankings_lcap, @colorized_sizes}, fn({dict_size, {_getters, _ids, count}}, {lcap, [next_color_size | rem_color_sizes]})->
+    |> Enum.reduce({@rankings_lcap, @color_size_tups}, fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
       count_str =
         count
         |> Integer.to_string
+      
+      count_str_len =
+        count_str
+        |> byte_size
 
+      col_width =
+        count_str_len
+        |> max(next_str_len)
+        |> + 2
 
+        @rankings_pads
+        |> Enum.map(&String.duplicate(&1, col_width))
+
+      
+      @rankings_pads
+      |> Enum.flat_map_reduce([next_tup, {count_str, count_str_len}, []], fn(pad, [{str, str_len} | rem_tups])->
+        [String.duplicate(pad, col_width) | Helper.split_pad_rem_cap(col_width - str_len, str)]
+        |> Helper.wrap_append(rem_tups)
+      end)
+      |> elem(0)
+      |> Enum.map_reduce({rows, @rankings_join}, fn(content, {[next_row | rem_rows], [next_join | rem_joins]})->
+        next_join
+        |> Helper.cap(next_row, content)
+        |> Helper.wrap_append({rem_rows, rem_joins})
+      end)
+      |> elem(0)
     end)
+    |> Enum.reduce({"", @rankings_rcap}, fn(row, {table, [next_rcap | rem_rcaps]})->
+      row
+      |> Helper.cap(table, next_rcap)
+      |> Helper.wrap_append(rem_rcaps)
+    end)
+    # |> elem(0)
+    |> IO.inspect
   end
   
   # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
