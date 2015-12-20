@@ -8,11 +8,11 @@ defmodule Jumble.BruteSolver.Reporter do
   @color_size_tups Helper.color_size_tups(@default_color)
 
   @rankings_join ~w(┬ │ ┼ │ ┴)
+  @rankings_rcap ~w(┐ │ ┤ │ ┘) |> Enum.map(&(&1 <> "\n"))
   @rankings_lcap ~w(┌ │ ├ │ └)
     |> Enum.map(&(@report_indent <> &1))
     |> List.update_at(0, &Helper.cap("\n", @default_color, &1))
-  @rankings_rcap ~w(┐ │ ┤ │ ┘)
-    |> Enum.map(&(&1 <> "\n"))
+  
   @rankings_caps Enum.zip(@rankings_lcap, @rankings_rcap)
 
   ##################################### external API #####################################
