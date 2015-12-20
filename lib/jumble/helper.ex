@@ -53,7 +53,7 @@ defmodule Jumble.Helper do
     |> cap(lpad, rpad)
   end
 
-  def color_size_tups do
+  def color_size_tups(default_color) do
     @intensity_colors
     |> List.foldr({[], @intensity_colors}, fn(from_rcap, {results, [from_lcap | rem_from_lcap]})->
       {[from_rcap | [from_lcap | results]], rem_from_lcap}
@@ -77,7 +77,7 @@ defmodule Jumble.Helper do
     end)
     |> Enum.map_reduce(@dict_sizes, fn(color, [next_dict_size | rem_dict_sizes])->
       next_dict_size
-      |> cap(color, @default_color)
+      |> cap(color, default_color)
       |> wrap_append(byte_size(next_dict_size))
       |> wrap_append(rem_dict_sizes)
     end)
