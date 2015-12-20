@@ -26,7 +26,7 @@ defmodule Jumble.BruteSolver do
       ticker_int: 17
     ],
     [
-      prompt: ANSI.blue <> "ranking picks for:\n\n ",
+      prompt: ANSI.blue <> "\n\nranking picks for:\n\n ",
       task: {ScowlDict, :rank_picks},
       ticker_int: 17
     ]

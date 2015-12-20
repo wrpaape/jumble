@@ -62,10 +62,10 @@ defmodule Jumble.BruteSolver.Reporter do
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def print_with_time_elapsed(report, time_elapsed) do
-    [report, build_time_elapsed(time_elapsed)]
+    [@default_color <> report, build_time_elapsed(time_elapsed)]
     |> Enum.reduce(&(&2 <> &1))
-    |> Helper.cap(@default_color, "\n")
-    |> IO.puts
+    # |> Helper.cap(, "\n")
+    |> IO.write
   end
 
   def initial_tups(total_picks) do
@@ -100,17 +100,22 @@ defmodule Jumble.BruteSolver.Reporter do
     |> elem(0)
   end
 
-  defp build_time_elapsed(micro_sec) do
+  def build_time_elapsed(micro_sec) do
     {time, units} =
       micro_sec
       |> time_with_units
 
     time
-    |> Integer.to_string
     |> Helper.cap(@time_elapsed_prefix, units)
   end
 
-  defp time_with_units(micro_sec) when micro_sec < 1_000,     do: {micro_sec,                    " μs"}
-  defp time_with_units(micro_sec) when micro_sec < 1_000_000, do: {round(micro_sec / 1_000),     " ms"}
-  defp time_with_units(micro_sec),                            do: {round(micro_sec / 1_000_000), " s" }
+  defp time_with_units(micro_sec) when micro_sec < 1_000,     do: {Integer.to_string(micro_sec),        " μs"}
+  defp time_with_units(micro_sec) when micro_sec < 1_000_000, do: {format_float(micro_sec / 1_000),     " ms"}
+  defp time_with_units(micro_sec),                            do: {format_float(micro_sec / 1_000_000), " s" }
+
+  defp  format_float(float) do
+    :io_lib.format("~.4g", [float])
+    |> hd
+    |> List.to_string
+  end
 end

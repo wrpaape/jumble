@@ -7,18 +7,23 @@ defmodule Jumble.BruteSolver.Solver do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
   alias Jumble.BruteSolver
-  alias Jumble.BruteSolver.Reporter
   alias Jumble.BruteSolver.Printer
+  alias Jumble.BruteSolver.Reporter
 
   @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
   @rem_continues_key_path    ~w(sol_info rem_continues)a
 
+  @report_color  ANSI.white
+  # @report_indent Helper.pad(4)
+  # @done_prompt @report_color
+  #   |> Helper.cap(@report_indent, "done")
+
   @continue_prompt "\n\n  continue? (y/n)\n  "
-    |> Helper.cap(ANSI.white, ANSI.blink_slow)
+    |> Helper.cap(@report_color, ANSI.blink_slow)
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
 
   @process_timer_opts [
-      prompt: ANSI.blue <> "solving batch ",
+      prompt: Helper.cap(ANSI.blue, ANSI.black_background, "\n\nsolving batch "),
       task: {__MODULE__, :solve_next_batch},
       ticker_int: 17
     ]
@@ -37,14 +42,13 @@ defmodule Jumble.BruteSolver.Solver do
       {next_batch, rem_sol_groups} ->
         {time_elapsed, {uniq_word_lists, max_group_size, next_dup_word_lists}} =
           @process_timer_opts
-          |> BruteSolver.append_prompt_suffix(Integer.to_string(batch_index) <> ":\n\n ")
+          |> BruteSolver.append_prompt_suffix(Integer.to_string(batch_index) <> ":")
           |> BruteSolver.append_task_args([next_batch, dup_word_lists])
           |> Timer.time_sync
-          # |> IO.inspect(pretty: :true, limit: :infinity)
 
-          uniq_word_lists
-          |> Printer.build_solution_table(max_group_size)
-          |> Reporter.print_with_time_elapsed(time_elapsed)
+          time_elapsed
+          |> Reporter.build_time_elapsed
+          |> Printer.print_solutions(uniq_word_lists, max_group_size)
         
         :timer.sleep 3000
 
@@ -87,7 +91,7 @@ defmodule Jumble.BruteSolver.Solver do
         {[], next_dup_word_lists} ->
           {uniq_sols, max_group_size, next_dup_word_lists}
         {next_uniq_sols, next_dup_word_lists} ->
-          {[{printer_tup, next_uniq_sols} | uniq_sols], max(max_group_size, group_size), next_dup_word_lists}
+          {[{printer_tup, length(next_uniq_sols), next_uniq_sols} | uniq_sols], max(max_group_size, group_size), next_dup_word_lists}
       end
     end)
   end
@@ -103,8 +107,7 @@ defmodule Jumble.BruteSolver.Solver do
       |> if do
         last_results_tup
       else
-        [Enum.join(word_list, " ") | uniqs]
-        |> Helper.wrap_append(Set.put(dups, word_list))
+        {[word_list | uniqs], Set.put(dups, word_list)}
       end
     end)
   end

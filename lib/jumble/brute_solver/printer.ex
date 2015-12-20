@@ -2,11 +2,11 @@ defmodule Jumble.BruteSolver.Printer do
   alias IO.ANSI
   alias Jumble.Helper
 
-  @report_colors ANSI.blue_background <> ANSI.yellow
+  # @table_colors ANSI.blue_background <> ANSI.yellow
 
-  @header "BRUTE FORCE SOLUTIONS\n\n"
+  @header "\n\nBRUTE FORCE SOLUTIONS\n\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
-    |> Helper.cap(ANSI.yellow, @report_colors)
+    |> Helper.cap(ANSI.yellow, ANSI.blue_background)
 
   @unjumbleds_joiner        ANSI.yellow <> "or"
 
@@ -32,18 +32,18 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   # def print_solutions(sols, %{total: total, indivs: indivs, sol_groups: sol_groups}) do
-  def build_solution_table(sols, max_group_size) do
+  def print_solutions(time_elapsed, sols, max_group_size) do
     sols
-    |> Enum.sort_by(&elem(&1, 3), &>=/2)
-    |> throttle_and_build_table(max_group_size, Agent.get(__MODULE__, & &1), @header)
+    |> Enum.sort_by(&elem(&1, 1), &>=/2)
+    |> append_next_table(max_group_size, Agent.get(__MODULE__, & &1), Helper.cap(time_elapsed, ANSI.white, @header))
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
   
-  def throttle_and_build_table([], _max_group_size, _format_state, final_results), do: final_results
+  def append_next_table([], _max_group_size, _format_state, final_results), do: IO.write(final_results)
 
-  def throttle_and_build_table(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
+  def append_next_table(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
     print_group_size =
       total_content_cols
       |> div(min_content_cols * max_group_size)
@@ -54,8 +54,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     {sol_info, indiv_counts, total, leftover_cols} =
       next_sols
-      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds_tup, results}, {sols, indiv_counts, total, leftover_cols})->
-
+      |> Enum.reduce({[], [], 0, total_content_cols}, fn({{letter_bank, unjumbleds_tup}, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
         {[{letter_bank, unjumbleds_tup, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
       end)
 
@@ -66,13 +65,13 @@ defmodule Jumble.BruteSolver.Printer do
 
     next_max_group_size =
       rem_sols
-      |> Enum.reduce(0, fn({_letter_bank, {_unjumbleds, group_size}, _num_uniqs, _results}, next_max_group_size)->
+      |> Enum.reduce(0, fn({{_letter_bank, {_unjumbleds, group_size}}, _num_uniqs, _results}, next_max_group_size)->
         group_size
         |> max(next_max_group_size)
       end)
 
     rem_sols
-    |> throttle_and_build_table(next_max_group_size, format_state, acc_results <> next_results)
+    |> append_next_table(next_max_group_size, format_state, acc_results <> next_results)
   end
 
   defp print_sol_group(allocated_dims, sol_info, lengths_tup, pads_tup) do
