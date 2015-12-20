@@ -16,12 +16,13 @@ defmodule Jumble.BruteSolver.Solver do
   # @done_prompt @report_color
   #   |> Helper.cap(@report_indent, "done")
 
-  @continue_prompt "\n\n  continue? (y/n)\n  "
-    |> Helper.cap(@report_color, ANSI.blink_slow)
+  @continue_prompt "\n\n    continue? (y/n)\n    "
+    |> Helper.cap(ANSI.green, ANSI.blink_slow)
     |> Helper.cap(ANSI.black_background, "> " <> ANSI.blink_off)
+    |> Helper.cap(ANSI.bright, ANSI.normal)
 
   @process_timer_opts [
-      prompt: Helper.cap(ANSI.blue, ANSI.black_background, "\n\nsolving batch "),
+      prompt: Helper.cap(ANSI.cyan, ANSI.black_background, "\n\nsolving batch "),
       task: {__MODULE__, :solve_next_batch},
       ticker_int: 17
     ]
@@ -52,7 +53,7 @@ defmodule Jumble.BruteSolver.Solver do
           |> Reporter.build_time_elapsed
           |> Printer.print_solutions(uniq_word_lists, max_group_size)
         
-        :timer.sleep 3000
+        request_continue
 
         solve({rem_sol_groups, num_batches}, next_dup_word_lists, batch_index + 1)
     end
@@ -61,6 +62,13 @@ defmodule Jumble.BruteSolver.Solver do
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
+
+  def request_continue do
+    @continue_prompt
+    |> IO.gets
+    |> String.match?(~r/y/i)
+    |> unless do: System.halt(0)
+  end
   
   def prepare_next_batch(sol_groups) do
     sol_groups

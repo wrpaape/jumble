@@ -32,7 +32,7 @@ defmodule Jumble.BruteSolver.Reporter do
 
   def report_rankings(ranked_picks, total_picks, time_elapsed) do
     ranked_picks
-    |> Enum.reduce(initial_tups(total_picks), fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
+    |> Enum.reduce(initial_tups(total_picks), fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup | rem_tups]})->
       count
       |> Integer.to_string
       |> build_content_col(next_tup)

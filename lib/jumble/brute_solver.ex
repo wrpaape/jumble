@@ -18,14 +18,14 @@ defmodule Jumble.BruteSolver do
 
   @process_timer_opts [
     [
-      prompt: ANSI.blue <> "picking valid ids for:\n\n ",
+      prompt: ANSI.cyan <> "picking valid ids for:\n\n ",
       task: {PickTree, :pick_valid_ids},
       callback: {PickTree, :dump_ids, []},
       timeout: 100,
       ticker_int: 17
     ],
     [
-      prompt: ANSI.blue <> "\n\nranking picks for:\n\n ",
+      prompt: ANSI.cyan <> "\n\nranking picks for:\n\n ",
       task: {ScowlDict, :rank_picks},
       ticker_int: 17
     ]
