@@ -10,8 +10,6 @@ defmodule Jumble.BruteSolver.PickTree do
 
   @sol_lengths_tups_key_path ~w(sol_info sol_lengths_tups)a
 
-  # @stash_agents ~w(pick_orders dead_branches)a
-
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
@@ -67,7 +65,7 @@ defmodule Jumble.BruteSolver.PickTree do
     |> Helper.wrap_prepend(:noreply)
   end
 
-  def handle_call(:dump_ids, client, final_ids) do
+  def handle_call(:dump_ids, _from, final_ids) do
     :dead_branches
     |> Agent.cast(&clear_branches/1)
 

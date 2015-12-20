@@ -2,8 +2,6 @@ defmodule Jumble.ScowlDict do
   @dict_sizes Application.get_env(:jumble, :scowl_dict_sizes)
   @max_size   List.last(@dict_sizes)
 
-  # @uniq_jumble_lengths_key_path ~w(jumble_info uniq_lengths)a
-
   use GenServer
   alias Jumble.Helper
    

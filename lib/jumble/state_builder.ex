@@ -1,7 +1,5 @@
 defmodule Jumble.StateBuilder do
     alias Jumble.Helper
-    alias Jumble.ScowlDict
-  # alias Jumble.Helper.Stats
 
   def build_state([clue_string | jumble_strings]) do
     sol_info =

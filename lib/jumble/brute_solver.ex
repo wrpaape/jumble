@@ -6,7 +6,6 @@ defmodule Jumble.BruteSolver do
   alias Jumble.Helper
   alias Jumble.BruteSolver.PickTree
   alias Jumble.BruteSolver.Solver
-  alias Jumble.BruteSolver.Printer
   alias Jumble.BruteSolver.Reporter 
   alias Jumble.Timer
   alias Jumble.ScowlDict
@@ -85,10 +84,10 @@ defmodule Jumble.BruteSolver do
 
   defp rank_picks(picks_info) do
     picks_info
-    |> Enum.map(fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, num_picks})->
+    |> Enum.map_reduce(0, fn({letter_bank, unjumbleds_tup, rank_picks_timer_opts, num_picks}, max_num_batches)->
       rank_picks_timer_opts
       |> Timer.time_sync
-      |> process_rankings({letter_bank, unjumbleds_tup}, num_picks)
+      |> process_rankings({letter_bank, unjumbleds_tup}, num_picks, max_num_batches)
     end)
   end
 
@@ -161,22 +160,24 @@ defmodule Jumble.BruteSolver do
   def collapse_rankings(ranked_picks, min_max_rank) do
     ranked_picks
     |> Enum.drop_while(&(elem(&1, 0) < min_max_rank))
-    |> List.foldr({[], 0}, fn
-      ({_dict_size, {_getters, _picks, dup_count}}, last_batch_tup = {_sol_batches, dup_count})->
+    |> List.foldr({[], 0, 0}, fn
+      ({_dict_size, {_getters, _picks, dup_count}}, last_batch_tup = {_sol_batches, _num_batches, dup_count})->
         last_batch_tup
-      ({_dict_size, {getters, picks, count}}, {sol_batches, _last_count})->
-        {[{getters, picks} | sol_batches], count}
+      ({_dict_size, {getters, picks, count}}, {sol_batches, num_batches, _last_count})->
+        {[{getters, picks} | sol_batches], num_batches + 1, count}
     end)
-    |> elem(0)
+    |> Tuple.delete_at(2)
   end
 
-  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, printer_tup, total_picks) do
+  def process_rankings({time_elapsed, {ranked_picks, min_max_rank}}, printer_tup, total_picks, max_num_batches) do
     ranked_picks
     |> Reporter.report_rankings(total_picks, time_elapsed)
 
-    ranked_picks
-    |> collapse_rankings(min_max_rank)
-    |> Helper.wrap_prepend(printer_tup)
+    {batches, num_batches} =
+      ranked_picks
+      |> collapse_rankings(min_max_rank)
+
+    {{printer_tup, batches}, max(max_num_batches, num_batches)}
   end
 
 ####################################### helpers ########################################

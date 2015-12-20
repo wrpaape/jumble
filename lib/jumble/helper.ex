@@ -2,7 +2,7 @@ defmodule Jumble.Helper do
   alias IO.ANSI
 
   @dict_sizes       Application.get_env(:jumble, :scowl_dict_sizes)
-  @num_dicts        Application.get_env(:jumble, :num_scowl_dicts)
+  @num_dicts        length(@dict_sizes)
   @intensity_colors ~w(cyan magenta red yellow green blue)a
 
   def string_id(string) do

@@ -1,5 +1,4 @@
 defmodule Jumble.Timer do
-  alias Jumble.Helper
   alias Jumble.Ticker
 
   @master_timeout 10_000

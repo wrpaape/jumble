@@ -4,15 +4,15 @@ defmodule Jumble do
   alias Jumble.BruteSolver
   alias Jumble.ScowlDict
 
-  # def report do
-  #   :process_count
-  #   |> :erlang.system_info
-  #   |> IO.puts    
-  # end
+  def report_processes do: :timer.apply_interval(10, __MODULE__, :report, [])
+  def report do
+    :process_count
+    |> :erlang.system_info
+    |> IO.puts    
+  end
 
   def process do
-    # 10
-    # |> :timer.apply_interval(__MODULE__, :report, [])
+    # report_processes
 
     NLP.report_tokens
     

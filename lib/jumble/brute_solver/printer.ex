@@ -2,13 +2,11 @@ defmodule Jumble.BruteSolver.Printer do
   alias IO.ANSI
   alias Jumble.Helper
 
-  # @table_colors ANSI.blue_background <> ANSI.yellow
-
   @header "\n\nBRUTE FORCE SOLUTIONS\n\n"
     |> Helper.cap(ANSI.underline, ANSI.no_underline)
     |> Helper.cap(ANSI.yellow, ANSI.blue_background)
 
-  @unjumbleds_joiner        ANSI.yellow <> "or"
+  @unjumbleds_joiner ANSI.yellow <> "or"
 
   @blank_lcap "║" <> ANSI.black_background
   @blank_rcap ANSI.blue_background <> "║"
@@ -31,7 +29,6 @@ defmodule Jumble.BruteSolver.Printer do
     |> Agent.start_link(:init, [final_length, letter_bank_length, unjumbleds_length], name: __MODULE__)
   end
 
-  # def print_solutions(sols, %{total: total, indivs: indivs, sol_groups: sol_groups}) do
   def print_solutions(time_elapsed, sols, max_group_size) do
     sols
     |> Enum.sort_by(&elem(&1, 1), &>=/2)
@@ -175,9 +172,6 @@ defmodule Jumble.BruteSolver.Printer do
 
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-  
-
-
 
   def ordered_and_split_sol_info(sol_info, lengths_tup, allocated_dims) do
     allocated_dims
@@ -191,7 +185,7 @@ defmodule Jumble.BruteSolver.Printer do
     end)
   end
 
-  def retreive_info({letter_bank, {[head_unjumbled | tail_unjumbleds], group_size}, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan, content_col_width}, rows_tup) do
+  def retreive_info({letter_bank, {[head_unjumbled | tail_unjumbleds], group_size}, sols}, {letter_bank_length, unjumbleds_length}, {num_content_cols, colspan}, rows_tup) do
     letter_bank_string =
       colspan
       |> - letter_bank_length
@@ -277,7 +271,7 @@ defmodule Jumble.BruteSolver.Printer do
     |> print_column(strings_per_col, [Enum.join(next_strings, " ") | acc_col])
   end
 
-  def allocate_dims(_counts, leftover_cols, col_width) when leftover_cols < 0, do: "not enough room!"
+  def allocate_dims(_counts, leftover_cols, _min_content_cols, _col_width) when leftover_cols < 0, do: "not enough room!"
 
   def allocate_dims(indiv_counts, total, leftover_cols, min_content_cols, col_width) do
     {indexed_indivs, {_last_index, next_leftover}} =
@@ -348,7 +342,11 @@ defmodule Jumble.BruteSolver.Printer do
         |> Tuple.delete_at(0)
         |> Tuple.append(empty_rows)
 
-      [{index, cols_tup, next_rows_tup} | acc]
+      next_cols_tup =
+        cols_tup
+        |> Tuple.delete_at(2)
+
+      [{index, next_cols_tup, next_rows_tup} | acc]
     end)
   end
 
