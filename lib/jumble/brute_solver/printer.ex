@@ -179,17 +179,16 @@ defmodule Jumble.BruteSolver.Printer do
   
 
   def split_pad_len_rem(rem_len, parts) do
-    {div, rem} = 
-      rem_len
-      |> Helper.div_rem(parts)
+    lpad_len = div(rem_len, parts)
+    rpad_len = rem(rem_len, parts) + lpad_len
 
-    {div, div + rem}
+    {lpad_len, rpad_len}
   end
 
   def split_pad_rem(rem_len) do
     {lpad_len, rpad_len} =
       rem_len
-      |> split_pad_len_rem(2)
+      |> Helper.split_pad_len_rem(2)
 
     {Helper.pad(lpad_len), Helper.pad(rpad_len)}
   end
@@ -227,7 +226,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     {cols_per_unjumbled, next_cols_per_unjumbled} =
       total_header_pad_cols
-      |> split_pad_len_rem(group_size)
+      |> Helper.split_pad_len_rem(group_size)
 
     head_seg =
       cols_per_unjumbled
