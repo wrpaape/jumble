@@ -7,6 +7,8 @@ defmodule Jumble.BruteSolver.Solver do
   alias Jumble.Helper
   alias Jumble.Helper.Stats
   alias Jumble.BruteSolver
+  alias Jumble.BruteSolver.Reporter
+  alias Jumble.BruteSolver.Printer
 
   @num_scowl_dicts Application.get_env(:jumble, :num_scowl_dicts)
   @rem_continues_key_path    ~w(sol_info rem_continues)a
@@ -38,7 +40,11 @@ defmodule Jumble.BruteSolver.Solver do
           |> BruteSolver.append_prompt_suffix(Integer.to_string(batch_index) <> ":\n\n ")
           |> BruteSolver.append_task_args([next_batch, dup_word_lists])
           |> Timer.time_sync
-          |> IO.inspect(pretty: :true, limit: :infinity)
+          # |> IO.inspect(pretty: :true, limit: :infinity)
+
+          uniq_word_lists
+          |> Printer.build_solution_table(max_group_size)
+          |> Reporter.print_with_time_elapsed(time_elapsed)
         
         :timer.sleep 3000
 

@@ -1,7 +1,16 @@
 defmodule Jumble.Ticker do
-  @default_tick_interval 100
-
   alias IO.ANSI
+  @default_tick_interval 100
+  @tick_colors ~w(red yellow green blue cyan magenta)a
+    |> Enum.map(&apply(ANSI, &1, []))
+  @ticks 3..5
+    |> Enum.concat([2])
+    |> Enum.flat_map(fn(level) ->
+      [level, level + 6]
+      |> Enum.map(&<<8590 + &1 :: utf8>>)
+    end)
+  @tick_list [@tick_colors, @ticks]
+
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -52,24 +61,5 @@ defmodule Jumble.Ticker do
 ####################################### helpers ########################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
-  defp tick_stream do
-    tick_colors
-    |> Stream.zip(ticks)
-  end
-
-  defp tick_colors do
-    ~w(red yellow green blue cyan magenta)a
-    |> Enum.map(&apply(ANSI, &1, []))
-    |> Stream.cycle
-  end
-
-  defp ticks do
-    3..5
-    |> Enum.concat([2])
-    |> Enum.flat_map(fn(level) ->
-      [level, level + 6]
-      |> Enum.map(&<<8590 + &1 :: utf8>>)
-    end)
-    |> Stream.cycle
-  end
+  defp tick_stream, do: apply(Stream, :zip, Enum.map(@tick_list, &Stream.cycle/1))
 end

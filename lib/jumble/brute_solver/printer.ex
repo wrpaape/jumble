@@ -32,18 +32,18 @@ defmodule Jumble.BruteSolver.Printer do
   end
 
   # def print_solutions(sols, %{total: total, indivs: indivs, sol_groups: sol_groups}) do
-  def print_solutions(sols, max_group_size) do
+  def build_solution_table(sols, max_group_size) do
     sols
     |> Enum.sort_by(&elem(&1, 3), &>=/2)
-    |> throttle_and_print(max_group_size, Agent.get(__MODULE__, & &1), @header)
+    |> throttle_and_build_table(max_group_size, Agent.get(__MODULE__, & &1), @header)
   end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
   
-  def throttle_and_print([], _max_group_size, _format_state, final_results), do: IO.write final_results
+  def throttle_and_build_table([], _max_group_size, _format_state, final_results), do: final_results
 
-  def throttle_and_print(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
+  def throttle_and_build_table(sols, max_group_size, format_state = {total_content_cols, col_width, min_content_cols, lengths_tup, pads_tup}, acc_results) do
     print_group_size =
       total_content_cols
       |> div(min_content_cols * max_group_size)
@@ -54,7 +54,7 @@ defmodule Jumble.BruteSolver.Printer do
 
     {sol_info, indiv_counts, total, leftover_cols} =
       next_sols
-      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds_tup, num_uniqs, results}, {sols, indiv_counts, total, leftover_cols})->
+      |> Enum.reduce({[], [], 0, total_content_cols}, fn({letter_bank, unjumbleds_tup, results}, {sols, indiv_counts, total, leftover_cols})->
 
         {[{letter_bank, unjumbleds_tup, results} | sols], [num_uniqs | indiv_counts], total + num_uniqs, leftover_cols - min_content_cols}
       end)
@@ -72,7 +72,7 @@ defmodule Jumble.BruteSolver.Printer do
       end)
 
     rem_sols
-    |> throttle_and_print(next_max_group_size, format_state, acc_results <> next_results)
+    |> throttle_and_build_table(next_max_group_size, format_state, acc_results <> next_results)
   end
 
   defp print_sol_group(allocated_dims, sol_info, lengths_tup, pads_tup) do

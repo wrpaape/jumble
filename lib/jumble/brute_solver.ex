@@ -48,7 +48,11 @@ defmodule Jumble.BruteSolver do
     |> GenServer.cast({:push_unjumbled, jumble, unjumbled, key_letters})
   end
 
-  def process, do: GenServer.cast(__MODULE__, :process)
+  def process do
+    __MODULE__
+    |> GenServer.call(:dump_jumble_maps)
+    |> process
+  end
 
 # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
 ##################################### external API #####################################
@@ -66,13 +70,16 @@ defmodule Jumble.BruteSolver do
     |> Helper.wrap_prepend(:noreply)
   end
 
-  def handle_cast(:process, jumble_maps) do
+  def handle_call(:dump_jumble_maps, _from, jumble_maps) do
+    {:stop, :normal, jumble_maps, jumble_maps}
+  end
+
+  def process(jumble_maps) do
     jumble_maps
     |> process_unjumbleds
     |> pick_valid_ids
     |> rank_picks
     |> Solver.solve
-    |> Helper.wrap_prepend(:noreply)
   end
 
 

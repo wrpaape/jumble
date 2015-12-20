@@ -10,32 +10,56 @@ defmodule Jumble.BruteSolver.Reporter do
   @color_size_tups Helper.color_size_tups(@default_color)
 
   @rankings_join ~w(┬ │ ┼ │ ┴)
-  @rankings_rcap ~w(┐ │ ┤ │ ┘) #|> Enum.map(&(&1 <> "\n"))
-  @rankings_lcap ~w(┌ │ ├ │ └) |> Enum.map(&(@nl_and_indent <> &1))
-    # |> List.update_at(0, &Helper.cap("\n", @default_color, &1))
+  @rankings_caps ~w(┌ │ ├ │ └)
+    |> Enum.map(&(@nl_and_indent <> &1))
+    |> Enum.zip(~w(┐ │ ┤ │ ┘))
   
-  @rankings_caps Enum.zip(@rankings_lcap, @rankings_rcap)
 
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def report_picks(num_uniqs, next_total, time_elapsed) do
-      [num_uniqs, next_total]
-      |> Enum.reduce({@unique_picks_prefix, ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
-        int
-        |> Integer.to_string
-        |> Helper.cap(lcap, rcap)
-        |> Helper.wrap_append(rest)
-      end)
-      |> elem(0)
-      |> print_with_time_elapsed(time_elapsed)
-    # [@nl_and_indent <> sols_counts, build_time_elapsed(time_elapsed)]
-    # |> Enum.reduce(&(&2 <> &1))
-    # |> Helper.cap(@default_color, "\n")
-    # |> IO.puts
+    [num_uniqs, next_total]
+    |> Enum.reduce({@unique_picks_prefix, ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
+      int
+      |> Integer.to_string
+      |> Helper.cap(lcap, rcap)
+      |> Helper.wrap_append(rest)
+    end)
+    |> elem(0)
+    |> print_with_time_elapsed(time_elapsed)
   end
 
-# ┼─  ┤ ├┌┐┘├└
+  def report_rankings(ranked_picks, total_picks, time_elapsed) do
+    ranked_picks
+    |> Enum.reduce(initial_tups(total_picks), fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
+      count
+      |> Integer.to_string
+      |> build_content_col(next_tup)
+      |> Enum.map_reduce({rows, @rankings_join}, fn(content, {[next_row | rem_rows], [next_join | rem_joins]})->
+        next_join
+        |> Helper.cap(next_row, content)
+        |> Helper.wrap_append({rem_rows, rem_joins})
+      end)
+      |> elem(0)
+      |> Helper.wrap_append(rem_tups)
+    end)
+    |> elem(0)
+    |> Enum.reduce({"", @rankings_caps}, fn(row, {table, [{lcap, rcap} | rem_caps]})->
+      row
+      |> Helper.cap(table <> lcap, rcap)
+      |> Helper.wrap_append(rem_caps)
+    end)
+    |> elem(0)
+    |> print_with_time_elapsed(time_elapsed)
+  end
+  
+  # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
+  ##################################### external API #####################################
+
+
+  ####################################### helpers ########################################
+  # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def print_with_time_elapsed(report, time_elapsed) do
     [report, build_time_elapsed(time_elapsed)]
@@ -75,38 +99,6 @@ defmodule Jumble.BruteSolver.Reporter do
     end)
     |> elem(0)
   end
-
-  def report_rankings(ranked_picks, total_picks, time_elapsed) do
-    ranked_picks
-    |> Enum.reduce(initial_tups(total_picks), fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
-      count
-      |> Integer.to_string
-      |> build_content_col(next_tup)
-      |> Enum.map_reduce({rows, @rankings_join}, fn(content, {[next_row | rem_rows], [next_join | rem_joins]})->
-        next_join
-        |> Helper.cap(next_row, content)
-        |> Helper.wrap_append({rem_rows, rem_joins})
-      end)
-      |> elem(0)
-      |> Helper.wrap_append(rem_tups)
-    end)
-    |> elem(0)
-    |> Enum.reduce({"", @rankings_caps}, fn(row, {table, [{lcap, rcap} | rem_caps]})->
-      row
-      |> Helper.cap(table <> lcap, rcap)
-      |> Helper.wrap_append(rem_caps)
-    end)
-    |> elem(0)
-    |> print_with_time_elapsed(time_elapsed)
-  end
-  
-  # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
-  ##################################### external API #####################################
-
-
-
-  ####################################### helpers ########################################
-  # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   defp build_time_elapsed(micro_sec) do
     {time, units} =
