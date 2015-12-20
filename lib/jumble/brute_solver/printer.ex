@@ -178,29 +178,7 @@ defmodule Jumble.BruteSolver.Printer do
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
   
 
-  def Helper.split_pad_len_rem(rem_len, parts) do
-    lpad_len = div(rem_len, parts)
-    rpad_len = rem(rem_len, parts) + lpad_len
 
-    {lpad_len, rpad_len}
-  end
-
-  def Helper.split_pad_rem(rem_len) do
-    {lpad_len, rpad_len} =
-      rem_len
-      |> Helper.split_pad_len_rem(2)
-
-    {Helper.pad(lpad_len), Helper.pad(rpad_len)}
-  end
-
-  def Helper.split_pad_rem_cap(rem_len, string) do
-    {lpad, rpad} =
-      rem_len
-      |> Helper.split_pad_rem
-
-    string
-    |> Helper.cap(lpad, rpad)
-  end
 
   def ordered_and_split_sol_info(sol_info, lengths_tup, allocated_dims) do
     allocated_dims
