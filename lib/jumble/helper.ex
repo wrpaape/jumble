@@ -4,7 +4,6 @@ defmodule Jumble.Helper do
   @dict_sizes       Application.get_env(:jumble, :scowl_dict_sizes)
   @num_dicts        Application.get_env(:jumble, :num_scowl_dicts)
   @intensity_colors ~w(cyan magenta red yellow green blue)a
-  @default_color    ANSI.white
 
   def string_id(string) do
     string
@@ -44,8 +43,17 @@ defmodule Jumble.Helper do
     {pad(lpad_len), pad(rpad_len)}
   end
 
-  def split_pad_rem_cap(rem_len, string) do
+  def split_pad_rem_ljust(rem_len, string) do
     {lpad, rpad} =
+      rem_len
+      |> split_pad_rem
+
+    string
+    |> cap(lpad, rpad)
+  end
+
+  def split_pad_rem_rjust(rem_len, string) do
+    {rpad, lpad} =
       rem_len
       |> split_pad_rem
 

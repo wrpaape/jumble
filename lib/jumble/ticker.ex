@@ -16,11 +16,11 @@ defmodule Jumble.Ticker do
     |> Agent.get(& &1)
     |> Process.exit(:kill)
 
-    ANSI.clear_line
-    |> IO.write
-
     __MODULE__
     |> Agent.stop
+
+    ANSI.clear_line
+    |> IO.write
   end
 
 

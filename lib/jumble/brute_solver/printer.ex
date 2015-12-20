@@ -196,7 +196,7 @@ defmodule Jumble.BruteSolver.Printer do
     letter_bank_string =
       colspan
       |> - letter_bank_length
-      |> Helper.split_pad_rem_cap(letter_bank)
+      |> Helper.split_pad_rem_ljust(letter_bank)
       
     header_cols = group_size * (unjumbleds_length + 3) - 2
 
@@ -208,14 +208,14 @@ defmodule Jumble.BruteSolver.Printer do
 
     head_seg =
       cols_per_unjumbled
-      |> Helper.split_pad_rem_cap(head_unjumbled)
+      |> Helper.split_pad_rem_ljust(head_unjumbled)
 
     unjumbleds_string =
       tail_unjumbleds
       |> Enum.reduce({head_seg, next_cols_per_unjumbled, cols_per_unjumbled}, fn(unjumbled, {unjumbleds_string, cols, next_cols})->
         unjumbled_string =
           cols
-          |> Helper.split_pad_rem_cap(unjumbled)
+          |> Helper.split_pad_rem_ljust(unjumbled)
 
         next_unjumbles_string =
           @unjumbleds_joiner

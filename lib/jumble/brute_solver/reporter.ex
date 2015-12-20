@@ -6,23 +6,14 @@ defmodule Jumble.BruteSolver.Reporter do
   @nl_and_indent "\n" <> @report_indent
   @default_color ANSI.white
   @color_size_tups Helper.color_size_tups(@default_color)
-  # @max_size_length Application.get_env(:jumble, :scowl_dict_sizes)
-  #   |> Enum.map(&byte_size/1)
-  #   |> Enum.max
 
-  @rankings_pads ~w(─   ─   ─)
   @rankings_join ~w(┬ │ ┼ │ ┴)
-  @rankings_rcap ~w(┐ │ ┤ │ ┘)
-    |> Enum.map(&(&1 <> "\n"))
-  @rankings_lcap [
-      "┌───────────────────────────",
-      "│ word frequency percentile ",
-      "├───────────────────────────",
-      "│        valid picks        ",
-      "└───────────────────────────"
-    ]
+  @rankings_lcap ~w(┌ │ ├ │ └)
     |> Enum.map(&(@report_indent <> &1))
     |> List.update_at(0, &Helper.cap("\n", @default_color, &1))
+  @rankings_rcap ~w(┐ │ ┤ │ ┘)
+    |> Enum.map(&(&1 <> "\n"))
+  @rankings_caps Enum.zip(@rankings_lcap, @rankings_rcap)
 
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -49,33 +40,46 @@ defmodule Jumble.BruteSolver.Reporter do
 
 # ┼─  ┤ ├┌┐┘├└
 
+
+
+  def initial_tups(total_picks) do
+    total_picks
+    |> Integer.to_string
+    |> Helper.cap("valid picks (", " total)")
+    |> build_content_col({"word frequency percentile", 25})
+    |> Helper.wrap_append(@color_size_tups)
+  end
+
+  def pads_tup(col_width) do
+    ~w(─ ─ ─)
+    |> Enum.map(&String.duplicate(&1, col_width))
+    |> Enum.split(1)
+  end
+
+  def build_content_col(bot_str, top_tup = {_top_str, top_str_len}) do
+    bot_str_len =
+      bot_str
+      |> byte_size
+
+    col_width = 
+      bot_str_len
+      |> max(top_str_len)
+      |> + 2
+
+    [{bot_str, bot_str_len}, top_tup]
+    |> Enum.reduce(pads_tup(col_width), fn({str, str_len}, {cols, [pad | rem_pads]})->
+      [pad | [Helper.split_pad_rem_rjust(col_width - str_len, str) | cols]]
+      |> Helper.wrap_append(rem_pads)
+    end)
+    |> elem(0)
+  end
+
   def report_rankings(ranked_picks, total_picks, time_elapsed) do
     ranked_picks
-    |> Enum.reduce({@rankings_lcap, @color_size_tups}, fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
-      count_str =
-        count
-        |> Integer.to_string
-      
-      count_str_len =
-        count_str
-        |> byte_size
-
-      col_width =
-        count_str_len
-        |> max(next_str_len)
-        |> + 2
-
-      pads =
-        @rankings_pads
-        |> Enum.map(&String.duplicate(&1, col_width))
-
-      
-      [{count_str, count_str_len}, next_tup]
-      |> Enum.reduce(Enum.split(pads, 1), fn({str, str_len}, {cols, [pad | rem_pads]})->
-        [pad | [Helper.split_pad_rem_cap(col_width - str_len, str) | cols]]
-        |> Helper.wrap_append(rem_pads)
-      end)
-      |> elem(0)
+    |> Enum.reduce(initial_tups(total_picks), fn({_dict_size, {_getters, _ids, count}}, {rows, [next_tup = {_next_color_size, next_str_len} | rem_tups]})->
+      count
+      |> Integer.to_string
+      |> build_content_col(next_tup)
       |> Enum.map_reduce({rows, @rankings_join}, fn(content, {[next_row | rem_rows], [next_join | rem_joins]})->
         next_join
         |> Helper.cap(next_row, content)
@@ -85,12 +89,14 @@ defmodule Jumble.BruteSolver.Reporter do
       |> Helper.wrap_append(rem_tups)
     end)
     |> elem(0)
-    |> Enum.reduce({"", @rankings_rcap}, fn(row, {table, [next_rcap | rem_rcaps]})->
+    |> Enum.reduce({"", @rankings_caps}, fn(row, {table, [{lcap, rcap} | rem_caps]})->
       row
-      |> Helper.cap(table, next_rcap)
-      |> Helper.wrap_append(rem_rcaps)
+      |> Helper.cap(table <> lcap, rcap)
+      |> Helper.wrap_append(rem_caps)
     end)
     |> elem(0)
+    # <> @nl_and_indent
+    # <> build_time_elapsed(time_elapsed)
     |> IO.puts
   end
   
