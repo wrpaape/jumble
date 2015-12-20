@@ -160,7 +160,7 @@ defmodule Jumble.BruteSolver.Printer do
     pads_tup =
       cols
       |> - content_cols_with_pad_and_borders
-      |> split_pad_rem
+      |> Helper.split_pad_rem
 
     min_col_width =
       letter_bank_length
@@ -178,14 +178,14 @@ defmodule Jumble.BruteSolver.Printer do
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
   
 
-  def split_pad_len_rem(rem_len, parts) do
+  def Helper.split_pad_len_rem(rem_len, parts) do
     lpad_len = div(rem_len, parts)
     rpad_len = rem(rem_len, parts) + lpad_len
 
     {lpad_len, rpad_len}
   end
 
-  def split_pad_rem(rem_len) do
+  def Helper.split_pad_rem(rem_len) do
     {lpad_len, rpad_len} =
       rem_len
       |> Helper.split_pad_len_rem(2)
@@ -193,10 +193,10 @@ defmodule Jumble.BruteSolver.Printer do
     {Helper.pad(lpad_len), Helper.pad(rpad_len)}
   end
 
-  def split_pad_rem_cap(rem_len, string) do
+  def Helper.split_pad_rem_cap(rem_len, string) do
     {lpad, rpad} =
       rem_len
-      |> split_pad_rem
+      |> Helper.split_pad_rem
 
     string
     |> Helper.cap(lpad, rpad)
@@ -218,7 +218,7 @@ defmodule Jumble.BruteSolver.Printer do
     letter_bank_string =
       colspan
       |> - letter_bank_length
-      |> split_pad_rem_cap(letter_bank)
+      |> Helper.split_pad_rem_cap(letter_bank)
       
     header_cols = group_size * (unjumbleds_length + 3) - 2
 
@@ -230,14 +230,14 @@ defmodule Jumble.BruteSolver.Printer do
 
     head_seg =
       cols_per_unjumbled
-      |> split_pad_rem_cap(head_unjumbled)
+      |> Helper.split_pad_rem_cap(head_unjumbled)
 
     unjumbleds_string =
       tail_unjumbleds
       |> Enum.reduce({head_seg, next_cols_per_unjumbled, cols_per_unjumbled}, fn(unjumbled, {unjumbleds_string, cols, next_cols})->
         unjumbled_string =
           cols
-          |> split_pad_rem_cap(unjumbled)
+          |> Helper.split_pad_rem_cap(unjumbled)
 
         next_unjumbles_string =
           @unjumbleds_joiner

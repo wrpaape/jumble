@@ -3,7 +3,6 @@ defmodule Jumble.Helper do
 
   @dict_sizes       Application.get_env(:jumble, :scowl_dict_sizes)
   @num_dicts        Application.get_env(:jumble, :num_scowl_dicts)
-  # @intensity_colors ~w(blue green yellow red magenta cyan)a
   @intensity_colors ~w(cyan magenta red yellow green blue)a
   @default_color    ANSI.white
 
@@ -30,7 +29,29 @@ defmodule Jumble.Helper do
     |> elem(0)
   end
 
-  def div_rem(dividend, divisor), do: {div(dividend, divisor), rem(dividend, divisor)}
+  def split_pad_len_rem(rem_len, parts) do
+    lpad_len = div(rem_len, parts)
+    rpad_len = rem(rem_len, parts) + lpad_len
+
+    {lpad_len, rpad_len}
+  end
+
+  def split_pad_rem(rem_len) do
+    {lpad_len, rpad_len} =
+      rem_len
+      |> split_pad_len_rem(2)
+
+    {pad(lpad_len), pad(rpad_len)}
+  end
+
+  def split_pad_rem_cap(rem_len, string) do
+    {lpad, rpad} =
+      rem_len
+      |> split_pad_rem
+
+    string
+    |> cap(lpad, rpad)
+  end
 
   def colorized_sizes do
     @intensity_colors
@@ -52,6 +73,7 @@ defmodule Jumble.Helper do
     |> Enum.flat_map(fn({color, count})->
       ANSI
       |> apply(color, [])
+      |> cap()
       |> List.duplicate(count)
     end)
     |> Enum.map_reduce(@dict_sizes, fn(color, [next_dict_size | rem_dict_sizes])->

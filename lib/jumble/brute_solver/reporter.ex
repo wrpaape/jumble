@@ -2,9 +2,15 @@ defmodule Jumble.BruteSolver.Reporter do
   alias IO.ANSI
   alias Jumble.Helper
 
-
   @report_indent   "\n" <> Helper.pad(4)
   @colorized_sizes Helper.colorized_sizes
+  # @max_size_length Application.get_env(:jumble, :scowl_dict_sizes)
+  #   |> Enum.map(&byte_size/1)
+  #   |> Enum.max
+
+  @rankings_rcap ~w(┐ │ ┤ │ ┘)
+  @rankings_lcap ~w(┌ │ ├ │ └)
+    |> Enum.map(&(@report_indent <> &1))
 
   ##################################### external API #####################################
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -29,8 +35,17 @@ defmodule Jumble.BruteSolver.Reporter do
     |> IO.puts
   end
 
-  def report_rankings(ranked_picks, total_picks, time_elapsed) do
+# ┼─  ┤ ├┌┐┘├└
 
+  def report_rankings(ranked_picks, total_picks, time_elapsed) do
+    ranked_picks
+    |> Enum.reduce({@rankings_lcap, @colorized_sizes}, fn({dict_size, {_getters, _ids, count}}, {lcap, [next_color_size | rem_color_sizes]})->
+      count_str =
+        count
+        |> Integer.to_string
+
+
+    end)
   end
   
   # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
