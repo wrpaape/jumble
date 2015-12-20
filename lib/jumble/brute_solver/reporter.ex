@@ -4,14 +4,15 @@ defmodule Jumble.BruteSolver.Reporter do
 
   @report_indent Helper.pad(4)
   @nl_and_indent "\n" <> @report_indent
+  @unique_picks_prefix @nl_and_indent <> "unique picks: "
+  @time_elapsed_prefix @nl_and_indent <> "time elapsed: "
   @default_color ANSI.white
   @color_size_tups Helper.color_size_tups(@default_color)
 
   @rankings_join ~w(┬ │ ┼ │ ┴)
-  @rankings_rcap ~w(┐ │ ┤ │ ┘) |> Enum.map(&(&1 <> "\n"))
-  @rankings_lcap ~w(┌ │ ├ │ └)
-    |> Enum.map(&(@report_indent <> &1))
-    |> List.update_at(0, &Helper.cap("\n", @default_color, &1))
+  @rankings_rcap ~w(┐ │ ┤ │ ┘) #|> Enum.map(&(&1 <> "\n"))
+  @rankings_lcap ~w(┌ │ ├ │ └) |> Enum.map(&(@nl_and_indent <> &1))
+    # |> List.update_at(0, &Helper.cap("\n", @default_color, &1))
   
   @rankings_caps Enum.zip(@rankings_lcap, @rankings_rcap)
 
@@ -19,28 +20,29 @@ defmodule Jumble.BruteSolver.Reporter do
   # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def report_picks(num_uniqs, next_total, time_elapsed) do
-    sols_counts =
       [num_uniqs, next_total]
-      |> Enum.reduce({"unique picks: ", ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
+      |> Enum.reduce({@unique_picks_prefix, ["/", " (picked/total)"]}, fn(int, {lcap, [rcap | rest]})->
         int
         |> Integer.to_string
         |> Helper.cap(lcap, rcap)
         |> Helper.wrap_append(rest)
       end)
       |> elem(0)
-    
-    [sols_counts, build_time_elapsed(time_elapsed)]
-    |> Enum.reduce(@nl_and_indent, fn(line, report)->
-      line
-      |> Helper.cap(report, @nl_and_indent)
-    end)
-    |> Helper.cap(@default_color, "\n")
-    |> IO.puts
+      |> print_with_time_elapsed(time_elapsed)
+    # [@nl_and_indent <> sols_counts, build_time_elapsed(time_elapsed)]
+    # |> Enum.reduce(&(&2 <> &1))
+    # |> Helper.cap(@default_color, "\n")
+    # |> IO.puts
   end
 
 # ┼─  ┤ ├┌┐┘├└
 
-
+  def print_with_time_elapsed(report, time_elapsed) do
+    [report, build_time_elapsed(time_elapsed)]
+    |> Enum.reduce(&(&2 <> &1))
+    |> Helper.cap(@default_color, "\n")
+    |> IO.puts
+  end
 
   def initial_tups(total_picks) do
     total_picks
@@ -95,9 +97,7 @@ defmodule Jumble.BruteSolver.Reporter do
       |> Helper.wrap_append(rem_caps)
     end)
     |> elem(0)
-    # <> @nl_and_indent
-    # <> build_time_elapsed(time_elapsed)
-    |> IO.puts
+    |> print_with_time_elapsed(time_elapsed)
   end
   
   # ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑#
@@ -115,7 +115,7 @@ defmodule Jumble.BruteSolver.Reporter do
 
     time
     |> Integer.to_string
-    |> Helper.cap("time elapsed: ", units)
+    |> Helper.cap(@time_elapsed_prefix, units)
   end
 
   defp time_with_units(micro_sec) when micro_sec < 1_000,     do: {micro_sec,                    " μs"}
