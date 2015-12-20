@@ -32,26 +32,57 @@ defmodule Jumble.Helper do
   def div_rem(dividend, divisor), do: {div(dividend, divisor), rem(dividend, divisor)}
 
   def colorized_sizes do
-    # intensity_colors = 
-    #   @intensity_colors
-    #   |> Enum.map(&apply(ANSI, &1, [])))
-    
-    length_colors =
-      intensity_colors
-      |> length
-
-    {inital_count, rem_counts} =
-      @num_dicts
-      |> div_rem(length_colors)
-
-
-    # leftover = @num_dicts - length_scale
-
-    intensity_colors
-    |> Enum.reduce({Map.new, 1}, fn(color, {color_map, index})->
-      color_map
-      |> Map.put(index, {color, inital_count})
+    @intensity_colors
+    |> List.foldr({[], @intensity_colors}, fn(from_rcap, {results, [from_lcap | rem_from_lcap]})->
+      {[from_rcap | [from_lcap | results]], rem_from_lcap}
     end)
+    |> elem(0)
+    |> Stream.cycle
+    |> Enum.reduce_while({Map.new, @num_dicts}, fn
+      (_color, {final_color_map, 0})->
+        final_color_map
+        |> wrap_prepend(:halt)
+      (color, {color_map, rem_counts})->
+        color_map
+        |> Map.update(color, 1, &(&1 + 1))
+        |> wrap_append(rem_counts - 1)
+        |> wrap_prepend(:cont)
+    end)
+    |> Enum.reduce(@dict_sizes)
+
+
+    end)
+      # {caps, next_rem_counts} =
+      #   [1, length_colors]
+      #   |> Enum.reduce_while({[], rem_counts}, fn
+      #     (_cap_color, results = {_acc_cap, 0})->  
+      #       {:halt, results}
+      #     (cap_color, {acc_cap, next_rem_counts})->
+      #       {[cap_color | acc_cap], next_rem_counts - 1}
+      #       |> wrap_prepend(:cont)
+      #   end)
+
+      {caps, next_rem_counts} =
+        [1, length_colors]
+        |> Enum.reduce_while({[], rem_counts}, fn
+          (_cap_color, results = {_acc_cap, 0})->  
+            {:halt, results}
+          (cap_color, {acc_cap, next_rem_counts})->
+            {[cap_color | acc_cap], next_rem_counts - 1}
+            |> wrap_prepend(:cont)
+        end)
+
+      caps
+      |> Enum.reduce(inital_color_map, fn(cap_index, color_map)->
+        color_map
+        |> Map.update!(cap_index, fn({color, count})->
+          {color, count + 1}
+        end)
+      end)
+
+
+    # |> Map.update!(1, fn({color, count})-> {color, count + 1})
+    # |> Map.update!(1, fn({color, count})-> {color, count + 1})
     # cond do
     #   leftover < 0 ->
     #     {left_of_mid, right_of_mid} =
