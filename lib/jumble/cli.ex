@@ -14,7 +14,7 @@ defmodule Jumble.CLI do
   # @argv_test ["how they described their work on the instruction book I'm starting the assembly chapter/6/5", "sobas/1/5", "galuh/1/2/3", "larmin/2/4/6", "ramaad/1/2/3"]
   # @argv_test ["would you like to hear our specials the only reason fido is allowed in a restaurant is because he is a/7/3", "sogeo/1/3/5", "farcs/1/2/4", "dulhed/4/6", "vitace/4/5"]
   # @argv_test ["don't worry, Stephan.  you're gonna win some and lose some. how could you forget my alibi?! A bad way for a lawyer to learn the criminal justice system./5/5", "laisa/2/3/4", "laurr/1/3", "bureek/1/2", "prouot/3/5/6"]
-  @argv_test ["what the starter said to my wife right before the couples piggyback race/2/4/4", "ragdu/2/3/4", "osmeo/1/2/3", "rulsye/3/6", "nerlke/1/4"]
+  # @argv_test ["what the starter said to my wife right before the couples piggyback race/2/4/4", "ragdu/2/3/4", "osmeo/1/2/3", "rulsye/3/6", "nerlke/1/4"]
   # @argv_test ["chewie's biggest worry isn't stormtroopers or sith lords it's/9", "tabae/1/2/3", "sahls/1/2", "errdah/1/3", "vidler/3/6"]
 
 
