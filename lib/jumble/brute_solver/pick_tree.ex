@@ -1,12 +1,17 @@
 defmodule Jumble.BruteSolver.PickTree do
   use GenServer
 
-  alias Jumble.ScowlDict
-  alias Jumble.BruteSolver.PickTree.Branch
-  alias Jumble.BruteSolver.PickTree.Picker
-  alias Jumble.Timer
-  alias Jumble.Helper
-  alias Jumble.Helper.Stats
+  alias Jumble.{ScowlDict,
+                BruteSolver.PickTree.Branch,
+                BruteSolver.PickTree.Picker,
+                Timer,
+                Helper,
+                Helper.Stats}
+
+
+
+
+
 
   @sol_lengths_tups_key_path ~w(sol_info sol_lengths_tups)a
 
@@ -99,23 +104,23 @@ defmodule Jumble.BruteSolver.PickTree do
 
   defp with_index_and_validator(lengths_tup) do
     lengths_tup
-    |> Enum.map_reduce(1, fn({length, length_str}, index) ->
+    |> Enum.map_reduce(1, fn({length_int, length_str}, index) ->
       valid_id? =
         length_str
         |> ScowlDict.safe_id_validator
 
-      {{index, length, valid_id?}, index + 1}
+      {{index, length_int, valid_id?}, index + 1}
     end)
     |> elem(0)
   end
 
   defp partition_dups_by_length(list) do
     list
-    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length, _valid_id?}, {uniqs, dups, uniq_vals})->
-      if Set.member?(uniq_vals, length) do
+    |> Enum.reduce({[], [], HashSet.new}, fn(pick = {_index, length_int, _valid_id?}, {uniqs, dups, uniq_vals})->
+      if Set.member?(uniq_vals, length_int) do
         {uniqs, [pick | dups], uniq_vals}
       else
-        {[pick | uniqs], dups, Set.put(uniq_vals, length)}
+        {[pick | uniqs], dups, Set.put(uniq_vals, length_int)}
       end
     end)
     |> Tuple.delete_at(2)

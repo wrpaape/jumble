@@ -18,8 +18,6 @@ defmodule Jumble.BruteSolver.Printer do
 
 # ┼─  ┤ ├┌┐┘├└
 # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
-#wewewe
-# ══════
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -281,13 +279,13 @@ defmodule Jumble.BruteSolver.Printer do
         
         leftover_cols_allocated = trunc(float)
 
-        trunc = float - leftover_cols_allocated
+        trunc_int = float - leftover_cols_allocated
 
         num_content_cols = leftover_cols_allocated + min_content_cols
 
         colspan = num_content_cols * col_width - 1
 
-        {{trunc, index, num_content_cols, colspan, count}, {index + 1, acc_trunc + trunc}}
+        {{trunc_int, index, num_content_cols, colspan, count}, {index + 1, acc_trunc + trunc_int}}
       end)
 
     {need_one_more, finalized} =
@@ -298,11 +296,11 @@ defmodule Jumble.BruteSolver.Printer do
     allocations =
       [{_index, _cols_tup, max_rowspan_tup} | _rest_allocations] =
         need_one_more
-        |> Enum.map(fn({trunc, index, num_content_cols, colspan, count})->
-          {trunc, index, num_content_cols + 1, colspan + col_width, count}
+        |> Enum.map(fn({trunc_int, index, num_content_cols, colspan, count})->
+          {trunc_int, index, num_content_cols + 1, colspan + col_width, count}
         end)
         |> Enum.concat(finalized)
-        |> Enum.map(fn({_trunc, index, num_content_cols, colspan, count})->
+        |> Enum.map(fn({_trunc_int, index, num_content_cols, colspan, count})->
           rows_tup = 
             num_content_cols
             |> rows_info(count)

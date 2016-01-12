@@ -1,10 +1,10 @@
 defmodule Jumble do
-  alias Jumble.Unjumbler
-  alias Jumble.NLP
-  alias Jumble.BruteSolver
-  alias Jumble.ScowlDict
+  alias __MODULE__.{Unjumbler,
+                    NLP,
+                    BruteSolver,
+                    ScowlDict}
 
-  def report_processes do: :timer.apply_interval(10, __MODULE__, :report, [])
+  def report_processes, do: :timer.apply_interval(10, __MODULE__, :report, [])
   def report do
     :process_count
     |> :erlang.system_info

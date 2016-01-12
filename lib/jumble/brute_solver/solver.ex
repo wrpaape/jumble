@@ -67,7 +67,7 @@ defmodule Jumble.BruteSolver.Solver do
     @continue_prompt
     |> IO.gets
     |> String.match?(~r/y/i)
-    |> unless do: System.halt(0)
+    |> unless(do: System.halt(0))
   end
   
   def prepare_next_batch(sol_groups) do

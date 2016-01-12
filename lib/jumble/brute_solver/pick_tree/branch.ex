@@ -1,6 +1,5 @@
 defmodule Jumble.BruteSolver.PickTree.Branch do
   alias Jumble.BruteSolver.PickTree
-  alias Jumble.ScowlDict
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
@@ -41,7 +40,7 @@ defmodule Jumble.BruteSolver.PickTree.Branch do
     end
   end
 
-  def handle_letters({_done, {id_index, valid_id?}, [], acc_ids}, letters, last_finished_id) do
+  def handle_letters({_done, {id_index, valid_id?}, [], acc_ids}, _letters, last_finished_id) do
     if valid_id?.(last_finished_id) do
       [{id_index, last_finished_id} | acc_ids]
       |> Enum.sort
