@@ -2,12 +2,12 @@ defmodule Jumble.BruteSolver.Solver do
   use GenServer
 
   alias IO.ANSI
-  alias Jumble.Timer
-  alias Jumble.Helper
-  alias Jumble.Helper.Stats
-  alias Jumble.BruteSolver
-  alias Jumble.BruteSolver.Printer
-  alias Jumble.BruteSolver.Reporter
+  alias Jumble.{Timer,
+                Helper,
+                Helper.Stats,
+                BruteSolver,
+                BruteSolver.Printer,
+                BruteSolver.Reporter}
 
   @rem_continues_key_path    ~w(sol_info rem_continues)a
 
@@ -32,30 +32,36 @@ defmodule Jumble.BruteSolver.Solver do
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def solve({sol_groups, num_batches}, dup_word_lists \\ HashSet.new, batch_index \\ 1) do
+  {next_batch, rem_sol_groups} =
     sol_groups
     |> prepare_next_batch
-    |> case do
-      {[], []} -> 
-        IO.puts "done"
 
-      {next_batch, rem_sol_groups} ->
-        prompt_suffix =
-          batch_index
-          |> build_prompt_suffix(num_batches)
+    prompt_suffix =
+      batch_index
+      |> build_prompt_suffix(num_batches)
 
-        {time_elapsed, {uniq_word_lists, max_group_size, next_dup_word_lists}} =
-          @process_timer_opts
-          |> BruteSolver.append_prompt_suffix(prompt_suffix)
-          |> BruteSolver.append_task_args([next_batch, dup_word_lists])
-          |> Timer.time_sync
+    {time_elapsed, {uniq_word_lists, max_group_size, next_dup_word_lists}} =
+      @process_timer_opts
+      |> BruteSolver.append_prompt_suffix(prompt_suffix)
+      |> BruteSolver.append_task_args([next_batch, dup_word_lists])
+      |> Timer.time_sync
 
-          time_elapsed
-          |> Reporter.build_time_elapsed
-          |> Printer.print_solutions(uniq_word_lists, max_group_size)
-        
-        request_continue
+      time_elapsed
+      |> Reporter.build_time_elapsed
+      |> Printer.print_solutions(uniq_word_lists, max_group_size)
+    
+    if batch_index == num_batches do
+      "\n\ndone\n"
+      |> Helper.cap(ANSI.cyan,  ANSI.clear_line)
+      |> Helper.cap(ANSI.reset)
+      |> IO.write
 
-        solve({rem_sol_groups, num_batches}, next_dup_word_lists, batch_index + 1)
+      System.halt(0)
+    else
+      request_continue
+
+      {rem_sol_groups, num_batches}
+      |> solve(next_dup_word_lists, batch_index + 1)
     end
   end
 

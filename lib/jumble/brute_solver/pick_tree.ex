@@ -8,11 +8,6 @@ defmodule Jumble.BruteSolver.PickTree do
                 Helper,
                 Helper.Stats}
 
-
-
-
-
-
   @sol_lengths_tups_key_path ~w(sol_info sol_lengths_tups)a
 
 ##################################### external API #####################################
