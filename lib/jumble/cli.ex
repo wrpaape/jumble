@@ -16,7 +16,7 @@ defmodule Jumble.CLI do
   # @argv_test ["don't worry, Stephan.  you're gonna win some and lose some. how could you forget my alibi?! A bad way for a lawyer to learn the criminal justice system./5/5", "laisa/2/3/4", "laurr/1/3", "bureek/1/2", "prouot/3/5/6"]
   # @argv_test ["what the starter said to my wife right before the couples piggyback race/2/4/4", "ragdu/2/3/4", "osmeo/1/2/3", "rulsye/3/6", "nerlke/1/4"]
   # @argv_test ["chewie's biggest worry isn't stormtroopers or sith lords it's/9", "tabae/1/2/3", "sahls/1/2", "errdah/1/3", "vidler/3/6"]
-  @argv_test ["he was hoping his mother-in-law would be leaving today, but she had. We'd better hurry or you'll miss your plane.  I'm not finished visiting my daughter./7/5", "cripe/1/2/5", "ganyt/1/4/5", "swomid/1/2/5", "heskna/1/3/6"]
+  @argv_test ["he was hoping his mother-in-law would be leaving today, but she had. we'd better hurry or you'll miss your plane.  I'm not finished visiting my daughter./7/5", "cripe/1/2/5", "ganyt/1/4/5", "swomid/1/2/5", "heskna/1/3/6"]
 
 
   # ./jumble "you're beautiful.  would you model for me? Absolutely! I'd love to. when the artist asked to make a stone likeness of her, she said"/6/4 emaco/1/4 smurt/1/2/3 plitup/1/2/3 suhaqs/1/3

@@ -32,9 +32,9 @@ defmodule Jumble.BruteSolver.Solver do
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
 
   def solve({sol_groups, num_batches}, dup_word_lists \\ HashSet.new, batch_index \\ 1) do
-  {next_batch, rem_sol_groups} =
-    sol_groups
-    |> prepare_next_batch
+    {next_batch, rem_sol_groups} =
+      sol_groups
+      |> prepare_next_batch
 
     prompt_suffix =
       batch_index
@@ -51,12 +51,7 @@ defmodule Jumble.BruteSolver.Solver do
       |> Printer.print_solutions(uniq_word_lists, max_group_size)
     
     if batch_index == num_batches do
-      "\n\ndone\n"
-      |> Helper.cap(ANSI.cyan,  ANSI.clear_line)
-      |> Helper.cap(ANSI.reset)
-      |> IO.write
-
-      System.halt(0)
+      print_exit
     else
       request_continue
 
@@ -73,7 +68,16 @@ defmodule Jumble.BruteSolver.Solver do
     @continue_prompt
     |> IO.gets
     |> String.match?(~r/y/i)
-    |> unless(do: System.halt(0))
+    |> unless(do: print_exit)
+  end
+
+  def print_exit do
+    "\n\ndone\n"
+    |> Helper.cap(ANSI.cyan, ANSI.clear_line)
+    |> Helper.cap(ANSI.reset)
+    |> IO.write
+
+    System.halt(0)
   end
   
   def prepare_next_batch(sol_groups) do
