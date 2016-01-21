@@ -9,12 +9,19 @@ defmodule Jumble.BruteSolver.Solver do
                 BruteSolver.Printer,
                 BruteSolver.Reporter}
 
-  @rem_continues_key_path    ~w(sol_info rem_continues)a
+  @rem_continues_key_path ~w(sol_info rem_continues)a
 
-  @report_color  ANSI.white
+  @report_color    ANSI.white
   # @report_indent Helper.pad(4)
   # @done_prompt @report_color
   #   |> Helper.cap(@report_indent, "done")
+  
+  @no_sol_prompt """
+    *****************************
+    * NO VALID ENGLISH SOLUTION *
+    *****************************
+    """
+    |> Helper.cap("\n\n\n" <> ANSI.red <> ANSI.blink_slow, ANSI.reset)
 
   @continue_prompt "\n\n    continue? (y/n)\n    "
     |> Helper.cap(ANSI.green, ANSI.blink_slow)
@@ -30,6 +37,13 @@ defmodule Jumble.BruteSolver.Solver do
 
 ##################################### external API #####################################
 # ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
+
+  def solve({[], 0}) do
+    @no_sol_prompt
+    |> IO.write
+
+    print_exit
+  end
 
   def solve({sol_groups, num_batches}, dup_word_lists \\ HashSet.new, batch_index \\ 1) do
     {next_batch, rem_sol_groups} =

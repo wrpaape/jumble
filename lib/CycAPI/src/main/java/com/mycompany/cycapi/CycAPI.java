@@ -1,3 +1,6 @@
+
+package com.mycompany.cycapi;
+
 import com.cyc.kb.BinaryPredicate;
 import com.cyc.kb.BinaryPredicateFactory;
 import com.cyc.kb.Context;
@@ -45,6 +48,7 @@ import com.cyc.session.spi.SessionManager;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
 
 /*
  * #%L
@@ -167,8 +171,9 @@ public class CycAPI {
      in a try-with-resources statement (Java 7 and later) ensures that the session will be cleaned 
      up at the end of the current execution thread.
      */
+
+    
     try (CycSession session = CycSessionManager.getCurrentSession()) {
-      
       configureCurrentSession();
       
       setupContexts();
@@ -283,6 +288,9 @@ public class CycAPI {
      */
     CycSessionManager.getCurrentSession().getOptions().setDefaultContext(
             ContextFactory.getDefaultContext(massMediaDataMt, ContextFactory.INFERENCE_PSC));
+    // CycSessionManager.getCurrentSession().getOptions().setDefaultContext(
+    //     ContextFactory.getDefaultContext(ContextFactory.UV_MT, ContextFactory.INFERENCE_PSC)
+    // );
   }
   
   /**

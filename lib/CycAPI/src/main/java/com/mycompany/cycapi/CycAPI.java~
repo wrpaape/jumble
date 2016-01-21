@@ -49,7 +49,7 @@ import java.util.List;
 /*
  * #%L
  * File: CycAPI.java
- * Project: Core API Use Cases
+ * Project: Cyc API
  * %%
  * Copyright (C) 1995 - 2014 Cycorp, Inc
  * %%
@@ -167,8 +167,9 @@ public class CycAPI {
      in a try-with-resources statement (Java 7 and later) ensures that the session will be cleaned 
      up at the end of the current execution thread.
      */
+
+    
     try (CycSession session = CycSessionManager.getCurrentSession()) {
-      
       configureCurrentSession();
       
       setupContexts();
@@ -283,6 +284,9 @@ public class CycAPI {
      */
     CycSessionManager.getCurrentSession().getOptions().setDefaultContext(
             ContextFactory.getDefaultContext(massMediaDataMt, ContextFactory.INFERENCE_PSC));
+    // CycSessionManager.getCurrentSession().getOptions().setDefaultContext(
+    //     ContextFactory.getDefaultContext(ContextFactory.UV_MT, ContextFactory.INFERENCE_PSC)
+    // );
   }
   
   /**

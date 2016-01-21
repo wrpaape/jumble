@@ -7,7 +7,7 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
   def start_next_id({rem_letters, id_length, branch_pid}) do
     {initial_valid_picks, initial_downstream_picks} =
       rem_letters
-      |> Enum.split(1 - id_length)
+      |> Enum.split(length(rem_letters) - (id_length - 1))
 
     __MODULE__
     |> spawn(:pick_letters, [{initial_valid_picks, initial_downstream_picks, []}, branch_pid])
@@ -28,24 +28,11 @@ defmodule Jumble.BruteSolver.PickTree.Picker do
 
   def pick_letters({valid_picks, [valid_next | rem_downstream_picks], acc_letters}, branch_pid) do
     valid_picks
-    |> map_picks_with_next_valid_picks(valid_next)
-    |> Enum.each(fn({pick, next_valid_picks}) ->
+    |> Enum.reduce(List.insert_at(valid_picks, -1, valid_next), fn(_pick, [pick | next_valid_picks]) ->
       __MODULE__
       |> spawn(:pick_letters, [{next_valid_picks, rem_downstream_picks, [pick | acc_letters]}, branch_pid])
-    end)
-  end
 
-####################################### helpers ########################################
-# ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓#
-
-  defp map_picks_with_next_valid_picks(valid_picks, valid_next) do
-    intial_picks_acc =
-      valid_picks
-      |> List.insert_at(-1, valid_next)
- 
-    valid_picks
-    |> Enum.scan({nil, intial_picks_acc}, fn(pick, {_last_pick, last_pick_acc}) ->
-      {pick, tl(last_pick_acc)}
+      next_valid_picks
     end)
   end
 end
